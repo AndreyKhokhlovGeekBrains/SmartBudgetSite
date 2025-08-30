@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "ecmel.vscode-html-css",
+    "Zignd.html-css-class-completion",
+    "ritwickdey.liveserver",
+    "esbenp.prettier-vscode",
+    "formulahendry.auto-rename-tag",
+    "naumovs.color-highlight"
+  ]
+}

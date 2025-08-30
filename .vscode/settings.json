@@ -1,0 +1,12 @@
+{
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "files.autoSave": "afterDelay",
+  "files.associations": {
+    "*.html": "html",
+    "*.css": "css"
+  },
+  "liveServer.settings.port": 5500,
+  "prettier.singleQuote": true,
+  "prettier.trailingComma": "es5"
+}
