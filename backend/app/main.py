@@ -23,7 +23,7 @@ def create_app() -> FastAPI:
     origins = [o.strip() for o in settings.BACKEND_CORS_ORIGINS.split(",") if o.strip()]
     if settings.APP_ENV == "dev" and not origins:
         origins = ["*"]
-    app.add_middleware(
+    application.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
         allow_credentials=True,
@@ -32,23 +32,27 @@ def create_app() -> FastAPI:
     )
 
     # Static & templates
-    app.mount("/static", StaticFiles(directory="app/static"), name="static")
+    application.mount("/static", StaticFiles(directory="app/static"), name="static")
     templates = Jinja2Templates(directory="app/templates")
 
-    @app.get("/", response_class=HTMLResponse)
+    @application.get("/", response_class=HTMLResponse)
     async def index(request: Request):
         return templates.TemplateResponse(
             "index.html",
             {"request": request, "app_name": settings.APP_NAME, "env": settings.APP_ENV},
         )
 
-    @app.get("/products", response_class=HTMLResponse)
+    @application.get("/products", response_class=HTMLResponse)
     async def products(request: Request):
         return templates.TemplateResponse("products.html", {"request": request})
 
     # API v1
-    app.include_router(v1_router)
+    application.include_router(v1_router)
 
-    return app
+    return application
 
 app = create_app()
+
+
+# *** *** ***
+# uvicorn app.main:app --reload
