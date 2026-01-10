@@ -1,10 +1,57 @@
 {% extends "base.html" %}
 
 {% block title %}
-SmartBudget — About
+Andrey Khokhlov
 {% endblock %}
 
 {% block content %}
-<h1>Обо мне</h1>
-<p>Это будет презентабельная страничка обо мне.</p>
+<section class="hero">
+  <div class="hero-photo">
+    <img src="/static/img/me.jpg" alt="Andrey Khokhlov" />
+  </div>
+
+  <div class="hero-text">
+    <h1>{{ t("about_h1") }}</h1>
+
+    <div class="hero-bullets">
+      <ul class="bullets">
+        <li>{{ t("about_b1") }}</li>
+        <li>{{ t("about_b2") }}</li>
+        <li>{{ t("about_b3") }}</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="hero-text-full">
+  <p class="lead">{{ t("about_p") }}</p>
+  <p class="lead">{{ t("about_p2") }}</p>
+  <p class="lead">{{ t("about_p3") }}</p>
+</section>
+
+<section class="features">
+  <h2>{{ t("features_h2") }}</h2>
+
+  <div class="features-grid">
+    <div class="feature">
+      <img src="/static/img/analytics.svg" alt="Analytics">
+      <h3>{{ t("feature_1_h") }}</h3>
+      <p>{{ t("feature_1_p") }}</p>
+    </div>
+
+    <div class="feature">
+      <img src="/static/img/automation.svg" alt="Automation">
+      <h3>{{ t("feature_2_h") }}</h3>
+      <p>{{ t("feature_2_p") }}</p>
+    </div>
+
+    <div class="feature">
+      <img src="/static/img/product.svg" alt="Products">
+      <h3>{{ t("feature_3_h") }}</h3>
+      <p>{{ t("feature_3_p") }}</p>
+    </div>
+  </div>
+</section>
+
 {% endblock %}
+

@@ -7,6 +7,7 @@ from fastapi.templating import Jinja2Templates
 from .core.config import settings
 from .core.logging import setup_logging
 from .api.v1.routes import router as v1_router
+from .core.i18n import get_lang, set_lang_cookie, t
 
 def create_app() -> FastAPI:
     setup_logging()
@@ -37,14 +38,32 @@ def create_app() -> FastAPI:
 
     @application.get("/", response_class=HTMLResponse)
     async def index(request: Request):
-        return templates.TemplateResponse(
+        lang = get_lang(request)
+        response = templates.TemplateResponse(
             "index.html",
-            {"request": request, "app_name": settings.APP_NAME, "env": settings.APP_ENV},
+            {
+                "request": request,
+                "lang": lang,
+                "t": lambda k: t(lang, k),
+                "app_name": settings.APP_NAME,
+                "env": settings.APP_ENV,
+            },
         )
+        # If user explicitly changed language via ?lang=..., persist it
+        if (request.query_params.get("lang") or "").lower() in {"en", "ru"}:
+            set_lang_cookie(response, lang)
+        return response
 
     @application.get("/products", response_class=HTMLResponse)
     async def products(request: Request):
-        return templates.TemplateResponse("products.html", {"request": request})
+        lang = get_lang(request)
+        response = templates.TemplateResponse(
+            "products.html",
+            {"request": request, "lang": lang, "t": lambda k: t(lang, k)},
+        )
+        if (request.query_params.get("lang") or "").lower() in {"en", "ru"}:
+            set_lang_cookie(response, lang)
+        return response
 
     # API v1
     application.include_router(v1_router)
