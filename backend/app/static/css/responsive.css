@@ -1,0 +1,298 @@
+/* responsive.css — mobile-first baseline */
+
+/* ---- Design tokens ---- */
+:root {
+  --container-max: 1100px;
+  --gutter: 16px;
+  --radius: 16px;
+
+  --fs-base: 16px;
+  --fs-h1: 28px;
+  --fs-h2: 22px;
+  --lh: 1.5;
+}
+
+/* iPad / tablets */
+@media (min-width: 768px) {
+  :root {
+    --gutter: 24px;
+    --fs-h1: 36px;
+    --fs-h2: 26px;
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 28px;
+    --fs-h1: 44px;
+    --fs-h2: 30px;
+  }
+}
+
+/* ---- Global defaults ---- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: var(--fs-base);
+}
+
+body {
+  margin: 0;
+  line-height: var(--lh);
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ---- Layout helpers ---- */
+.container {
+  width: min(var(--container-max), calc(100% - (var(--gutter) * 2)));
+  margin-inline: auto;
+}
+
+/* Helps prevent horizontal scroll caused by long words/URLs */
+.prose {
+  overflow-wrap: anywhere;
+}
+
+/* ---- Header / Nav baseline ---- */
+.site-header {
+  padding: 12px 0;
+}
+
+.site-header .header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.site-nav {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap; /* on small screens links can wrap */
+}
+
+.site-nav a {
+  text-decoration: none;
+  display: inline-flex;
+  padding: 8px 10px;
+  border-radius: 10px;
+}
+
+/* ---- Hero baseline (stack on mobile) ---- */
+.hero {
+  padding: 4px 0;
+}
+
+.hero .hero-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+  align-items: center;
+}
+
+@media (min-width: 768px) {
+  .hero {
+    padding: 40px 0;
+  }
+
+  .hero .hero-grid {
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 24px;
+  }
+}
+
+.hero h1 {
+  font-size: var(--fs-h1);
+  margin: 0 0 10px 0;
+}
+
+.hero h2 {
+  font-size: var(--fs-h2);
+  margin: 0 0 10px 0;
+}
+
+/* ---- Cards / feature blocks baseline ---- */
+.cards-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+@media (min-width: 768px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .cards-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+}
+
+.card {
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+/* =========================
+   Mobile (<= 767px)
+   ========================= */
+@media (max-width: 767px) {
+  /* Header: mobile layout */
+  .site-header .header-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  /* Nav goes first */
+  .site-header .nav {
+    order: 1;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* Brand goes below */
+  .site-header .brand {
+    order: 2;
+    text-align: center;
+    font-weight: 600;
+  }
+}
+
+@media (max-width: 767px) {
+  .site-header .brand {
+    display: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero-name {
+    margin-top: 6px;
+    margin-bottom: 6px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 28px; /* как h1 'Обо мне' */
+    color: #111;
+    display: block;
+  }
+}
+
+@media (max-width: 767px) {
+  .site-header {
+    padding: 6px 0;
+  }
+
+  .site-header .nav {
+    gap: 10px;
+  }
+
+  .site-header .nav-link {
+    padding: 6px 8px;
+    font-size: 14px;
+  }
+
+  .nav-sep {
+    margin: 0 4px;
+  }
+
+  .header-row {
+    height: 34px;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero {
+    gap: 0;
+  }
+}
+
+@media (max-width: 767px) {
+  main.container {
+    padding-top: 4px;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero-text-full {
+    margin-bottom: 4px;
+  }
+}
+
+@media (max-width: 767px) {
+  .features h2 {
+    margin-bottom: 10px;
+  }
+
+  .lead {
+    font-size: 16px;
+  }
+}
+
+/* Extra small phones */
+@media (max-width: 375px) {
+  .features h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+}
+
+/* =========================
+   Tablet (768px–1023px)
+   ========================= */
+@media (min-width: 768px) and (max-width: 1023px) {
+  main.container {
+    padding-top: 4px;
+  }
+
+  .hero {
+    padding: 4px 0;
+  }
+
+  .hero-name {
+    display: none;
+  }
+
+  .hero-text-full {
+    margin-bottom: 8px;
+  }
+}
+
+/* >= 768px: hide hero name (keep it mobile-only) */
+@media (min-width: 768px) {
+  .hero-name {
+    display: none;
+  }
+}
+
+/* Desktop / wide */
+@media (min-width: 917px) {
+  .bullets {
+    font-size: 18px;
+    line-height: 1.6;
+  }
+}
+
+@media (max-width: 320px){
+  .site-header .nav-link{
+    font-size: 12px;
+    padding: 4px 6px;
+  }
+
+  .nav-sep{
+    padding: 0 2px;
+  }
+}

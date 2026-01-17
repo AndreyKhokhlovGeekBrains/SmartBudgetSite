@@ -1,7 +1,9 @@
 /* === Modern CSS Reset (minimal & safe) === */
 
 /* Use a more intuitive box-sizing model */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -21,44 +23,65 @@ body {
 }
 
 /* Media elements behave predictably */
-img, picture, video, canvas, svg {
+img,
+picture,
+video,
+canvas,
+svg {
   display: block;
   max-width: 100%;
 }
 
 /* Inherit fonts for form elements */
-input, button, textarea, select {
+input,
+button,
+textarea,
+select {
   font: inherit;
 }
 
 /* Avoid text overflows */
-p, h1, h2, h3, h4, h5, h6 {
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   overflow-wrap: break-word;
 }
 
-/* Main layout container */
+/* === Layout === */
+
 main {
   max-width: 980px;
   margin: 0 auto;
   padding: 32px 20px;
   background: #fff;
-  /* min-height: 100vh;*/
+  /* min-height: 100vh; */
 }
-/* === Header / Nav === */
+
 .container {
   max-width: 980px;
   margin: 0 auto;
   padding: 0 20px;
 }
 
+/* Make main area look consistent */
+main.container {
+  padding-top: 24px;
+  padding-bottom: 32px;
+}
+
+/* === Header / Nav === */
+
 .site-header {
-  text-decoration: none;
   position: sticky;
   top: 0;
+  z-index: 10;
   background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
   border-bottom: 1px solid #e6e6e8;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
-  z-index: 10;
 }
 
 .header-row {
@@ -71,6 +94,15 @@ main {
 .brand {
   font-weight: 600;
   letter-spacing: 0.2px;
+}
+
+/* Brand link: fixed color, no state changes */
+.site-header .brand,
+.site-header .brand:visited,
+.site-header .brand:hover,
+.site-header .brand:active {
+  color: #111;
+  text-decoration: none;
 }
 
 .nav {
@@ -96,21 +128,6 @@ main {
   text-decoration: underline;
 }
 
-/* Brand link: fixed color, no state changes */
-.site-header .brand,
-.site-header .brand:visited,
-.site-header .brand:hover,
-.site-header .brand:active {
-  color: #111;
-  text-decoration: none;
-}
-
-/* Make main area look consistent */
-main.container {
-  padding-top: 24px;
-  padding-bottom: 32px;
-}
-
 .nav-sep {
   display: inline-flex;
   align-items: center;
@@ -120,6 +137,7 @@ main.container {
 }
 
 /* === About hero === */
+
 .hero {
   display: grid;
   grid-template-columns: 320px 1fr;
@@ -131,13 +149,12 @@ main.container {
 .hero-photo img {
   width: 100%;
   border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
 }
 
 .hero-text {
-  margin-top: 10px;
+  align-self: center;
 }
-
 
 .lead {
   margin-top: 10px;
@@ -145,7 +162,7 @@ main.container {
   color: #333;
 }
 
-./* Bullets on the right of photo */
+/* Bullets on the right of photo */
 .hero-bullets {
   padding-top: 8px;
 }
@@ -174,61 +191,14 @@ main.container {
   .hero {
     grid-template-columns: 1fr;
   }
+
   .hero-photo img {
     max-width: 320px;
   }
 }
 
-/* === Footer === */
-.site-footer {
-  border-top: 1px solid #e6e6e8;
-  background: #fafafa;
-  margin-top: 28px;
-}
-
-.footer-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 18px 10px;
-}
-
-.muted {
-  color: rgba(0, 0, 0, 0.55);
-}
-
-.footer-right {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-}
-
-.footer-link img {
-  width: 22px;
-  height: 22px;
-  opacity: 0.7;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-
-.footer-link:hover img {
-  opacity: 1;
-  transform: translateY(-1px);
-}
-
-@media (max-width: 700px) {
-  .footer-row {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-.hint {
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.55);
-}
-
 /* === Features section === */
+
 .features {
   margin-top: 10px;
   padding-top: 10px;
@@ -274,3 +244,52 @@ main.container {
   }
 }
 
+/* === Footer === */
+
+.site-footer {
+  margin-top: 28px;
+  background: #fafafa;
+  border-top: 1px solid #e6e6e8;
+}
+
+.footer-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 10px;
+}
+
+.footer-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.muted {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.hint {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.footer-link img {
+  width: 22px;
+  height: 22px;
+  opacity: 0.7;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.footer-link:hover img {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+@media (max-width: 700px) {
+  .footer-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

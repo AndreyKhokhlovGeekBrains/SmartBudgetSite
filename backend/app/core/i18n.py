@@ -11,6 +11,7 @@ COOKIE_NAME: Final[str] = "sb_lang"
 
 TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
     "en": {
+        "brand_name": "Andrey Khokhlov",
         "nav_about": "About",
         "nav_products": "Products",
         "about_h1": "About me",
@@ -58,6 +59,7 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
 
     },
     "ru": {
+        "brand_name": "Андрей Хохлов",
         "nav_about": "Обо мне",
         "nav_products": "Продукты",
         "about_h1": "Обо мне",
