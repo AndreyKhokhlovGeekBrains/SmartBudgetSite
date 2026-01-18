@@ -31,7 +31,17 @@ PRODUCTS: List[Product] = [
 
 
 def products_index() -> List[Dict]:
-    return [p.__dict__ for p in PRODUCTS]
+    # return [p.__dict__ for p in PRODUCTS]
+    return [
+        {
+            "slug": p.slug,
+            "title_key": p.title_key,
+            "subtitle_key": p.subtitle_key,
+            "highlights_keys": p.highlights_keys,
+            "cta_key": p.cta_key,
+        }
+        for p in PRODUCTS
+    ]
 
 
 def product_by_slug(slug: str) -> Product | None:

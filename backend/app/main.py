@@ -3,6 +3,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from app.products_catalog import products_index
+from fastapi import HTTPException
+from app.products_catalog import product_by_slug
 
 from .core.config import settings
 from .core.logging import setup_logging
@@ -59,11 +62,32 @@ def create_app() -> FastAPI:
         lang = get_lang(request)
         response = templates.TemplateResponse(
             "products.html",
-            {"request": request, "lang": lang, "t": lambda k: t(lang, k)},
+            {
+                "request": request,
+                "lang": lang,
+                "t": lambda k: t(lang, k),
+                "products": products_index(),
+            },
         )
         if (request.query_params.get("lang") or "").lower() in {"en", "ru"}:
             set_lang_cookie(response, lang)
         return response
+
+
+    @application.get("/products/{slug}", response_class=HTMLResponse)
+    async def product_detail(request: Request, slug: str):
+        lang = get_lang(request)
+        product = product_by_slug(slug)
+        if not product:
+            raise HTTPException(status_code=404)
+        response = templates.TemplateResponse(
+            "product_detail.html",
+            {"request": request, "lang": lang, "t": lambda k: t(lang, k), "product": product},
+        )
+        if (request.query_params.get("lang") or "").lower() in {"en", "ru"}:
+            set_lang_cookie(response, lang)
+        return response
+
 
     # API v1
     application.include_router(v1_router)

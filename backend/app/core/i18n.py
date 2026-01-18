@@ -16,6 +16,7 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "nav_products": "Products",
         "about_h1": "About me",
         "products_h1": "Products",
+        "products_subtitle": "Thoughtfully designed products to plan, control, and improve your personal finances.",
         "about_p": (
             "I help turn data and technology into clear, practical solutions "
             "for both life and business. My goal is not just to build reports "
@@ -57,6 +58,34 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "feature_3_h": "Products",
         "feature_3_p": "Building practical tools like SmartBudget that people actually use.",
 
+        "product_smartbudget_title": "SmartBudget",
+        "product_smartbudget_subtitle": "An Excel-based personal budget: plan the year, track actuals, and spot cash gaps before they happen.",
+
+        "product_smartbudget_h1": "Guided, step-by-step budget planning with built-in tips",
+        "product_smartbudget_h2": "Plan vs Actual control to catch overspending early",
+        "product_smartbudget_h3": "Utilities micro-budget: plan + actual + payment checklist",
+        "product_smartbudget_h4": "Credit card cash-gap handling with a clear payoff plan",
+        "product_smartbudget_h5": "Personal projects as sub-budgets (trips, goals, big plans)",
+        "product_smartbudget_h6": "Built-in analytics: charts and detailed variance view",
+
+        "product_cta_buy": "Learn more",
+
+        "sb_lp_subtitle": "Plan the year, track actuals, and spot cash gaps before they happen.",
+
+        "sb_lp_cta_primary": "Learn more",
+        "sb_lp_cta_secondary": "See screenshots",
+
+        "sb_lp_b1": "Detect cash gaps months in advance",
+        "sb_lp_b2": "Plan vs Actual with variance tracking",
+        "sb_lp_b3": "Microbudgets for utilities and personal projects",
+
+        "sb_lp_buy_h2": "Get SmartBudget",
+        "sb_lp_buy_p": "Purchase and download the latest version.",
+
+        "sb_shot_1": "Plan & cashflow overview",
+        "sb_shot_2": "Plan vs Actual (variance)",
+        "sb_shot_3": "Utilities micro-budget",
+
     },
     "ru": {
         "brand_name": "Андрей Хохлов",
@@ -64,6 +93,7 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "nav_products": "Продукты",
         "about_h1": "Обо мне",
         "products_h1": "Продукты",
+        "products_subtitle": "Продуманные продукты для планирования, контроля и улучшения личных финансов.",
 
         "about_p": (
             "Я помогаю превращать данные и технологии в понятные и практичные решения "
@@ -104,6 +134,34 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "feature_2_p": "Автоматизация финансовых и аналитических процессов на Python, SQL и Excel/VBA.",
         "feature_3_h": "Продукты",
         "feature_3_p": "Создание практичных продуктов, таких как SmartBudget.",
+
+        "product_smartbudget_title": "SmartBudget",
+        "product_smartbudget_subtitle": "Личный бюджет в Excel: планируй на год вперёд, контролируй факт, предотвращай кассовые разрывы.",
+
+        "product_smartbudget_h1": "Пошаговое планирование бюджета (walkthrough с подсказками)",
+        "product_smartbudget_h2": "План vs Факт: быстро видно перерасход и отклонения",
+        "product_smartbudget_h3": "Коммуналка как микробюджет: план + факт + контроль оплат",
+        "product_smartbudget_h4": "Кредитные карты: закрывай разрывы и планируй погашение",
+        "product_smartbudget_h5": "Личные проекты: подбюджеты для поездок/ремонта/целей",
+        "product_smartbudget_h6": "Встроенная аналитика: графики и детальный план-факт",
+
+        "product_cta_buy": "Подробнее",
+
+        "sb_lp_subtitle": "Планирование года, контроль факта и раннее выявление кассовых разрывов.",
+
+        "sb_lp_cta_primary": "Подробнее",
+        "sb_lp_cta_secondary": "Скриншоты",
+
+        "sb_lp_b1": "Видно кассовые разрывы за месяцы вперёд",
+        "sb_lp_b2": "План vs Факт с отклонениями и контролем перерасхода",
+        "sb_lp_b3": "Микробюджеты: коммуналка и личные проекты",
+
+        "sb_lp_buy_h2": "Получить SmartBudget",
+        "sb_lp_buy_p": "Оплата и скачивание последней версии.",
+
+        "sb_shot_1": "План и денежные потоки",
+        "sb_shot_2": "План vs Факт (отклонения)",
+        "sb_shot_3": "Микробюджет: коммуналка",
 
     },
 }

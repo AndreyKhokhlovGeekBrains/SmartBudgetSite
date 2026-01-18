@@ -1,9 +1,33 @@
 {% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/products.css') }}">
+{% endblock %}
+
 {% block content %}
-<h1>Продукты</h1>
-<ul>
-  {% for item in items %}
-  <li>{{ item.name }} — {{ item.price }} {{ item.currency }}</li>
-  {% endfor %}
-</ul>
+<h1>{{ t("products_h1") }}</h1>
+
+<p class="products-subtitle">
+    {{ t("products_subtitle") }}
+</p>
+<div class="products-section">
+    <div class="products-grid">
+      {% for p in products %}
+        <article class="product-card">
+          <h2 class="product-title">{{ t(p.title_key) }}</h2>
+          <p class="product-subtitle">{{ t(p.subtitle_key) }}</p>
+
+          <ul class="product-highlights">
+            {% for hk in p.highlights_keys %}
+              <li>{{ t(hk) }}</li>
+            {% endfor %}
+          </ul>
+
+          <a class="product-cta" href="/products/{{ p.slug }}">
+            {{ t(p.cta_key) }}
+          </a>
+        </article>
+      {% endfor %}
+    </div>
+</div>
 {% endblock %}

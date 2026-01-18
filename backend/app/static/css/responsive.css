@@ -173,6 +173,7 @@ img {
   }
 }
 
+/* Hide brand name on small screens to keep header compact */
 @media (max-width: 767px) {
   .site-header .brand {
     display: none;
