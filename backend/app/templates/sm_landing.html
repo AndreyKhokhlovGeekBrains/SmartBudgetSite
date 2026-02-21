@@ -1,0 +1,169 @@
+{# templates/sm_landing.html #}
+{% extends "base.html" %}
+
+{% block title %}SmartBudget{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/sm_landing.css') }}?v=2">
+{% endblock %}
+
+{% block content %}
+
+<section class="sb-hero">
+  <div class="sb-hero__inner">
+    <h1 class="sb-hero__title">{{ t("sb_landing_title") }}</h1>
+    <p class="sb-hero__lead">{{ t("sb_landing_lead") }}</p>
+
+    <div class="sb-hero__cta">
+      <a class="btn btn-primary" href="/checkout/smartbudget">
+        {{ t("sb_landing_cta_buy") }}
+      </a>
+    </div>
+
+    <p class="sb-hero__note muted">{{ t("sb_landing_note") }}</p>
+  </div>
+</section>
+
+<section class="sb-section" id="sb-nav">
+  <div class="sb-section__text">
+    <h2 class="sb-section__title">{{ t("sb_nav_title") }}</h2>
+  </div>
+
+  <div class="sb-section__media sb-section__media--full">
+    <img class="sb-shot" src="/static/img/smartbudget/sb_nav.png" alt="{{ t('sb_nav_alt') }}">
+  </div>
+
+  <div class="sb-section__text">
+    <p class="sb-section__p">{{ t("sb_nav_p1") }}</p>
+    <p class="sb-section__p">{{ t("sb_nav_p2") }}</p>
+  </div>
+</section>
+
+<section class="sb-section" id="sb-inputs">
+  <div class="sb-section__text">
+    <h2 class="sb-section__title">{{ t("sb_inputs_title") }}</h2>
+  </div>
+
+  <div class="sb-section__media sb-section__media--full">
+    <img class="sb-shot" src="/static/img/smartbudget/sb_inputs_v2.png" alt="{{ t('sb_inputs_alt') }}">
+  </div>
+
+  <div class="sb-section__text">
+    <p class="sb-section__p">{{ t("sb_inputs_p1") }}</p>
+    <p class="sb-section__p">{{ t("sb_inputs_p2") }}</p>
+  </div>
+</section>
+
+<section class="sb-section" id="sb-plan">
+  <h2 class="sb-section__title sb-section__title--full">
+    {{ t("sb_plan_title") }}
+  </h2>
+
+  <div class="sb-section__grid">
+    <div class="sb-section__text">
+      <p class="sb-section__p">{{ t("sb_plan_p1") }}</p>
+      <p class="sb-section__p">{{ t("sb_plan_p2") }}</p>
+    </div>
+
+    <div class="sb-section__media">
+      <img class="sb-shot" src="/static/img/smartbudget/sb_plan.png" alt="{{ t('sb_plan_alt') }}">
+    </div>
+  </div>
+</section>
+
+<section class="sb-section" id="sb-savings-viz">
+  <div class="sb-section__text">
+    <h2 class="sb-section__title">
+      {{ t("sb_savings_viz_title") }}
+    </h2>
+  </div>
+
+  <div class="sb-section__media sb-section__media--full">
+    <img class="sb-shot"
+         src="/static/img/smartbudget/sb_savings_viz.png"
+         alt="{{ t('sb_savings_viz_alt') }}">
+  </div>
+
+  <div class="sb-section__text">
+    <p class="sb-section__p">{{ t("sb_savings_viz_p1") }}</p>
+    <p class="sb-section__p">{{ t("sb_savings_viz_p2") }}</p>
+  </div>
+</section>
+
+<section class="sb-section" id="sb-fact">
+  <div class="sb-section__text">
+    <h2 class="sb-section__title">
+      {{ t("sb_fact_title") }}
+    </h2>
+  </div>
+
+  <div class="sb-section__media sb-section__media--full">
+    <img class="sb-shot"
+         src="/static/img/smartbudget/sb_fact.png"
+         alt="{{ t('sb_fact_alt') }}">
+  </div>
+
+  <div class="sb-section__text">
+    <p class="sb-section__p">{{ t("sb_fact_p1") }}</p>
+    <p class="sb-section__p">{{ t("sb_fact_p2") }}</p>
+  </div>
+</section>
+
+<section class="sb-section" id="sb-utilities">
+  <div class="sb-section__text">
+    <h2 class="sb-section__title">
+      {{ t("sb_utilities_title") }}
+    </h2>
+  </div>
+
+  <div class="sb-section__media sb-section__media--full">
+    <img class="sb-shot"
+         src="/static/img/smartbudget/sb_utilities.png"
+         alt="{{ t('sb_utilities_alt') }}">
+  </div>
+
+  <div class="sb-section__text">
+    <p class="sb-section__p">{{ t("sb_utilities_p1") }}</p>
+    <p class="sb-section__p">{{ t("sb_utilities_p2") }}</p>
+  </div>
+</section>
+
+<section class="sb-section" id="sb-compare">
+  <div class="sb-section__text">
+    <h2 class="sb-section__title">
+      {{ t("sb_compare_title") }}
+    </h2>
+  </div>
+
+  <div class="sb-section__media sb-section__media--full">
+    <img class="sb-shot"
+         src="/static/img/smartbudget/sb_compare.png"
+         alt="{{ t('sb_compare_alt') }}">
+  </div>
+
+  <div class="sb-section__text">
+    <p class="sb-section__p">{{ t("sb_compare_p1") }}</p>
+    <p class="sb-section__p">{{ t("sb_compare_p2") }}</p>
+  </div>
+</section>
+
+<section class="sb-section sb-consult">
+  <div class="sb-consult__inner">
+    <h2 class="sb-section__title">{{ t("sb_consult_title") }}</h2>
+    <p class="sb-section__p">{{ t("sb_consult_p") }}</p>
+    <a class="btn btn-primary" href="{{ t('link_tg_url') }}" target="_blank" rel="noopener">
+      {{ t("sb_consult_cta") }}
+    </a>
+  </div>
+</section>
+
+<section class="sb-section sb-final-cta">
+  <div class="sb-final-cta__inner">
+    <h2 class="sb-section__title">{{ t("sb_final_cta_title") }}</h2>
+    <a class="btn btn-primary btn-large" href="/checkout/smartbudget">
+      {{ t("sb_landing_cta_buy") }}
+    </a>
+  </div>
+</section>
+
+{% endblock %}

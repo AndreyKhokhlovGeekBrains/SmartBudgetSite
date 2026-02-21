@@ -1,0 +1,268 @@
+/* SmartBudget landing only */
+
+/* =========================
+   Hero
+   ========================= */
+.sb-hero {
+  padding: 24px 0 18px;
+}
+
+.sb-hero__inner {
+  max-width: 920px;
+}
+
+.sb-hero__title {
+  font-size: 44px;
+  line-height: 1.1;
+  margin: 0 0 12px;
+  letter-spacing: -0.02em;
+}
+
+.sb-hero__lead {
+  font-size: 18px;
+  line-height: 1.6;
+  margin: 0 0 18px;
+}
+
+.sb-hero__cta {
+  margin: 14px 0 8px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sb-hero__note {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+
+/* =========================
+   Buttons
+   ========================= */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  font-weight: 700;
+  line-height: 1;
+  border: 1px solid transparent;
+  transition: transform 120ms ease, box-shadow 120ms ease, opacity 120ms ease;
+}
+
+.btn-primary {
+  color: #fff;
+  background: linear-gradient(180deg, #2b6cff 0%, #1f4fd6 100%);
+  border-color: rgba(255, 255, 255, 0.18);
+  box-shadow: 0 6px 16px rgba(31, 79, 214, 0.22);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(31, 79, 214, 0.26);
+  opacity: 0.98;
+}
+
+.btn-primary:active {
+  transform: translateY(0px);
+  box-shadow: 0 8px 18px rgba(31, 79, 214, 0.24);
+}
+
+.btn-large {
+  padding: 14px 20px;
+  border-radius: 14px;
+  font-size: 16px;
+}
+
+
+/* =========================
+   Section cards (unified)
+   ========================= */
+.sb-section {
+  padding: 34px 32px;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  margin-bottom: 22px;
+}
+
+.sb-section__title {
+  font-size: 28px;
+  line-height: 1.2;
+  margin: 0 0 10px;
+  letter-spacing: -0.01em;
+}
+
+.sb-section__p {
+  margin: 0 0 10px;
+  line-height: 1.65;
+  font-size: 16px;
+}
+
+/* Two-column layout (when used) */
+.sb-section__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.sb-section__grid--reverse {
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+}
+
+.sb-section__grid--reverse .sb-section__text {
+  order: 2;
+}
+
+.sb-section__grid--reverse .sb-section__media {
+  order: 1;
+}
+
+/* Media alignment defaults */
+.sb-section__media {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Full-width media blocks (nav/inputs) if used */
+.sb-section__media--full {
+  justify-content: flex-start;
+}
+
+
+/* =========================
+   Screenshot style (single source of truth)
+   ========================= */
+.sb-shot {
+  width: 100%;
+  max-width: 760px;
+  display: block;
+  margin: 16px 0 18px 0;
+  border-radius: 8px;
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.05),
+    0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+
+/* =========================
+   Per-section tweaks
+   ========================= */
+
+/* Inputs: make the shot a bit smaller, keep left aligned */
+#sb-inputs .sb-shot {
+  max-width: 620px;
+}
+
+/* Plan: wider screenshot + vertically center text slightly */
+#sb-plan .sb-section__grid {
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.6fr);
+  align-items: start;
+}
+
+#sb-plan .sb-section__text {
+  padding-top: 26px;
+}
+
+#sb-plan .sb-shot {
+  max-width: 980px;
+  margin-bottom: 0;
+}
+
+/* Savings viz: left align media */
+#sb-savings-viz .sb-section__media {
+  justify-content: flex-start;
+}
+#sb-savings-viz .sb-shot {
+  margin-left: 0;
+}
+
+/* Fact: left + bigger */
+#sb-fact .sb-section__media {
+  justify-content: flex-start;
+}
+#sb-fact .sb-shot {
+  max-width: 1100px;
+  margin-left: 0;
+}
+
+/* Utilities: left + bigger */
+#sb-utilities .sb-section__media {
+  justify-content: flex-start;
+}
+#sb-utilities .sb-shot {
+  max-width: 1100px;
+  margin-left: 0;
+}
+
+/* Compare: left + bigger */
+#sb-compare .sb-section__media {
+  justify-content: flex-start;
+}
+#sb-compare .sb-shot {
+  max-width: 1100px;
+  margin-left: 0;
+}
+
+
+/* =========================
+   Consult + final CTA (keep as cards)
+   ========================= */
+.sb-consult,
+.sb-final-cta {
+  padding: 34px 32px;
+}
+
+.sb-consult__inner,
+.sb-final-cta__inner {
+  max-width: 920px;
+}
+
+.sb-final-cta__inner {
+  padding-top: 6px;
+}
+
+
+/* =========================
+   Responsive
+   ========================= */
+@media (max-width: 860px) {
+  .sb-hero__title {
+    font-size: 34px;
+  }
+
+  .sb-section {
+    padding: 26px 20px;
+  }
+
+  .sb-section__grid,
+  .sb-section__grid--reverse {
+    grid-template-columns: 1fr;
+  }
+
+  .sb-section__media {
+    justify-content: flex-start;
+  }
+
+  .sb-shot {
+    max-width: 100%;
+  }
+
+  #sb-plan .sb-section__text {
+    padding-top: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .sb-hero {
+    padding: 22px 0 14px;
+  }
+
+  .sb-hero__title {
+    font-size: 28px;
+  }
+}

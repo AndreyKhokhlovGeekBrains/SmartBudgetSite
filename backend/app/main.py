@@ -73,15 +73,15 @@ def create_app() -> FastAPI:
             set_lang_cookie(response, lang)
         return response
 
-
     @application.get("/products/{slug}", response_class=HTMLResponse)
     async def product_detail(request: Request, slug: str):
         lang = get_lang(request)
         product = product_by_slug(slug)
         if not product:
             raise HTTPException(status_code=404)
+        template_name = "sm_landing.html" if slug == "smartbudget" else "product_detail.html"
         response = templates.TemplateResponse(
-            "product_detail.html",
+            template_name,
             {"request": request, "lang": lang, "t": lambda k: t(lang, k), "product": product},
         )
         if (request.query_params.get("lang") or "").lower() in {"en", "ru"}:

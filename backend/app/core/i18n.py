@@ -86,6 +86,55 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "sb_shot_2": "Plan vs Actual (variance)",
         "sb_shot_3": "Utilities micro-budget",
 
+# --- SmartBudget landing (EN) ---
+        "sb_landing_title": "Plan, track, and understand your money — in one Excel file",
+        "sb_landing_lead": "SmartBudget is a practical budgeting system with clear structure, plan vs fact control, and simple analytics.",
+        "sb_landing_cta_primary": "View product",
+        "sb_landing_cta_consult": "Paid консультация в Telegram",
+        "sb_landing_note": "Works locally in Excel. No data leaves your computer.",
+
+        "sb_nav_title": "Everything important — one click away",
+        "sb_nav_p1": "When a budget grows, searching for the right sheet steals focus and time.",
+        "sb_nav_p2": "A single navigation panel gives instant access to Plan, Fact, Comparison, Utilities, and more — without extra clicks.",
+        "sb_nav_alt": "SmartBudget navigation panel",
+
+        "sb_inputs_title": "All key settings in one place",
+        "sb_inputs_p1": "Budget setup is often scattered: limits, accounts, cards, currencies — easy to miss something.",
+        "sb_inputs_p2": "The Inputs sheet keeps core parameters together, so the budget starts from a clean and consistent base.",
+        "sb_inputs_alt": "SmartBudget inputs sheet",
+
+        "sb_plan_title": "A budget model, not a random list of expenses",
+        "sb_plan_p1": "Simple spreadsheets mix everything together, and monthly results become a surprise.",
+        "sb_plan_p2": "The Plan sheet structures cash flows so you can see the outcome of each month and adjust early.",
+        "sb_plan_alt": "SmartBudget plan sheet",
+
+        "sb_savings_viz_title": "See progress, not just numbers",
+        "sb_savings_viz_p1": "Tables are hard to read at a glance — growth gets lost in rows and columns.",
+        "sb_savings_viz_p2": "Clear charts show end-of-month balances and savings structure across the year.",
+        "sb_savings_viz_alt": "Savings charts",
+
+        "sb_fact_title": "Spot cash gaps before they hurt",
+        "sb_fact_p1": "Real life differs from the plan — unexpected expenses show up and create stress.",
+        "sb_fact_p2": "Fact mirrors Plan, so deviations are immediately visible and you can act in advance.",
+        "sb_fact_alt": "SmartBudget fact sheet",
+
+        "sb_utilities_title": "Never forget an important bill",
+        "sb_utilities_p1": "Utilities come from different providers and at different times — it’s easy to miss one.",
+        "sb_utilities_p2": "Track planned vs paid bills by month and always know what is already covered.",
+        "sb_utilities_alt": "Utilities payments table",
+
+        "sb_compare_title": "Know exactly where the budget deviates",
+        "sb_compare_p1": "A monthly total may look fine, while the real reasons stay hidden.",
+        "sb_compare_p2": "Comparison provides line-by-line plan vs fact with absolute and percent variance for each month.",
+        "sb_compare_alt": "Plan vs fact comparison table",
+
+        "sb_consult_title": "Need help setting it up for your life?",
+        "sb_consult_p": "I offer paid 1:1 консультации: setup, workflow, and interpreting results — via Telegram.",
+        "sb_consult_cta": "Message me on Telegram",
+
+        "sb_landing_cta_buy": "Buy SmartBudget",
+        "sb_final_cta_title": "Ready to take control of your budget?",
+
     },
     "ru": {
         "brand_name": "Андрей Хохлов",
@@ -162,6 +211,55 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "sb_shot_1": "План и денежные потоки",
         "sb_shot_2": "План vs Факт (отклонения)",
         "sb_shot_3": "Микробюджет: коммуналка",
+
+# --- SmartBudget landing (RU) ---
+        "sb_landing_title": "Планируйте и контролируйте личный бюджет — в одном Excel-файле",
+        "sb_landing_lead": "SmartBudget — практичная система бюджета: понятная структура, план-факт контроль и базовая аналитика.",
+        "sb_landing_cta_primary": "Смотреть продукт",
+        "sb_landing_cta_consult": "Платная консультация в Telegram",
+        "sb_landing_note": "Работает локально в Excel. Данные никуда не отправляются.",
+
+        "sb_nav_title": "Всё важное — в один клик",
+        "sb_nav_p1": "Когда бюджет разрастается, поиск нужного раздела начинает мешать думать.",
+        "sb_nav_p2": "Единая панель навигации даёт быстрый доступ к Плану, Факту, Сравнению, Коммуналке и другим разделам.",
+        "sb_nav_alt": "Панель навигации SmartBudget",
+
+        "sb_inputs_title": "Все настройки бюджета — в одном месте",
+        "sb_inputs_p1": "Обычно параметры раскиданы по файлу: лимиты, счета, карты, валюты — легко что-то забыть.",
+        "sb_inputs_p2": "Лист «Вводные данные» собирает базовые параметры в одной форме — бюджет начинается с чистой и понятной основы.",
+        "sb_inputs_alt": "Лист «Вводные данные»",
+
+        "sb_plan_title": "Система денежных потоков вместо хаотичной таблицы",
+        "sb_plan_p1": "В обычных таблицах всё смешивается, и итог месяца становится сюрпризом.",
+        "sb_plan_p2": "Лист «План» структурирует бюджет так, чтобы видеть результат каждого месяца и корректировать заранее.",
+        "sb_plan_alt": "Лист «План»",
+
+        "sb_savings_viz_title": "Видно прогресс, а не только цифры",
+        "sb_savings_viz_p1": "Табличные итоги по месяцам трудно воспринимать: динамика теряется.",
+        "sb_savings_viz_p2": "Графики показывают остатки на конец месяца и структуру сбережений в динамике года.",
+        "sb_savings_viz_alt": "Графики сбережений",
+
+        "sb_fact_title": "Кассовые разрывы видны заранее",
+        "sb_fact_p1": "Факт почти всегда отличается от плана — внезапные траты создают стресс.",
+        "sb_fact_p2": "Лист «Факт» повторяет структуру плана, поэтому отклонения сразу заметны и можно действовать заранее.",
+        "sb_fact_alt": "Лист «Факт»",
+
+        "sb_utilities_title": "Не забывайте оплачивать важные счета",
+        "sb_utilities_p1": "Коммунальные счета приходят от разных поставщиков и в разное время — легко пропустить платёж.",
+        "sb_utilities_p2": "Планируйте и отмечайте оплату по месяцам и всегда видите, что уже закрыто, а что требует внимания.",
+        "sb_utilities_alt": "Коммунальные платежи",
+
+        "sb_compare_title": "Постатейный план-факт контроль",
+        "sb_compare_p1": "Общий итог месяца может выглядеть нормально, но причины отклонений остаются неочевидными.",
+        "sb_compare_p2": "Лист «Сравнение» показывает суммы, отклонения и проценты по каждой статье в разрезе месяцев.",
+        "sb_compare_alt": "Таблица сравнения План vs Факт",
+
+        "sb_consult_title": "Нужна помощь с настройкой под вашу жизнь?",
+        "sb_consult_p": "Делаю платные 1:1 консультации: настройка, процесс ведения бюджета и разбор результатов — в Telegram.",
+        "sb_consult_cta": "Написать в Telegram",
+
+        "sb_landing_cta_buy": "Купить SmartBudget",
+        "sb_final_cta_title": "Готовы навести порядок в бюджете?",
 
     },
 }
