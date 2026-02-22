@@ -9,6 +9,8 @@
 
 {% block content %}
 
+{% set img_suffix = "_en" if lang == "en" else "" %}
+
 <section class="sb-hero">
   <div class="sb-hero__inner">
     <h1 class="sb-hero__title">{{ t("sb_landing_title") }}</h1>
@@ -30,7 +32,7 @@
   </div>
 
   <div class="sb-section__media sb-section__media--full">
-    <img class="sb-shot" src="/static/img/smartbudget/sb_nav.png" alt="{{ t('sb_nav_alt') }}">
+    <img class="sb-shot" src="/static/img/smartbudget/sb_nav{{ img_suffix }}.png" alt="{{ t('sb_nav_alt') }}">
   </div>
 
   <div class="sb-section__text">
@@ -45,7 +47,7 @@
   </div>
 
   <div class="sb-section__media sb-section__media--full">
-    <img class="sb-shot" src="/static/img/smartbudget/sb_inputs_v2.png" alt="{{ t('sb_inputs_alt') }}">
+    <img class="sb-shot" src="/static/img/smartbudget/sb_inputs{{ img_suffix }}.png" alt="{{ t('sb_inputs_alt') }}">
   </div>
 
   <div class="sb-section__text">
@@ -66,7 +68,7 @@
     </div>
 
     <div class="sb-section__media">
-      <img class="sb-shot" src="/static/img/smartbudget/sb_plan.png" alt="{{ t('sb_plan_alt') }}">
+      <img class="sb-shot" src="/static/img/smartbudget/sb_plan{{ img_suffix }}.png" alt="{{ t('sb_plan_alt') }}">
     </div>
   </div>
 </section>
@@ -80,7 +82,7 @@
 
   <div class="sb-section__media sb-section__media--full">
     <img class="sb-shot"
-         src="/static/img/smartbudget/sb_savings_viz.png"
+         src="/static/img/smartbudget/sb_savings_viz{{ img_suffix }}.png"
          alt="{{ t('sb_savings_viz_alt') }}">
   </div>
 
@@ -99,7 +101,7 @@
 
   <div class="sb-section__media sb-section__media--full">
     <img class="sb-shot"
-         src="/static/img/smartbudget/sb_fact.png"
+         src="/static/img/smartbudget/sb_fact{{ img_suffix }}.png"
          alt="{{ t('sb_fact_alt') }}">
   </div>
 
@@ -118,7 +120,7 @@
 
   <div class="sb-section__media sb-section__media--full">
     <img class="sb-shot"
-         src="/static/img/smartbudget/sb_utilities.png"
+         src="/static/img/smartbudget/sb_utilities{{ img_suffix }}.png"
          alt="{{ t('sb_utilities_alt') }}">
   </div>
 
@@ -137,7 +139,7 @@
 
   <div class="sb-section__media sb-section__media--full">
     <img class="sb-shot"
-         src="/static/img/smartbudget/sb_compare.png"
+         src="/static/img/smartbudget/sb_compare{{ img_suffix }}.png"
          alt="{{ t('sb_compare_alt') }}">
   </div>
 
