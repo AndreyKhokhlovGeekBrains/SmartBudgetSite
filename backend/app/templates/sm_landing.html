@@ -16,6 +16,13 @@
     <h1 class="sb-hero__title">{{ t("sb_landing_title") }}</h1>
     <p class="sb-hero__lead">{{ t("sb_landing_lead") }}</p>
 
+    <ul class="sb-hero__cases">
+      <li>{{ t("sb_landing_case_home") }}</li>
+      <li>{{ t("sb_landing_case_job") }}</li>
+      <li>{{ t("sb_landing_case_paycheck") }}</li>
+      <li>{{ t("sb_landing_case_freelance") }}</li>
+    </ul>
+
     <div class="sb-hero__cta">
       <a class="btn btn-primary" href="/checkout/smartbudget">
         {{ t("sb_landing_cta_buy") }}
@@ -42,18 +49,22 @@
 </section>
 
 <section class="sb-section" id="sb-inputs">
-  <div class="sb-section__text">
-    <h2 class="sb-section__title">{{ t("sb_inputs_title") }}</h2>
+
+  <h2 class="sb-section__title">{{ t("sb_inputs_title") }}</h2>
+
+  <div class="sb-section__split">
+
+    <div class="sb-section__media">
+      <img class="sb-shot" src="/static/img/smartbudget/sb_inputs{{ img_suffix }}.png" alt="{{ t('sb_inputs_alt') }}">
+    </div>
+
+    <div class="sb-section__text">
+      <p class="sb-section__p">{{ t("sb_inputs_p1") }}</p>
+      <p class="sb-section__p">{{ t("sb_inputs_p2") }}</p>
+    </div>
+
   </div>
 
-  <div class="sb-section__media sb-section__media--full">
-    <img class="sb-shot" src="/static/img/smartbudget/sb_inputs{{ img_suffix }}.png" alt="{{ t('sb_inputs_alt') }}">
-  </div>
-
-  <div class="sb-section__text">
-    <p class="sb-section__p">{{ t("sb_inputs_p1") }}</p>
-    <p class="sb-section__p">{{ t("sb_inputs_p2") }}</p>
-  </div>
 </section>
 
 <section class="sb-section" id="sb-plan">

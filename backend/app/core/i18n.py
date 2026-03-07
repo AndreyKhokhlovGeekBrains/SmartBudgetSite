@@ -89,6 +89,12 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
 # --- SmartBudget landing (EN) ---
         "sb_landing_title": "Plan, track, and understand your money — in one Excel file",
         "sb_landing_lead": "SmartBudget is a practical budgeting system with clear structure, plan vs fact control, and simple analytics.",
+
+        "sb_landing_case_home": "Planning a major goal — like buying a home — and want to manage your money more deliberately",
+        "sb_landing_case_job": "Want to build a financial cushion and feel more confident about the future",
+        "sb_landing_case_paycheck": "Want to clearly see where your money goes and keep your budget under control",
+        "sb_landing_case_freelance": "Have income from multiple sources and want to bring order to your finances",
+
         "sb_landing_cta_primary": "View product",
         "sb_landing_cta_consult": "Paid консультация в Telegram",
         "sb_landing_note": "Works locally in Excel. No data leaves your computer.",
@@ -215,6 +221,12 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
 # --- SmartBudget landing (RU) ---
         "sb_landing_title": "Планируйте и контролируйте личный бюджет — в одном Excel-файле",
         "sb_landing_lead": "SmartBudget — практичная система бюджета: понятная структура, план-факт контроль и базовая аналитика.",
+
+        "sb_landing_case_home": "Планируете крупную цель — например, покупку жилья — и хотите лучше управлять деньгами",
+        "sb_landing_case_job": "Хотите создать финансовую подушку и чувствовать себя увереннее в будущем",
+        "sb_landing_case_paycheck": "Хотите лучше понимать, куда уходят деньги, и держать бюджет под контролем",
+        "sb_landing_case_freelance": "Получаете доход из разных источников и хотите навести порядок в финансах",
+
         "sb_landing_cta_primary": "Смотреть продукт",
         "sb_landing_cta_consult": "Платная консультация в Telegram",
         "sb_landing_note": "Работает локально в Excel. Данные никуда не отправляются.",

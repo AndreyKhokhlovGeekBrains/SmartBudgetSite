@@ -4,7 +4,7 @@
    Hero
    ========================= */
 .sb-hero {
-  padding: 24px 0 18px;
+  padding: 1px 0 18px;
 }
 
 .sb-hero__inner {
@@ -16,6 +16,15 @@
   line-height: 1.1;
   margin: 0 0 12px;
   letter-spacing: -0.02em;
+}
+
+.sb-hero ul {
+  margin-top: 14px;
+  padding-left: 24px;
+}
+
+.sb-hero li {
+  margin-bottom: 8px;
 }
 
 .sb-hero__lead {
@@ -36,6 +45,15 @@
   font-size: 14px;
 }
 
+.sb-hero__cases {
+  margin: 14px 0 18px;
+  padding-left: 18px;
+  line-height: 1.6;
+}
+
+.sb-hero__cases li {
+  margin-bottom: 6px;
+}
 
 /* =========================
    Buttons
@@ -133,6 +151,27 @@
   justify-content: flex-start;
 }
 
+.sb-section__media--full .sb-shot {
+  width: 100%;
+  max-width: none;
+  height: auto;
+  display: block;
+
+  image-rendering: auto;
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+#sb-inputs .sb-section__split {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+#sb-inputs .sb-section__title {
+  margin-bottom: 18px;
+}
 
 /* =========================
    Screenshot style (single source of truth)
@@ -148,14 +187,18 @@
     0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-
 /* =========================
    Per-section tweaks
    ========================= */
 
 /* Inputs: make the shot a bit smaller, keep left aligned */
 #sb-inputs .sb-shot {
-  max-width: 620px;
+  max-width: 420px;
+  margin: 0;
+}
+
+#sb-inputs .sb-section__media {
+  justify-content: flex-start;
 }
 
 /* Plan: wider screenshot + vertically center text slightly */
@@ -444,6 +487,49 @@
 
   #sb-plan .sb-section__title {
     font-size: 22px;
+  }
+
+}
+
+/* =========================
+   Fix hero bullets on mobile
+   ========================= */
+@media (max-width: 640px) {
+
+  .sb-hero ul {
+    padding-left: 0;
+    list-style-position: inside;
+    text-align: left;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+}
+
+/* =========================
+   Fix Inputs section layout on mobile
+   ========================= */
+@media (max-width: 860px) {
+
+  #sb-inputs .sb-section__split {
+    grid-template-columns: 1fr;
+  }
+
+  #sb-inputs .sb-section__text {
+    margin-top: 10px;
+  }
+
+}
+
+@media (max-width: 860px) {
+
+  #sb-inputs .sb-section__split {
+    gap: 0px;
+  }
+
+  #sb-inputs .sb-shot {
+    margin-bottom: 6px;
   }
 
 }
