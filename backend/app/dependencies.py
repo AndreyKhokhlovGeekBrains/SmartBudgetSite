@@ -1,5 +1,13 @@
-from typing import Generator
+from collections.abc import Generator
+from sqlalchemy.orm import Session
 
-def get_db() -> Generator[None, None, None]:
-    # Stub for future DB session
-    yield
+from app.core.db import SessionLocal
+
+
+def get_db() -> Generator[Session, None, None]:
+    # Provide a database session per request
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
