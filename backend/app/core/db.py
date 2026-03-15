@@ -1,5 +1,5 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
 
 DATABASE_URL = "postgresql+psycopg://smartbudget_user:smartbudget_password@localhost:5433/smartbudget"
 
@@ -13,3 +13,7 @@ SessionLocal = sessionmaker(
     autoflush=False,
     bind=engine,
 )
+
+
+class Base(DeclarativeBase):
+    pass

@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.dependencies import get_db
 from app.repositories.feedback_repository import FeedbackRepository
-from app.schemas.feedback import FeedbackCreate, FeedbackCreateResponse
+from app.schemas.feedback import FeedbackCreate, FeedbackCreateResponse, FeedbackListResponse
 
 router = APIRouter(prefix="/v1", tags=["v1"])
 
@@ -39,4 +39,34 @@ def create_feedback(
     return {
         "status": "ok",
         "id": feedback.id,
+    }
+
+@router.get("/feedback/recent", response_model=FeedbackListResponse)
+def get_recent_feedback(
+    limit: int = 20,
+    db: Session = Depends(get_db),
+):
+    repo = FeedbackRepository(db)
+    items = repo.get_recent(limit=limit)
+
+    return {
+        "items": items,
+        "count": len(items),
+    }
+
+@router.patch("/feedback/{feedback_id}/resolve")
+def resolve_feedback(
+    feedback_id: int,
+    db: Session = Depends(get_db),
+):
+    repo = FeedbackRepository(db)
+    feedback = repo.mark_resolved(feedback_id)
+
+    if feedback is None:
+        return {"status": "not_found"}
+
+    return {
+        "status": "ok",
+        "id": feedback.id,
+        "is_resolved": feedback.is_resolved,
     }

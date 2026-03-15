@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from datetime import datetime
 
 
 class FeedbackCreate(BaseModel):
@@ -17,3 +18,24 @@ class FeedbackCreate(BaseModel):
 class FeedbackCreateResponse(BaseModel):
     status: str
     id: int
+
+class FeedbackItemResponse(BaseModel):
+    id: int
+    type: str
+    email: EmailStr
+    subject: str
+    message: str
+    name: str | None = None
+    page_url: str | None = None
+    user_agent: str | None = None
+    is_resolved: bool
+    created_at: datetime
+
+    model_config = {
+        "from_attributes": True,
+    }
+
+
+class FeedbackListResponse(BaseModel):
+    items: list[FeedbackItemResponse]
+    count: int

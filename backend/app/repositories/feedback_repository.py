@@ -32,26 +32,26 @@ class FeedbackRepository:
         self.db.refresh(feedback)
         return feedback
 
-def get_recent(self, limit: int = 50) -> list[FeedbackMessage]:
-    return (
-        self.db.query(FeedbackMessage)
-        .order_by(FeedbackMessage.created_at.desc())
-        .limit(limit)
-        .all()
-    )
+    def get_recent(self, limit: int = 50):
+        return (
+            self.db.query(FeedbackMessage)
+            .order_by(FeedbackMessage.created_at.desc())
+            .limit(limit)
+            .all()
+        )
 
-def mark_resolved(self, feedback_id: int) -> FeedbackMessage | None:
-    feedback = (
-        self.db.query(FeedbackMessage)
-        .filter(FeedbackMessage.id == feedback_id)
-        .first()
-    )
+    def mark_resolved(self, feedback_id: int) -> FeedbackMessage | None:
+        feedback = (
+            self.db.query(FeedbackMessage)
+            .filter(FeedbackMessage.id == feedback_id)
+            .first()
+        )
 
-    if not feedback:
-        return None
+        if not feedback:
+            return None
 
-    feedback.is_resolved = True
-    self.db.commit()
-    self.db.refresh(feedback)
+        feedback.is_resolved = True
+        self.db.commit()
+        self.db.refresh(feedback)
 
-    return feedback
+        return feedback
