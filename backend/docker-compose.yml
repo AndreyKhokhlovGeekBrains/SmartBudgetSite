@@ -6,9 +6,9 @@ services:
     container_name: smartbudget_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: smartbudget
-      POSTGRES_USER: smartbudget_user
-      POSTGRES_PASSWORD: smartbudget_password
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5433:5432"
     volumes:

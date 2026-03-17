@@ -55,3 +55,9 @@ SELECT current_database(), current_user;
 * Delete temporary/debug scripts (like check_db.py) before commit.
 * Store all secrets (DB credentials, SECRET_KEY) only in .env.
 * Never commit .env to Git.
+
+## Environment variables rule
+
+* Every variable added to `.env` MUST be added to `.env.example`
+* `.env.example` contains only example values (no real secrets)
+* `.env` is never committed to Git
