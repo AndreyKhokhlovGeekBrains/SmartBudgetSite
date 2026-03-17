@@ -4,7 +4,7 @@ from sqlalchemy import Boolean, DateTime, Text, String
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import Index
 
-from app.core.models import Base
+from app.core.db import Base
 
 
 class FeedbackMessage(Base):

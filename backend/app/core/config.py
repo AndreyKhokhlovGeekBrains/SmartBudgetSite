@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
 
 
@@ -15,9 +15,13 @@ class Settings(BaseSettings):
     # Comma-separated list for dev
     BACKEND_CORS_ORIGINS: str = ""
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    # security (future use)
+    SECRET_KEY: str = "change-me-in-env"
+
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+    )
 
 
 settings = Settings()
