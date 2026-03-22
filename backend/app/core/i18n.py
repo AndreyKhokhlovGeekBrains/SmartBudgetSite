@@ -88,16 +88,17 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
 
 # --- SmartBudget landing (EN) ---
         "sb_landing_title": "Plan, track, and understand your money — in one Excel file",
-        "sb_landing_lead": "SmartBudget is a practical budgeting system with clear structure, plan vs fact control, and simple analytics.",
+        "sb_landing_type": "A personal budgeting system in Excel",
+        "sb_landing_lead": "SmartBudget gives you predictability in your personal finances: you understand how much money you have each month, avoid unexpected expenses, and confidently plan your future.",
 
-        "sb_landing_case_home": "Planning a major goal — like buying a home — and want to manage your money more deliberately",
-        "sb_landing_case_job": "Want to build a financial cushion and feel more confident about the future",
-        "sb_landing_case_paycheck": "Want to clearly see where your money goes and keep your budget under control",
-        "sb_landing_case_freelance": "Have income from multiple sources and want to bring order to your finances",
+        "sb_landing_case_home": "Planning a major goal — such as buying a home — and want to manage your money consciously",
+        "sb_landing_case_job": "Building a financial safety cushion and want to feel confident about the future",
+        "sb_landing_case_paycheck": "Want to understand where your money goes and keep your budget under control",
+        "sb_landing_case_freelance": "Have multiple income sources and want to bring structure to your finances",
 
         "sb_landing_cta_primary": "View product",
         "sb_landing_cta_consult": "Paid консультация в Telegram",
-        "sb_landing_note": "Works locally in Excel. No data leaves your computer.",
+        "sb_landing_note": "Works locally in Excel — no subscriptions, no data sharing.",
 
         "sb_nav_title": "Everything important — one click away",
         "sb_nav_p1": "When a budget grows, searching for the right sheet steals focus and time.",
@@ -162,7 +163,23 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "faq_q5": "What should I do if the file does not open or macros are blocked?",
         "faq_a5": "In that case, use the feedback page and describe the issue. I can help you check Excel settings and explain how to open the file correctly.",
 
-        "sb_landing_faq_link": "Frequently asked questions"
+        "sb_landing_faq_link": "Frequently asked questions",
+
+        "feedback_title": "Feedback",
+        "feedback_intro": "Use this form to send feedback, report a bug, or ask a question about SmartBudget.",
+        "feedback_type_label": "Message type",
+
+        "feedback_type_site_issue": "Website issue",
+        "feedback_type_general_question": "General question",
+        "feedback_type_product_feedback": "Product feedback or question",
+
+        "feedback_name_label": "Name",
+        "feedback_email_label": "Email",
+        "feedback_subject_label": "Subject",
+        "feedback_message_label": "Message",
+        "feedback_submit": "Send",
+
+        "feedback_email_hint": "For product feedback and questions, please provide the email used during purchase — this is required for verification.",
 
     },
     "ru": {
@@ -243,16 +260,17 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
 
 # --- SmartBudget landing (RU) ---
         "sb_landing_title": "Планируйте и контролируйте личный бюджет — в одном Excel-файле",
-        "sb_landing_lead": "SmartBudget — практичная система бюджета: понятная структура, план-факт контроль и базовая аналитика.",
+        "sb_landing_type": "Персональная система управления бюджетом в Excel",
+        "sb_landing_lead": "SmartBudget даёт предсказуемость в личных финансах: вы понимаете, сколько денег у вас есть каждый месяц, избегаете неожиданных расходов и уверенно планируете будущее.",
 
-        "sb_landing_case_home": "Планируете крупную цель — например, покупку жилья — и хотите лучше управлять деньгами",
-        "sb_landing_case_job": "Хотите создать финансовую подушку и чувствовать себя увереннее в будущем",
-        "sb_landing_case_paycheck": "Хотите лучше понимать, куда уходят деньги, и держать бюджет под контролем",
+        "sb_landing_case_home": "Планируете крупную цель — например, покупку жилья — и хотите управлять деньгами осознанно",
+        "sb_landing_case_job": "Создаёте финансовую подушку и хотите чувствовать уверенность в будущем",
+        "sb_landing_case_paycheck": "Хотите понимать, куда уходят деньги, и держать бюджет под контролем",
         "sb_landing_case_freelance": "Получаете доход из разных источников и хотите навести порядок в финансах",
 
         "sb_landing_cta_primary": "Смотреть продукт",
         "sb_landing_cta_consult": "Платная консультация в Telegram",
-        "sb_landing_note": "Работает локально в Excel. Данные никуда не отправляются.",
+        "sb_landing_note": "Работает локально в Excel — без подписок и передачи данных.",
 
         "sb_nav_title": "Всё важное — в один клик",
         "sb_nav_p1": "Когда бюджет разрастается, поиск нужного раздела начинает мешать думать.",
@@ -317,8 +335,23 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "faq_q5": "Что делать, если файл не открывается или макросы заблокированы?",
         "faq_a5": "В этом случае используйте страницу обратной связи и опишите проблему. Я смогу подсказать, что проверить в настройках Excel и как корректно открыть файл.",
 
-        "sb_landing_faq_link": "Ответы на частые вопросы"
+        "sb_landing_faq_link": "Ответы на частые вопросы",
 
+        "feedback_title": "Обратная связь",
+        "feedback_intro": "Здесь вы можете отправить отзыв, сообщить об ошибке или задать вопрос по SmartBudget.",
+        "feedback_type_label": "Тип сообщения",
+
+        "feedback_type_site_issue": "Ошибка сайта",
+        "feedback_type_general_question": "Общий вопрос",
+        "feedback_type_product_feedback": "Отзыв или вопрос по продукту",
+
+        "feedback_name_label": "Имя",
+        "feedback_email_label": "Email",
+        "feedback_subject_label": "Тема",
+        "feedback_message_label": "Сообщение",
+        "feedback_submit": "Отправить",
+
+        "feedback_email_hint": "Для отзывов и вопросов по работе продукта укажите email, использованный при покупке — это нужно для проверки.",
     },
 }
 

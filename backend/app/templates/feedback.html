@@ -1,0 +1,159 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/feedback.css') }}">
+{% endblock %}
+
+{% block title %}{{ t("feedback_title") }}{% endblock %}
+
+{% block content %}
+<section class="feedback-page">
+    <h1 class="feedback-page__title">{{ t("feedback_title") }}</h1>
+    <p class="feedback-page__intro">{{ t("feedback_intro") }}</p>
+
+    <form class="feedback-form" id="feedback-form">
+        <label class="feedback-form__label" for="message_type">{{ t("feedback_type_label") }}</label>
+        <select class="feedback-form__control" id="message_type" name="message_type" required>
+            <option value="site_issue">{{ t("feedback_type_site_issue") }}</option>
+            <option value="general_question">{{ t("feedback_type_general_question") }}</option>
+            <option value="product_feedback">{{ t("feedback_type_product_feedback") }}</option>
+        </select>
+
+        <label class="feedback-form__label" for="name">{{ t("feedback_name_label") }}</label>
+        <input class="feedback-form__control" type="text" id="name" name="name" maxlength="200">
+
+        <label class="feedback-form__label" for="email">
+            {{ t("feedback_email_label") }}
+            <span class="feedback-form__hint" id="email-hint">
+                {{ t("feedback_email_hint") }}
+            </span>
+        </label>
+
+        <input class="feedback-form__control" type="email" id="email" name="email">
+
+        <div class="feedback-purchase-status" id="purchase-status" style="display: none;"></div>
+
+        <label class="feedback-form__label" for="subject">{{ t("feedback_subject_label") }}</label>
+        <input class="feedback-form__control" type="text" id="subject" name="subject" maxlength="200" required>
+
+        <label class="feedback-form__label" for="message">{{ t("feedback_message_label") }}</label>
+        <textarea class="feedback-form__control feedback-form__control--textarea" id="message" name="message" required></textarea>
+
+        <input type="hidden" id="page_url" name="page_url" value="{{ request.url.path }}">
+
+        <button class="btn btn-primary" type="submit">{{ t("feedback_submit") }}</button>
+
+        <p class="feedback-form__status" id="feedback-status"></p>
+    </form>
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById("feedback-form");
+    const status = document.getElementById("feedback-status");
+
+    const typeSelect = document.getElementById("message_type");
+    const emailInput = document.getElementById("email");
+    const emailLabel = document.querySelector('label[for="email"]');
+    const emailHint = document.getElementById("email-hint");
+
+    const purchaseStatus = document.getElementById("purchase-status");
+
+    function updateEmailVisibility() {
+        const type = typeSelect.value;
+
+        if (type === "product_feedback") {
+            emailLabel.style.display = "block";
+            emailInput.style.display = "block";
+            emailHint.style.display = "block";
+            emailInput.required = true;
+        } else {
+            emailLabel.style.display = "none";
+            emailInput.style.display = "none";
+            emailHint.style.display = "none";
+            emailInput.required = false;
+            emailInput.value = "";
+        }
+    }
+
+    function updatePurchaseStatus() {
+        purchaseStatus.style.display = "block";
+        purchaseStatus.className = "feedback-purchase-status";
+        purchaseStatus.textContent = "Checking purchase...";
+
+        const type = typeSelect.value;
+        const email = emailInput.value.trim().toLowerCase();
+
+        if (type !== "product_feedback" || !email) {
+            purchaseStatus.style.display = "none";
+            purchaseStatus.textContent = "";
+            purchaseStatus.className = "feedback-purchase-status";
+            return;
+        }
+
+        if (email === "buyer@example.com") {
+            purchaseStatus.style.display = "block";
+            purchaseStatus.className = "feedback-purchase-status feedback-purchase-status--success";
+            purchaseStatus.textContent = "Purchase found: SmartBudget, version 1.0, purchased on 2026-03-01.";
+        } else {
+            purchaseStatus.style.display = "block";
+            purchaseStatus.className = "feedback-purchase-status feedback-purchase-status--error";
+            purchaseStatus.textContent = "Purchase not found for this email.";
+        }
+    }
+
+    updateEmailVisibility();
+
+    emailInput.addEventListener("blur", updatePurchaseStatus);
+    typeSelect.addEventListener("change", () => {
+        updateEmailVisibility();
+        updatePurchaseStatus();
+    });
+
+    typeSelect.addEventListener("change", updateEmailVisibility);
+
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        status.textContent = "Sending...";
+        status.className = "feedback-form__status";
+
+        const payload = {
+            message_type: form.message_type.value,
+            name: form.name.value || null,
+            email: form.email.value || "",
+            subject: form.subject.value,
+            message: form.message.value,
+            page_url: form.page_url.value || window.location.pathname,
+        };
+
+        try {
+            const response = await fetch("/v1/feedback", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) {
+                throw new Error("Request failed");
+            }
+
+            const result = await response.json();
+
+            status.textContent = `Sent successfully. Message ID: ${result.id}`;
+            status.className = "feedback-form__status feedback-form__status--success";
+
+            form.reset();
+            form.page_url.value = window.location.pathname;
+            updateEmailVisibility();
+        } catch (error) {
+            status.textContent = "Failed to send. Please try again.";
+            status.className = "feedback-form__status feedback-form__status--error";
+        }
+    });
+});
+</script>
+
+{% endblock %}

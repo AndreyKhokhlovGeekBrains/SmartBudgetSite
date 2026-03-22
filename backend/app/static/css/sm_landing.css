@@ -18,6 +18,17 @@
   letter-spacing: -0.02em;
 }
 
+.sb-hero__type {
+  display: inline-block;
+  font-size: 12px;
+  color: #374151;
+  background: #f3f4f6;
+  padding: 6px 10px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
 .sb-hero ul {
   margin-top: 14px;
   padding-left: 24px;
@@ -30,6 +41,7 @@
 .sb-hero__lead {
   font-size: 18px;
   line-height: 1.6;
+  color: #111827; /* почти черный, как у заголовка */
   margin: 0 0 18px;
 }
 

@@ -1,10 +1,10 @@
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 from datetime import datetime
 
 
 class FeedbackCreate(BaseModel):
-    message_type: str = Field(..., min_length=3, max_length=20)
-    email: EmailStr
+    message_type: str = Field(..., min_length=3, max_length=30)
+    email: EmailStr | None = None
     subject: str = Field(..., min_length=3, max_length=200)
     message: str = Field(..., min_length=10)
     name: str | None = Field(default=None, max_length=200)
@@ -13,6 +13,12 @@ class FeedbackCreate(BaseModel):
     model_config = ConfigDict(
         str_strip_whitespace=True,
     )
+
+    @model_validator(mode="after")
+    def validate_email_for_product_feedback(self):
+        if self.message_type == "product_feedback" and not self.email:
+            raise ValueError("Email is required for product feedback.")
+        return self
 
 
 class FeedbackCreateResponse(BaseModel):
