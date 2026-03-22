@@ -5,6 +5,8 @@ __pycache__/
 # Env
 .venv/
 .env
+.env.dev
+.env.*.local
 !.env.example
 
 # IDE

@@ -1,0 +1,135 @@
+/* === FAQ page === */
+
+.faq-page {
+  padding: 8px 0 12px;
+}
+
+.faq-page__title {
+  font-size: 48px;
+  line-height: 1.1;
+  margin-bottom: 14px;
+}
+
+.faq-page__intro {
+  font-size: 20px;
+  line-height: 1.6;
+  color: #333;
+  margin-bottom: 32px;
+  max-width: 900px;
+}
+
+.faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.faq-item {
+  padding-bottom: 8px;
+  border-bottom: 1px solid #ececef;
+}
+
+.faq-item:last-child {
+  border-bottom: none;
+}
+
+/* === Accordion === */
+
+.faq-details {
+  display: block;
+}
+
+.faq-details summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+.faq-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item__question {
+  position: relative;
+  display: block;
+  padding: 0 32px 0 0;
+  font-size: 26px;
+  line-height: 1.25;
+  margin-bottom: 0;
+  font-weight: 600;
+}
+
+.faq-item__question::after {
+  content: "+";
+  position: absolute;
+  top: 0;
+  right: 0;
+  color: rgba(0, 0, 0, 0.5);
+  font-size: 28px;
+  line-height: 1;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.faq-details[open] .faq-item__question::after {
+  content: "−";
+  color: #111;
+}
+
+.faq-item__answer {
+  font-size: 18px;
+  line-height: 1.7;
+  color: #222;
+  margin-top: 14px;
+  max-width: 1100px;
+}
+
+.faq-details:hover .faq-item__question {
+  color: #0f172a;
+}
+
+.faq-details:hover .faq-item__question::after {
+  color: #111;
+}
+
+.faq-details[open] .faq-item__answer {
+  animation: faqFadeIn 0.2s ease;
+}
+
+@keyframes faqFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 700px) {
+  .faq-page__title {
+    font-size: 36px;
+  }
+
+  .faq-page__intro {
+    font-size: 16px;
+    margin-bottom: 24px;
+  }
+
+  .faq-item__question {
+    font-size: 20px;
+    padding-right: 28px;
+  }
+
+  .faq-item__question::after {
+    font-size: 22px;
+  }
+
+  .faq-item__answer {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  .faq-list {
+    gap: 20px;
+  }
+}

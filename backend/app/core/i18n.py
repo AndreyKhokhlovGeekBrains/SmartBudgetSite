@@ -141,6 +141,29 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "sb_landing_cta_buy": "Buy SmartBudget",
         "sb_final_cta_title": "Ready to take control of your budget?",
 
+        "footer_faq": "FAQ",
+        "footer_feedback": "Feedback",
+
+        "faq_title": "FAQ",
+        "faq_intro": "Answers to common questions about SmartBudget, file setup, and working with macros.",
+
+        "faq_q1": "What is SmartBudget?",
+        "faq_a1": "SmartBudget is an Excel-based personal budgeting file designed to help you plan, control, and compare your budget against actual results. It helps you track monthly balances and understand your financial picture more clearly.",
+
+        "faq_q2": "Do I need Microsoft Excel to use it?",
+        "faq_a2": "Yes. SmartBudget is built for Microsoft Excel with macro support. Excel Online and alternative spreadsheet apps may not support all features.",
+
+        "faq_q3": "Is it safe to enable macros?",
+        "faq_a3": "Yes, if the file comes from a trusted source. In SmartBudget, macros are used for interface automation, navigation, and supporting functions inside the workbook.",
+
+        "faq_q4": "Can I use SmartBudget if my income is irregular?",
+        "faq_a4": "Yes. SmartBudget is especially useful when income and expenses vary from month to month, because it helps you see future cash gaps and plan your balances in advance.",
+
+        "faq_q5": "What should I do if the file does not open or macros are blocked?",
+        "faq_a5": "In that case, use the feedback page and describe the issue. I can help you check Excel settings and explain how to open the file correctly.",
+
+        "sb_landing_faq_link": "Frequently asked questions"
+
     },
     "ru": {
         "brand_name": "Андрей Хохлов",
@@ -272,6 +295,29 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
 
         "sb_landing_cta_buy": "Купить SmartBudget",
         "sb_final_cta_title": "Готовы навести порядок в бюджете?",
+
+        "footer_faq": "FAQ",
+        "footer_feedback": "Обратная связь",
+
+        "faq_title": "FAQ",
+        "faq_intro": "Ответы на частые вопросы о SmartBudget, установке файла и работе с макросами.",
+
+        "faq_q1": "Что такое SmartBudget?",
+        "faq_a1": "SmartBudget — это Excel-файл для планирования и контроля личного бюджета. Он помогает сопоставлять план и факт, отслеживать остатки денег по месяцам и лучше понимать свою финансовую ситуацию.",
+
+        "faq_q2": "Нужен ли Microsoft Excel для работы?",
+        "faq_a2": "Да. SmartBudget работает в Microsoft Excel с поддержкой макросов. Онлайн-версии Excel и альтернативные редакторы таблиц могут не поддерживать весь функционал.",
+
+        "faq_q3": "Безопасно ли включать макросы?",
+        "faq_a3": "Да, если файл получен из надёжного источника. Макросы в SmartBudget нужны для автоматизации интерфейса, навигации и вспомогательных функций внутри файла.",
+
+        "faq_q4": "Подойдёт ли SmartBudget, если у меня нерегулярный доход?",
+        "faq_a4": "Да. SmartBudget особенно полезен в ситуациях, когда доходы и расходы меняются от месяца к месяцу, потому что помогает заранее видеть денежные разрывы и планировать остатки.",
+
+        "faq_q5": "Что делать, если файл не открывается или макросы заблокированы?",
+        "faq_a5": "В этом случае используйте страницу обратной связи и опишите проблему. Я смогу подсказать, что проверить в настройках Excel и как корректно открыть файл.",
+
+        "sb_landing_faq_link": "Ответы на частые вопросы"
 
     },
 }

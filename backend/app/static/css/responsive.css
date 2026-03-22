@@ -78,7 +78,7 @@ img {
 .site-nav {
   display: flex;
   gap: 14px;
-  flex-wrap: wrap; /* on small screens links can wrap */
+  flex-wrap: wrap;
 }
 
 .site-nav a {
@@ -148,35 +148,48 @@ img {
 }
 
 /* =========================
-   Mobile (<= 767px)
+   Mobile header (<= 767px)
    ========================= */
 @media (max-width: 767px) {
-  /* Header: mobile layout */
+  .site-header {
+    padding: 6px 0;
+  }
+
   .site-header .header-row {
+    display: flex;
     flex-direction: column;
-    align-items: stretch;
-    gap: 8px;
-  }
-
-  /* Nav goes first */
-  .site-header .nav {
-    order: 1;
+    align-items: center;
     justify-content: center;
-    flex-wrap: wrap;
+    height: auto;
+    gap: 10px;
   }
 
-  /* Brand goes below */
   .site-header .brand {
-    order: 2;
+    display: block;
+    order: 1;
     text-align: center;
     font-weight: 600;
+    font-size: 18px;
+    line-height: 1.15;
   }
-}
 
-/* Hide brand name on small screens to keep header compact */
-@media (max-width: 767px) {
-  .site-header .brand {
-    display: none;
+  .site-header .site-nav,
+  .site-header .nav {
+    order: 2;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .site-header .nav-link {
+    padding: 4px 6px;
+    font-size: 14px;
+  }
+
+  .nav-sep {
+    margin: 0 4px;
+    padding: 0;
   }
 }
 
@@ -186,32 +199,9 @@ img {
     margin-bottom: 6px;
     text-align: center;
     font-weight: 700;
-    font-size: 28px; /* как h1 'Обо мне' */
+    font-size: 28px;
     color: #111;
     display: block;
-  }
-}
-
-@media (max-width: 767px) {
-  .site-header {
-    padding: 6px 0;
-  }
-
-  .site-header .nav {
-    gap: 10px;
-  }
-
-  .site-header .nav-link {
-    padding: 6px 8px;
-    font-size: 14px;
-  }
-
-  .nav-sep {
-    margin: 0 4px;
-  }
-
-  .header-row {
-    height: 34px;
   }
 }
 
@@ -287,13 +277,13 @@ img {
   }
 }
 
-@media (max-width: 320px){
-  .site-header .nav-link{
+@media (max-width: 320px) {
+  .site-header .nav-link {
     font-size: 12px;
     padding: 4px 6px;
   }
 
-  .nav-sep{
+  .nav-sep {
     padding: 0 2px;
   }
 }

@@ -1,5 +1,8 @@
+import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import List
+
+
+ENV_FILE = os.getenv("ENV_FILE", ".env")
 
 
 class Settings(BaseSettings):
@@ -9,18 +12,19 @@ class Settings(BaseSettings):
     APP_HOST: str = "127.0.0.1"
     APP_PORT: int = 8000
 
-    # database
-    DATABASE_URL: str
-
-    # Comma-separated list for dev
     BACKEND_CORS_ORIGINS: str = ""
+    DATABASE_URL: str = ""
 
-    # security (future use)
-    SECRET_KEY: str = "change-me-in-env"
+    POSTGRES_USER: str = ""
+    POSTGRES_PASSWORD: str = ""
+    POSTGRES_DB: str = ""
+
+    SECRET_KEY: str = ""
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=ENV_FILE,
         env_file_encoding="utf-8",
+        extra="forbid",
     )
 
 

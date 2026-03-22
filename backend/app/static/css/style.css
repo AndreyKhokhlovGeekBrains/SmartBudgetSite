@@ -266,6 +266,43 @@ main.container {
   gap: 16px;
 }
 
+.footer-left,
+.footer-center,
+.footer-right {
+  display: flex;
+  align-items: center;
+}
+
+.footer-center {
+  gap: 16px;
+}
+
+.footer-text-link {
+  color: rgba(0, 0, 0, 0.72);
+  text-decoration: none;
+  font-size: 14px;
+  line-height: 1;
+  transition: color 0.2s ease, opacity 0.2s ease;
+}
+
+.footer-text-link:visited {
+  color: rgba(0, 0, 0, 0.72);
+}
+
+.footer-text-link:hover {
+  color: #111;
+  text-decoration: underline;
+}
+
+.footer-text-link:active {
+  color: #111;
+}
+
+.footer-sep {
+  color: rgba(0, 0, 0, 0.35);
+  font-size: 14px;
+}
+
 .muted {
   color: rgba(0, 0, 0, 0.55);
 }
@@ -291,5 +328,10 @@ main.container {
   .footer-row {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .footer-center,
+  .footer-right {
+    flex-wrap: wrap;
   }
 }

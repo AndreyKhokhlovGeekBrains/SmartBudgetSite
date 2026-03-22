@@ -73,6 +73,36 @@ def create_app() -> FastAPI:
             set_lang_cookie(response, lang)
         return response
 
+    @application.get("/faq", response_class=HTMLResponse)
+    async def faq(request: Request):
+        lang = get_lang(request)
+        response = templates.TemplateResponse(
+            "faq.html",
+            {
+                "request": request,
+                "lang": lang,
+                "t": lambda k: t(lang, k),
+            },
+        )
+        if (request.query_params.get("lang") or "").lower() in {"en", "ru"}:
+            set_lang_cookie(response, lang)
+        return response
+
+    @application.get("/feedback", response_class=HTMLResponse)
+    async def feedback_page(request: Request):
+        lang = get_lang(request)
+        response = templates.TemplateResponse(
+            "feedback.html",
+            {
+                "request": request,
+                "lang": lang,
+                "t": lambda k: t(lang, k),
+            },
+        )
+        if (request.query_params.get("lang") or "").lower() in {"en", "ru"}:
+            set_lang_cookie(response, lang)
+        return response
+
     @application.get("/products/{slug}", response_class=HTMLResponse)
     async def product_detail(request: Request, slug: str):
         lang = get_lang(request)
