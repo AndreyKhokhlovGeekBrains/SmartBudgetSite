@@ -5,6 +5,7 @@ from sqlalchemy import DateTime, ForeignKey, Numeric, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
+from app.models.enums import PaymentStatus
 
 
 class Sale(Base):
@@ -26,7 +27,12 @@ class Sale(Base):
 
     payment_provider: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
-    payment_status: Mapped[str] = mapped_column(String(30), nullable=False, index=True)
+    payment_status: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        index=True,
+        default=PaymentStatus.PENDING,
+    )
 
     external_payment_id: Mapped[str | None] = mapped_column(String(200), nullable=True, index=True)
 

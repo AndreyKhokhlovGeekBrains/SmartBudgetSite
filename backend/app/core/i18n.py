@@ -181,6 +181,17 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
 
         "feedback_email_hint": "For product feedback and questions, please provide the email used during purchase — this is required for verification.",
 
+        "feedback_purchase_label": "Purchase",
+        "feedback_purchase_placeholder": "Select a purchase",
+
+        "feedback_checking_purchase": "Checking purchase...",
+        "feedback_purchase_confirmed": "Purchase confirmed",
+        "feedback_no_purchase_found": "No purchase found",
+        "feedback_purchase_check_failed": "Could not verify purchase right now",
+        "feedback_product_fallback": "Product",
+        "feedback_sending": "Sending...",
+        "feedback_sent_success_prefix": "Sent successfully. Message ID:",
+        "feedback_send_failed": "Failed to send. Please try again.",
     },
     "ru": {
         "brand_name": "Андрей Хохлов",
@@ -352,6 +363,18 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "feedback_submit": "Отправить",
 
         "feedback_email_hint": "Для отзывов и вопросов по работе продукта укажите email, использованный при покупке — это нужно для проверки.",
+
+        "feedback_purchase_label": "Покупка",
+        "feedback_purchase_placeholder": "Выберите покупку",
+
+        "feedback_checking_purchase": "Проверяем покупку...",
+        "feedback_purchase_confirmed": "Покупка подтверждена",
+        "feedback_no_purchase_found": "Покупка не найдена",
+        "feedback_purchase_check_failed": "Не удалось проверить покупку прямо сейчас",
+        "feedback_product_fallback": "Продукт",
+        "feedback_sending": "Отправка...",
+        "feedback_sent_success_prefix": "Отправлено. ID сообщения:",
+        "feedback_send_failed": "Не удалось отправить. Попробуйте снова.",
     },
 }
 

@@ -1,8 +1,10 @@
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
 
 class FeedbackCreate(BaseModel):
+    sale_id: int | None = None
     message_type: str = Field(..., min_length=3, max_length=30)
     email: EmailStr | None = None
     subject: str = Field(..., min_length=3, max_length=200)
@@ -15,15 +17,19 @@ class FeedbackCreate(BaseModel):
     )
 
     @model_validator(mode="after")
-    def validate_email_for_product_feedback(self):
-        if self.message_type == "product_feedback" and not self.email:
-            raise ValueError("Email is required for product feedback.")
+    def validate_product_feedback_fields(self):
+        if self.message_type == "product_feedback":
+            if not self.email:
+                raise ValueError("Email is required for product feedback.")
+            if self.sale_id is None:
+                raise ValueError("Sale selection is required for product feedback.")
         return self
 
 
 class FeedbackCreateResponse(BaseModel):
     status: str
     id: int
+
 
 class FeedbackItemResponse(BaseModel):
     id: int
