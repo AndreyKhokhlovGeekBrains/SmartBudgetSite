@@ -181,8 +181,11 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
 
         "feedback_email_hint": "For product feedback and questions, please provide the email used during purchase — this is required for verification.",
 
-        "feedback_purchase_label": "Purchase",
-        "feedback_purchase_placeholder": "Select a purchase",
+        "feedback_contact_email_label": "Contact email",
+        "feedback_contact_email_hint": "Optional. Enter it if you would like to receive a reply to your message.",
+
+        "feedback_purchase_label": "Product",
+        "feedback_purchase_placeholder": "Select the product you want to leave feedback for",
 
         "feedback_checking_purchase": "Checking purchase...",
         "feedback_purchase_confirmed": "Purchase confirmed",
@@ -364,8 +367,11 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
 
         "feedback_email_hint": "Для отзывов и вопросов по работе продукта укажите email, использованный при покупке — это нужно для проверки.",
 
-        "feedback_purchase_label": "Покупка",
-        "feedback_purchase_placeholder": "Выберите покупку",
+        "feedback_contact_email_label": "Контактный email",
+        "feedback_contact_email_hint": "Необязательно. Укажите, если хотите получить ответ по сообщению.",
+
+        "feedback_purchase_label": "Продукт",
+        "feedback_purchase_placeholder": "Выберите продукт, по которому хотите оставить отзыв",
 
         "feedback_checking_purchase": "Проверяем покупку...",
         "feedback_purchase_confirmed": "Покупка подтверждена",

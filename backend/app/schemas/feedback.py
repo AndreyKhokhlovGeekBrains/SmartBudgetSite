@@ -8,7 +8,7 @@ class FeedbackCreate(BaseModel):
     message_type: str = Field(..., min_length=3, max_length=30)
     email: EmailStr | None = None
     subject: str = Field(..., min_length=3, max_length=200)
-    message: str = Field(..., min_length=10)
+    message: str = Field(..., min_length=10, max_length=2000)
     name: str | None = Field(default=None, max_length=200)
     page_url: str | None = None
 

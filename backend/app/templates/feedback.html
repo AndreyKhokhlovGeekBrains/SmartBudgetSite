@@ -31,6 +31,16 @@
 
         <input class="feedback-form__control" type="email" id="email" name="email">
 
+        <div id="contactEmailGroup" style="display: none;">
+            <label class="feedback-form__label" for="contact_email">
+                {{ t("feedback_contact_email_label") }}
+                <span class="feedback-form__hint">
+                    {{ t("feedback_contact_email_hint") }}
+                </span>
+            </label>
+            <input class="feedback-form__control" type="email" id="contact_email" name="contact_email">
+        </div>
+
         <div class="feedback-purchase-status" id="purchase-status" style="display: none;"></div>
 
         <div id="purchaseSelectorGroup" style="display: none;">
@@ -51,7 +61,8 @@
 
         <div id="messageGroup" style="display: none;">
             <label class="feedback-form__label" for="message">{{ t("feedback_message_label") }}</label>
-            <textarea class="feedback-form__control feedback-form__control--textarea" id="message" name="message" required></textarea>
+            <textarea class="feedback-form__control feedback-form__control--textarea" id="message" name="message" required maxlength="2000"></textarea>
+            <div class="feedback-form__counter" id="messageCounter">0 / 2000</div>
         </div>
 
         <input type="hidden" id="page_url" name="page_url" value="{{ request.url.path }}">

@@ -20,6 +20,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const submitButton = form.querySelector('button[type="submit"]');
 
+    const contactEmailGroup = document.getElementById("contactEmailGroup");
+    const contactEmailInput = document.getElementById("contact_email");
+
+    const messageInput = document.getElementById("message");
+    const messageCounter = document.getElementById("messageCounter");
+
     function updateEmailVisibility() {
         const type = typeSelect.value;
 
@@ -28,12 +34,19 @@ document.addEventListener("DOMContentLoaded", () => {
             emailInput.style.display = "block";
             emailHint.style.display = "block";
             emailInput.required = true;
+
+            contactEmailGroup.style.display = "none";
+            contactEmailInput.required = false;
+            contactEmailInput.value = "";
         } else {
             emailLabel.style.display = "none";
             emailInput.style.display = "none";
             emailHint.style.display = "none";
             emailInput.required = false;
             emailInput.value = "";
+
+            contactEmailGroup.style.display = "block";
+            contactEmailInput.required = false;
         }
     }
 
@@ -67,6 +80,8 @@ document.addEventListener("DOMContentLoaded", () => {
         purchaseStatus.style.display = "none";
         purchaseStatus.textContent = "";
         purchaseStatus.className = "feedback-purchase-status";
+
+        purchaseSelectorGroup.style.display = "none";
 
         const type = typeSelect.value;
         const email = emailInput.value.trim().toLowerCase();
@@ -139,7 +154,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 });
 
                 purchaseSelectorGroup.style.display = "block";
-                updateFormVisibility(false);
+
+                if (result.purchases.length === 1) {
+                    purchaseSelect.value = String(result.purchases[0].sale_id);
+                    updateFormVisibility(true);
+                    subject.focus();
+                } else {
+                    updateFormVisibility(false);
+                }
             } else {
                 purchaseStatus.style.display = "block";
                 purchaseStatus.className = "feedback-purchase-status error";
@@ -170,6 +192,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     emailInput.addEventListener("blur", updatePurchaseStatus);
 
+    emailInput.addEventListener("keydown", async (event) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            await updatePurchaseStatus();
+            emailInput.blur();
+        }
+    });
+
+    if (messageInput && messageCounter) {
+        const maxLength = messageInput.maxLength;
+
+        const updateCounter = () => {
+            const currentLength = messageInput.value.length;
+            messageCounter.textContent = `${currentLength} / ${maxLength}`;
+        };
+
+        messageInput.addEventListener("input", updateCounter);
+
+        updateCounter(); // ← важно: инициализация при загрузке
+    }
+
     typeSelect.addEventListener("change", () => {
         updateEmailVisibility();
         updatePurchaseStatus();
@@ -178,6 +221,7 @@ document.addEventListener("DOMContentLoaded", () => {
     purchaseSelect.addEventListener("change", () => {
         if (purchaseSelect.value) {
             updateFormVisibility(true);
+            subject.focus();
         } else {
             updateFormVisibility(false);
         }
