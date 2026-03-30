@@ -26,8 +26,7 @@ backend/
   docker-compose.yml
   requirements.txt
   alembic.ini
-
----
+```
 
 ## 🚀 Features
 
@@ -90,12 +89,18 @@ UPLOAD_DIR=uploads
 
 ```bash
 docker-compose up -d
+```
+```bash
+docker-compose down
+```
 or
+```bash
 uvicorn app.main:app --reload
+```
 
 🔐 Validation rules
-Files
-Allowed:
+```text
+Files Allowed:
 .png
 .jpg
 .jpeg
@@ -103,6 +108,7 @@ Allowed:
 .pdf
 Max size: 20 MB per file
 Max files: 5
+```
 
 📁 Storage
 
