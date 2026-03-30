@@ -195,6 +195,14 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "feedback_sending": "Sending...",
         "feedback_sent_success_prefix": "Sent successfully. Message ID:",
         "feedback_send_failed": "Failed to send. Please try again.",
+        "feedback_attachments_label": "Attach files",
+        "feedback_attachments_hint": "You can upload screenshots or PDF files (up to 20 MB each, max 5 files)",
+
+        "feedback_dropzone_title": "Drag & drop files here or click to select",
+        "feedback_dropzone_hint": "Supported: PNG, JPG, WEBP, PDF",
+        "feedback_dropzone_no_files": "No files selected",
+        "feedback_dropzone_button": "Choose files",
+
     },
     "ru": {
         "brand_name": "Андрей Хохлов",
@@ -381,6 +389,15 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "feedback_sending": "Отправка...",
         "feedback_sent_success_prefix": "Отправлено. ID сообщения:",
         "feedback_send_failed": "Не удалось отправить. Попробуйте снова.",
+
+        "feedback_attachments_label": "Прикрепить файлы",
+        "feedback_attachments_hint": "Можно добавить скриншоты или PDF (до 20 МБ каждый, максимум 5 файлов)",
+
+        "feedback_dropzone_title": "Перетащите файлы сюда или нажмите для выбора",
+        "feedback_dropzone_hint": "Поддерживаются PNG, JPG, WEBP и PDF",
+        "feedback_dropzone_no_files": "Файлы не выбраны",
+        "feedback_dropzone_button": "Выбрать файлы",
+
     },
 }
 

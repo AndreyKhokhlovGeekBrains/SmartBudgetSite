@@ -1,15 +1,22 @@
-from fastapi import APIRouter
-from fastapi import Depends, Request
+from pathlib import Path
+from typing import List
+
+from fastapi import APIRouter, Depends, File, HTTPException, Request, UploadFile, Form
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.dependencies import get_db
 from app.repositories.feedback_repository import FeedbackRepository
-from app.schemas.feedback import FeedbackCreate, FeedbackCreateResponse, FeedbackListResponse
-from app.repositories.sales_repository import get_verified_purchases_by_email
-from app.schemas.purchase_check import PurchaseLookupRequest, PurchaseLookupResponse, PurchaseItem
+from app.repositories.sales_repository import (
+    get_verified_purchases_by_email,
+    is_verified_sale_for_email,
+)
+from app.schemas.feedback import FeedbackCreateResponse, FeedbackListResponse
+from app.schemas.purchase_check import PurchaseItem, PurchaseLookupRequest, PurchaseLookupResponse
 
-from fastapi import HTTPException
-from app.repositories.sales_repository import is_verified_sale_for_email
+import uuid
+import shutil
+from app.models.feedback_attachment import FeedbackAttachment
 
 router = APIRouter(prefix="/v1", tags=["v1"])
 
@@ -23,23 +30,90 @@ def version() -> dict:
 
 @router.post("/feedback", response_model=FeedbackCreateResponse)
 def create_feedback(
-    payload: FeedbackCreate,
     request: Request,
+    message_type: str = Form(...),
+    subject: str = Form(...),
+    message: str = Form(...),
+    email: str = Form(""),
+    name: str | None = Form(None),
+    page_url: str | None = Form(None),
+    sale_id: int | None = Form(None),
+    files: List[UploadFile] = File(default=[]),
     db: Session = Depends(get_db),
 ):
+    MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB
+    ALLOWED_TYPES = {
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "application/pdf",
+    }
+    ALLOWED_EXTENSIONS = {
+        ".png",
+        ".jpg",
+        ".jpeg",
+        ".webp",
+        ".pdf",
+    }
+    MAX_FILES_COUNT = 5
+
+    upload_path = Path(settings.UPLOAD_DIR)
+    upload_path.mkdir(parents=True, exist_ok=True)
+
     repo = FeedbackRepository(db)
 
     user_agent = request.headers.get("user-agent")
 
+    if len(files) > MAX_FILES_COUNT:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Too many files. Maximum allowed: {MAX_FILES_COUNT}",
+        )
+
+    # Validate uploaded files
+    for file in files:
+        extension = Path(file.filename or "").suffix.lower()
+
+        if not file.filename:
+            raise HTTPException(
+                status_code=400,
+                detail="File must have a filename",
+            )
+
+        if extension not in ALLOWED_EXTENSIONS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported file extension: {extension or 'unknown'}",
+            )
+
+        # Check content type
+        if file.content_type not in ALLOWED_TYPES:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported file type: {file.content_type}",
+            )
+
+        # Read file to check size
+        file.file.seek(0, 2)  # move to end
+        size = file.file.tell()
+
+        if size > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=400,
+                detail=f"File too large: {file.filename}",
+            )
+
+        file.file.seek(0)
+
     # 🔐 BACKEND VALIDATION
-    if payload.message_type == "product_feedback":
-        if not payload.email:
+    if message_type == "product_feedback":
+        if not email:
             raise HTTPException(
                 status_code=400,
                 detail="Email is required for product feedback",
             )
 
-        if payload.sale_id is None:
+        if sale_id is None:
             raise HTTPException(
                 status_code=400,
                 detail="Sale selection is required for product feedback",
@@ -47,8 +121,8 @@ def create_feedback(
 
         if not is_verified_sale_for_email(
             db=db,
-            sale_id=payload.sale_id,
-            email=str(payload.email),
+            sale_id=sale_id,
+            email=str(email),
         ):
             raise HTTPException(
                 status_code=400,
@@ -56,16 +130,63 @@ def create_feedback(
             )
 
     feedback = repo.create(
-        message_type=payload.message_type,
-        email=str(payload.email),
-        subject=payload.subject,
-        message=payload.message,
-        name=payload.name,
-        page_url=payload.page_url,
+        message_type=message_type,
+        email=email,
+        subject=subject,
+        message=message,
+        name=name,
+        page_url=page_url,
         user_agent=user_agent,
-        # ⚠️ если модель поддерживает — добавь:
-        # sale_id=payload.sale_id,
     )
+
+    attachments = []
+    saved_paths = []
+
+    try:
+        for file in files:
+            # Generate unique filename
+            file_ext = Path(file.filename or "").suffix.lower()
+            unique_name = f"{uuid.uuid4().hex}{file_ext}"
+
+            # Build storage path
+            file_path = upload_path / unique_name
+
+            # Save file to disk
+            with open(file_path, "wb") as f:
+                shutil.copyfileobj(file.file, f)
+
+            saved_paths.append(file_path)
+
+            # Create attachment record
+            attachment = FeedbackAttachment(
+                feedback_id=feedback.id,
+                original_filename=file.filename or unique_name,
+                storage_type="local",
+                storage_key=str(file_path),
+                content_type=file.content_type or "application/octet-stream",
+                file_size_bytes=file_path.stat().st_size,
+            )
+
+            attachments.append(attachment)
+
+        if attachments:
+            db.add_all(attachments)
+            db.commit()
+
+    except Exception:
+        db.rollback()
+
+        for path in saved_paths:
+            try:
+                if path.exists():
+                    path.unlink()
+            except Exception:
+                pass
+
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to save attachments",
+        )
 
     return {
         "status": "ok",

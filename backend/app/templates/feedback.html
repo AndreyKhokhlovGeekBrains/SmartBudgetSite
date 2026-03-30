@@ -11,7 +11,7 @@
     <h1 class="feedback-page__title">{{ t("feedback_title") }}</h1>
     <p class="feedback-page__intro">{{ t("feedback_intro") }}</p>
 
-    <form class="feedback-form" id="feedback-form">
+    <form class="feedback-form" id="feedback-form" enctype="multipart/form-data">
         <label class="feedback-form__label" for="message_type">{{ t("feedback_type_label") }}</label>
         <select class="feedback-form__control" id="message_type" name="message_type" required>
             <option value="site_issue">{{ t("feedback_type_site_issue") }}</option>
@@ -65,6 +65,35 @@
             <div class="feedback-form__counter" id="messageCounter">0 / 2000</div>
         </div>
 
+        <div id="attachmentsGroup" style="display: none;">
+            <label class="feedback-form__label" for="attachments">
+                {{ t("feedback_attachments_label") }}
+                <span class="feedback-form__hint">
+                    {{ t("feedback_attachments_hint") }}
+                </span>
+            </label>
+            <div class="feedback-dropzone" id="feedbackDropzone">
+                <input
+                    class="feedback-form__control feedback-form__file-input"
+                    type="file"
+                    id="attachments"
+                    name="files"
+                    multiple
+                    accept=".png,.jpg,.jpeg,.webp,.pdf"
+                >
+                <div class="feedback-dropzone__content">
+                    <div class="feedback-dropzone__title">{{ t("feedback_dropzone_title") }}</div>
+                    <button type="button" class="feedback-dropzone__button">
+                        {{ t("feedback_dropzone_button") }}
+                    </button>
+                    <div class="feedback-dropzone__hint">{{ t("feedback_dropzone_hint") }}</div>
+                    <div class="feedback-dropzone__files" id="selectedFilesText">
+                        {{ t("feedback_dropzone_no_files") }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <input type="hidden" id="page_url" name="page_url" value="{{ request.url.path }}">
 
         <button class="btn btn-primary" type="submit">{{ t("feedback_submit") }}</button>
@@ -82,7 +111,8 @@ window.feedbackTexts = {
     productFallback: "{{ t('feedback_product_fallback') }}",
     sending: "{{ t('feedback_sending') }}",
     sentSuccessPrefix: "{{ t('feedback_sent_success_prefix') }}",
-    sendFailed: "{{ t('feedback_send_failed') }}"
+    sendFailed: "{{ t('feedback_send_failed') }}",
+    noFiles: "{{ t('feedback_dropzone_no_files') }}",
 };
 </script>
 <script src="{{ url_for('static', path='js/feedback.js') }}"></script>

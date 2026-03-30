@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     POSTGRES_DB: str = ""
 
     SECRET_KEY: str = ""
+    UPLOAD_DIR: str = "uploads"
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

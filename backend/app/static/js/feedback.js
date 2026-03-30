@@ -26,6 +26,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const messageInput = document.getElementById("message");
     const messageCounter = document.getElementById("messageCounter");
 
+    const subjectInput = document.getElementById("subject");
+    const attachmentsGroup = document.getElementById("attachmentsGroup");
+
+    const attachmentsInput = document.getElementById("attachments");
+    const selectedFilesText = document.getElementById("selectedFilesText");
+
+    const feedbackDropzone = document.getElementById("feedbackDropzone");
+
     function updateEmailVisibility() {
         const type = typeSelect.value;
 
@@ -68,9 +76,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (isVisible) {
             subjectGroup.style.display = "block";
             messageGroup.style.display = "block";
+            attachmentsGroup.style.display = "block";
         } else {
             subjectGroup.style.display = "none";
             messageGroup.style.display = "none";
+            attachmentsGroup.style.display = "none";
         }
 
         updateSubmitState();
@@ -158,7 +168,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (result.purchases.length === 1) {
                     purchaseSelect.value = String(result.purchases[0].sale_id);
                     updateFormVisibility(true);
-                    subject.focus();
+                    subjectInput.focus();
                 } else {
                     updateFormVisibility(false);
                 }
@@ -221,7 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
     purchaseSelect.addEventListener("change", () => {
         if (purchaseSelect.value) {
             updateFormVisibility(true);
-            subject.focus();
+            subjectInput.focus();
         } else {
             updateFormVisibility(false);
         }
@@ -244,12 +254,15 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         try {
+            const formData = new FormData(form);
+
+            if (purchaseSelect && purchaseSelect.value) {
+                formData.set("sale_id", purchaseSelect.value);
+            }
+
             const response = await fetch("/v1/feedback", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload),
+                body: formData,
             });
 
             if (!response.ok) {
@@ -263,6 +276,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             form.reset();
             form.page_url.value = window.location.pathname;
+
+            selectedFilesText.textContent = texts.noFiles || "No files selected";
+            feedbackDropzone.classList.remove("is-dragover");
 
             purchaseSelectorGroup.style.display = "none";
             purchaseSelect.innerHTML = `<option value="">${purchasePlaceholderText}</option>`;
@@ -279,4 +295,56 @@ document.addEventListener("DOMContentLoaded", () => {
             status.className = "feedback-form__status feedback-form__status--error";
         }
     });
+
+    attachmentsInput.addEventListener("change", () => {
+        const allowedExtensions = [".png", ".jpg", ".jpeg", ".webp", ".pdf"];
+
+        const files = Array.from(attachmentsInput.files || []);
+
+        if (!files.length) {
+            selectedFilesText.textContent =
+                window.feedbackTexts.noFiles || "No files selected";
+            return;
+        }
+
+        const invalidFiles = files.filter((file) => {
+            const dotIndex = file.name.lastIndexOf(".");
+            const extension = dotIndex >= 0 ? file.name.slice(dotIndex).toLowerCase() : "";
+            return !allowedExtensions.includes(extension);
+        });
+
+        if (invalidFiles.length > 0) {
+            selectedFilesText.textContent =
+                window.feedbackTexts.invalidFileType || "Invalid file type selected";
+            attachmentsInput.value = "";
+            return;
+        }
+
+        const names = files.map((f) => f.name);
+        selectedFilesText.textContent = names.join(", ");
+    });
+
+    if (feedbackDropzone && attachmentsInput) {
+        feedbackDropzone.addEventListener("dragover", (event) => {
+            event.preventDefault();
+            feedbackDropzone.classList.add("is-dragover");
+        });
+
+        feedbackDropzone.addEventListener("dragleave", () => {
+            feedbackDropzone.classList.remove("is-dragover");
+        });
+
+        feedbackDropzone.addEventListener("drop", (event) => {
+            event.preventDefault();
+            feedbackDropzone.classList.remove("is-dragover");
+
+            const droppedFiles = event.dataTransfer?.files;
+            if (!droppedFiles || droppedFiles.length === 0) {
+                return;
+            }
+
+            attachmentsInput.files = droppedFiles;
+            attachmentsInput.dispatchEvent(new Event("change"));
+        });
+    }
 });

@@ -1,7 +1,7 @@
 from datetime import datetime, UTC
 
 from sqlalchemy import Boolean, DateTime, Text, String
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Index
 
 from app.core.db import Base
@@ -31,4 +31,10 @@ class FeedbackMessage(Base):
         Boolean,
         default=False,
         nullable=False,
+    )
+    attachments = relationship(
+        "FeedbackAttachment",
+        back_populates="feedback",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )

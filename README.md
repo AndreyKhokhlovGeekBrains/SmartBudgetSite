@@ -1,32 +1,125 @@
-# SmartBudget Site
+# SmartBudget API
 
-## 📌 Project Structure
-```
-smartbudget-site/
-├── .vscode/               # VS Code workspace settings
-│   ├── extensions.json    # Recommended extensions
-│   └── settings.json      # Editor settings
-├── frontend/              # HTML + CSS (open in VS Code)
-│   ├── index.html
-│   └── style.css
-└── backend/               # Python backend (open in PyCharm)
-    └── main.py
-```
-
-## 🚀 Getting Started
-
-### 1. Open in VS Code
-- Open `smartbudget-site` folder in VS Code.
-- VS Code will suggest installing recommended extensions → click **Install All**.
-- Open `frontend/index.html` → right-click → **Open with Live Server** → page opens in browser.
-
-### 2. Work on Backend in PyCharm
-- Open `backend/` folder in PyCharm.
-- Run `main.py` to check backend setup.
-
-### 3. Project Workflow
-- Use **VS Code** for frontend (HTML/CSS).
-- Use **PyCharm** for backend (Python + Docker + PostgreSQL).
+Backend for SmartBudget application built with FastAPI, PostgreSQL and Docker.
 
 ---
-Happy coding 🎉
+
+## 📦 Project Structure
+backend/
+├── app/
+│ ├── core/ # Config, settings
+│ ├── dependencies/ # DI (database, etc.)
+│ ├── models/ # SQLAlchemy models
+│ ├── repositories/ # Data access layer
+│ ├── routers/ # API endpoints
+│ ├── schemas/ # Pydantic schemas
+│ └── services/ # Business logic
+├── alembic/ # Migrations
+├── tests/ # Tests
+├── uploads/ # Stored files (local storage)
+├── .env* # Environment configs
+├── docker-compose.yml
+├── requirements.txt
+└── alembic.ini
+
+---
+
+## 🚀 Features
+
+### Feedback system
+- Multiple message types:
+  - Site issue
+  - General question
+  - Product feedback
+- Purchase verification for product feedback
+- Dynamic form behavior on frontend
+
+### Attachments
+- Multiple file upload (max 5 files)
+- Drag & drop support
+- File picker fallback
+- Client-side validation (file type)
+- Server-side validation:
+  - file type
+  - file size (max 20 MB)
+  - max files count
+- Files stored locally with unique names
+- Metadata stored in database
+
+### Internationalization
+- English / Russian UI support
+
+---
+
+## 🛠 Tech Stack
+
+- FastAPI
+- PostgreSQL
+- SQLAlchemy
+- Alembic
+- Docker
+- Vanilla JS (frontend)
+
+---
+
+## ⚙️ Environment
+
+Environment variables are configured via:
+
+- `.env`
+- `.env.dev`
+- `.env.prod`
+- `.env.example`
+
+Key variables:
+DATABASE_URL=
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+POSTGRES_DB=
+SECRET_KEY=
+UPLOAD_DIR=uploads
+
+---
+
+## ▶️ Run locally
+
+```bash
+docker-compose up -d
+or
+uvicorn app.main:app --reload
+
+🔐 Validation rules
+Files
+Allowed:
+.png
+.jpg
+.jpeg
+.webp
+.pdf
+Max size: 20 MB per file
+Max files: 5
+
+📁 Storage
+
+Current implementation:
+
+Local disk (/uploads)
+Unique filenames (UUID)
+
+Future improvement:
+
+S3-compatible storage (scalable & production-ready)
+🧪 API
+Create feedback
+
+POST /v1/feedback
+
+multipart/form-data
+supports attachments
+Check purchase
+
+POST /v1/check-purchase
+
+💡 Notes
+Backend is designed with layered architecture (router → service → repository)
+File handling is isolated and ready for migration to cloud storage
