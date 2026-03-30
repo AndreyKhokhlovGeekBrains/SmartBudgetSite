@@ -76,14 +76,14 @@ Environment variables are configured via:
 - `.env.example`
 
 ## Key variables:
+```text
 DATABASE_URL=
 POSTGRES_USER=
 POSTGRES_PASSWORD=
 POSTGRES_DB=
 SECRET_KEY=
 UPLOAD_DIR=uploads
-
----
+```
 
 ## ▶️ Run locally
 
