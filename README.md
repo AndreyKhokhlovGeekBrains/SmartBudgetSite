@@ -5,22 +5,27 @@ Backend for SmartBudget application built with FastAPI, PostgreSQL and Docker.
 ---
 
 ## 📦 Project Structure
+
+```text
 backend/
-├── app/
-│ ├── core/ # Config, settings
-│ ├── dependencies/ # DI (database, etc.)
-│ ├── models/ # SQLAlchemy models
-│ ├── repositories/ # Data access layer
-│ ├── routers/ # API endpoints
-│ ├── schemas/ # Pydantic schemas
-│ └── services/ # Business logic
-├── alembic/ # Migrations
-├── tests/ # Tests
-├── uploads/ # Stored files (local storage)
-├── .env* # Environment configs
-├── docker-compose.yml
-├── requirements.txt
-└── alembic.ini
+  app/
+    api/             # API endpoints (routers)
+    core/            # Config, logging, i18n, dependencies
+    db/              # Database setup
+    models/          # SQLAlchemy models
+    repositories/    # Data access layer
+    schemas/         # Pydantic schemas
+    static/          # CSS, JS
+    templates/       # HTML (Jinja2)
+    main.py          # FastAPI entrypoint
+  alembic/           # Migrations
+  tests/             # Tests
+  uploads/           # Stored files (local storage)
+  docs/              # Dev notes
+  .env*              # Environment configs
+  docker-compose.yml
+  requirements.txt
+  alembic.ini
 
 ---
 
@@ -71,7 +76,7 @@ Environment variables are configured via:
 - `.env.prod`
 - `.env.example`
 
-Key variables:
+## Key variables:
 DATABASE_URL=
 POSTGRES_USER=
 POSTGRES_PASSWORD=
