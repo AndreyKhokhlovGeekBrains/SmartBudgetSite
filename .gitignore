@@ -3,7 +3,7 @@ __pycache__/
 *.pyc
 
 # Env
-.venv/
+backend/.venv/
 .env
 .env.dev
 .env.*.local
