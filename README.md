@@ -1,5 +1,11 @@
 # SmartBudget API
 
+![Python](https://img.shields.io/badge/python-3.11-blue)
+![FastAPI](https://img.shields.io/badge/FastAPI-0.1-green)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14-blue)
+![Docker](https://img.shields.io/badge/Docker-enabled-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
+
 Backend for SmartBudget application built with FastAPI, PostgreSQL and Docker.
 
 ---
@@ -134,3 +140,21 @@ POST /v1/check-purchase
 💡 Notes
 Backend is designed with layered architecture (router → service → repository)
 File handling is isolated and ready for migration to cloud storage
+
+## 🔌 Example API usage
+
+### Create feedback with attachments
+
+```bash
+curl -X POST "http://localhost:8000/v1/feedback" \
+  -F "message_type=site_issue" \
+  -F "subject=Test message" \
+  -F "message=Something is broken" \
+  -F "files=@screenshot.png"
+```
+### Check purchase
+```bash
+curl -X POST "http://localhost:8000/v1/check-purchase" \
+  -H "Content-Type: application/json" \
+  -d '{"email": "test@example.com"}'
+```
