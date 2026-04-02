@@ -1,16 +1,12 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from app.products_catalog import products_index
-from fastapi import HTTPException
-from app.products_catalog import product_by_slug
 
 from .core.config import settings
 from .core.logging import setup_logging
 from .api.v1.routes import router as v1_router
-from .core.i18n import get_lang, set_lang_cookie, t
+from app.web.routes import router as web_router
+
 
 def create_app() -> FastAPI:
     setup_logging()
@@ -23,10 +19,10 @@ def create_app() -> FastAPI:
         openapi_url="/openapi.json",
     )
 
-    # CORS
     origins = [o.strip() for o in settings.BACKEND_CORS_ORIGINS.split(",") if o.strip()]
     if settings.APP_ENV == "dev" and not origins:
         origins = ["*"]
+
     application.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
@@ -35,97 +31,12 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    # Static & templates
     application.mount("/static", StaticFiles(directory="app/static"), name="static")
-    templates = Jinja2Templates(directory="app/templates")
 
-    @application.get("/", response_class=HTMLResponse)
-    async def index(request: Request):
-        lang = get_lang(request)
-        response = templates.TemplateResponse(
-            "index.html",
-            {
-                "request": request,
-                "lang": lang,
-                "t": lambda k: t(lang, k),
-                "app_name": settings.APP_NAME,
-                "env": settings.APP_ENV,
-            },
-        )
-        # If user explicitly changed language via ?lang=..., persist it
-        if (request.query_params.get("lang") or "").lower() in {"en", "ru"}:
-            set_lang_cookie(response, lang)
-        return response
-
-    @application.get("/products", response_class=HTMLResponse)
-    async def products(request: Request):
-        lang = get_lang(request)
-        response = templates.TemplateResponse(
-            "products.html",
-            {
-                "request": request,
-                "lang": lang,
-                "t": lambda k: t(lang, k),
-                "products": products_index(),
-            },
-        )
-        if (request.query_params.get("lang") or "").lower() in {"en", "ru"}:
-            set_lang_cookie(response, lang)
-        return response
-
-    @application.get("/faq", response_class=HTMLResponse)
-    async def faq(request: Request):
-        lang = get_lang(request)
-        response = templates.TemplateResponse(
-            "faq.html",
-            {
-                "request": request,
-                "lang": lang,
-                "t": lambda k: t(lang, k),
-            },
-        )
-        if (request.query_params.get("lang") or "").lower() in {"en", "ru"}:
-            set_lang_cookie(response, lang)
-        return response
-
-    @application.get("/feedback", response_class=HTMLResponse)
-    async def feedback_page(request: Request):
-        lang = get_lang(request)
-        response = templates.TemplateResponse(
-            "feedback.html",
-            {
-                "request": request,
-                "lang": lang,
-                "t": lambda k: t(lang, k),
-            },
-        )
-        if (request.query_params.get("lang") or "").lower() in {"en", "ru"}:
-            set_lang_cookie(response, lang)
-        return response
-
-    @application.get("/products/{slug}", response_class=HTMLResponse)
-    async def product_detail(request: Request, slug: str):
-        lang = get_lang(request)
-        product = product_by_slug(slug)
-        if not product:
-            raise HTTPException(status_code=404)
-        template_name = "sm_landing.html" if slug == "smartbudget" else "product_detail.html"
-        response = templates.TemplateResponse(
-            template_name,
-            {"request": request, "lang": lang, "t": lambda k: t(lang, k), "product": product},
-        )
-        if (request.query_params.get("lang") or "").lower() in {"en", "ru"}:
-            set_lang_cookie(response, lang)
-        return response
-
-
-    # API v1
     application.include_router(v1_router)
+    application.include_router(web_router)
 
     return application
 
+
 app = create_app()
-
-
-# *** *** ***
-# uvicorn app.main:app --reload
