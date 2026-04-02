@@ -13,25 +13,28 @@ Backend for SmartBudget application built with FastAPI, PostgreSQL and Docker.
 ## 📦 Project Structure
 
 ```text
-backend/
-  app/
-    api/             # API endpoints (routers)
-    core/            # Config, logging, i18n, dependencies
-    db/              # Database setup
-    models/          # SQLAlchemy models
-    repositories/    # Data access layer
-    schemas/         # Pydantic schemas
-    static/          # CSS, JS
-    templates/       # HTML (Jinja2)
-    main.py          # FastAPI entrypoint
-  alembic/           # Migrations
-  tests/             # Tests
-  uploads/           # Stored files (local storage)
-  docs/              # Dev notes
-  .env*              # Environment configs
-  docker-compose.yml
-  requirements.txt
-  alembic.ini
+app/
+  api/             # API endpoints (routers)
+  core/            # Config, logging, i18n, dependencies
+  db/              # Database setup
+  models/          # SQLAlchemy models
+  repositories/    # Data access layer
+  schemas/         # Pydantic schemas
+  static/          # CSS, JS
+  templates/       # HTML (Jinja2)
+  web/             # Web routes (HTML pages)
+  main.py          # FastAPI entrypoint
+
+alembic/           # Migrations
+tests/             # Tests
+uploads/           # Stored files (local storage)
+docs/              # Dev notes
+
+.env*
+docker-compose.yml
+requirements.txt
+alembic.ini
+pytest.ini
 ```
 
 ## 🚀 Features
@@ -91,6 +94,36 @@ SECRET_KEY=
 UPLOAD_DIR=uploads
 ```
 
+## ⚡ Quick Start
+
+### 1. Clone repository
+```bash
+git clone https://github.com/<your-username>/SmartBudgetSite.git
+cd SmartBudgetSite
+```
+
+### 2. Create virtual environment
+```bash
+python -m venv .venv
+.\.venv\Scripts\activate
+```
+
+### 3. Install dependencies
+```bash
+pip install -r requirements.txt
+```
+
+### 4. Configure environment
+```bash
+copy .env.example .env
+```
+
+### 5. Run application
+```bash
+uvicorn app.main:app --reload --app-dir .
+```
+
+
 ## ▶️ Run locally
 
 ```bash
@@ -98,10 +131,6 @@ docker-compose up -d
 ```
 ```bash
 docker-compose down
-```
-or
-```bash
-uvicorn app.main:app --reload
 ```
 
 🔐 Validation rules
