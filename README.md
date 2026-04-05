@@ -10,6 +10,17 @@ Backend for SmartBudget application built with FastAPI, PostgreSQL and Docker.
 
 ---
 
+## 🔍 Health Check
+
+```bash
+curl http://127.0.0.1:8000/v1/health
+```
+
+Response:
+```json
+{"status": "ok"}
+```
+
 ## 📦 Project Structure
 
 ```text

@@ -2,10 +2,12 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import String, Date, DateTime, UniqueConstraint, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, validates
 from sqlalchemy.sql.sqltypes import Numeric
 
 from app.core.db import Base
+
+ALLOWED_EDITIONS = {"Standard", "Pro"}
 
 
 class Product(Base):
@@ -23,7 +25,7 @@ class Product(Base):
     # Public product name, e.g. SmartBudget
     name: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
 
-    # Product edition / variant, e.g. Base, Pro
+    # Product edition / variant, e.g. Standard, Pro
     edition: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
 
     # Semantic or business version, e.g. 1.0
@@ -50,6 +52,12 @@ class Product(Base):
         onupdate=func.now(),
         nullable=False,
     )
+
+    @validates("edition")
+    def validate_edition(self, key, value):
+        if value not in ALLOWED_EDITIONS:
+            raise ValueError(f"Invalid edition: {value}")
+        return value
 
 # Example:
 # slug = "smartbudget"

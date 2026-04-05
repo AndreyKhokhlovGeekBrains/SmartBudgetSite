@@ -33,7 +33,7 @@ def create_feedback(
     request: Request,
     message_type: str = Form(...),
     subject: str = Form(...),
-    message: str = Form(...),
+    message: str = Form(..., min_length=10, max_length=2000),
     email: str = Form(""),
     name: str | None = Form(None),
     page_url: str | None = Form(None),
