@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Feedback Admin{% endblock %}
+
+{% block content %}
+<section class="container" style="max-width: 1100px; margin: 40px auto;">
+    <h1 style="margin-bottom: 24px;">Feedback Inbox</h1>
+
+    {% if items %}
+        <div style="display: grid; gap: 16px;">
+            {% for item in items %}
+                <article style="border: 1px solid #d9d9d9; border-radius: 10px; padding: 16px; background: #fff;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
+                        <div>
+                            <div style="font-size: 14px; color: #666; margin-bottom: 6px;">
+                                #{{ item.id }} · {{ item.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            </div>
+
+                            <div style="font-weight: 600; margin-bottom: 6px;">
+                                {{ item.subject }}
+                            </div>
+
+                            <div style="font-size: 14px; color: #444; margin-bottom: 6px;">
+                                {{ item.message_type }} · {{ item.email }}
+                            </div>
+
+                            <div style="font-size: 14px;">
+                                Status:
+                                {% if item.is_resolved %}
+                                    <strong>Resolved</strong>
+                                {% else %}
+                                    <strong>New</strong>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div>
+                            <a href="/admin/feedback/{{ item.id }}"
+                               style="display: inline-block; padding: 10px 14px; border-radius: 8px; text-decoration: none; border: 1px solid #ccc;">
+                                Open
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div style="border: 1px solid #d9d9d9; border-radius: 10px; padding: 24px; background: #fff;">
+            No feedback messages yet.
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

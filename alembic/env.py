@@ -7,7 +7,7 @@ from app.core.config import settings
 from app.core.db import Base
 
 # Import models so that Alembic sees them in Base.metadata
-from app.models import FeedbackMessage, Product  # noqa: F401
+from app import models  # noqa: F401
 
 config = context.config
 

@@ -1,6 +1,6 @@
 from datetime import datetime, UTC
 
-from sqlalchemy import Boolean, DateTime, Text, String
+from sqlalchemy import Boolean, DateTime, Text, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Index
 
@@ -16,8 +16,8 @@ class FeedbackMessage(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     created_at: Mapped[datetime] = mapped_column(
-        DateTime,
-        default=lambda: datetime.now(UTC),
+        DateTime(timezone=True),
+        server_default=func.now(),
         nullable=False,
     )
     type: Mapped[str] = mapped_column(String(20), nullable=False)
