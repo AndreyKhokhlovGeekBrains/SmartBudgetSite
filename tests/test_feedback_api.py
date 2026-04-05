@@ -157,3 +157,45 @@ def test_create_general_feedback_empty_message(client):
     print(response.json())
 
     assert response.status_code == 422
+
+def test_update_feedback_resolved_status(client, db_session):
+    """
+    Test case: update feedback resolved status
+
+    What we verify:
+    - PATCH /v1/feedback/admin/{id} updates is_resolved flag
+    - Changes are persisted in the database
+    """
+
+    from app.models.feedback import FeedbackMessage
+    from datetime import datetime, UTC
+
+    # Create test feedback directly in DB
+    feedback = FeedbackMessage(
+        type="general_question",
+        email="test@example.com",
+        subject="Test",
+        message="Valid message content here",
+        created_at=datetime.now(UTC),
+        is_resolved=False,
+    )
+
+    db_session.add(feedback)
+    db_session.commit()
+
+    # Call API to update status
+    response = client.patch(
+        f"/v1/feedback/admin/{feedback.id}",
+        json={"is_resolved": True},
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+    assert data["is_resolved"] is True
+
+    # Verify DB updated
+    db_session.expire_all()
+    updated = db_session.get(FeedbackMessage, feedback.id)
+    assert updated is not None
+    assert updated.is_resolved is True
