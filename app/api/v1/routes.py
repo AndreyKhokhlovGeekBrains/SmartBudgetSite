@@ -11,7 +11,7 @@ from app.repositories.sales_repository import (
     get_verified_purchases_by_email,
     is_verified_sale_for_email,
 )
-from app.schemas.feedback import FeedbackCreateResponse, FeedbackListResponse
+from app.schemas.feedback import FeedbackCreateResponse, FeedbackListResponse, FeedbackMessageType
 from app.schemas.purchase_check import PurchaseItem, PurchaseLookupRequest, PurchaseLookupResponse
 
 import uuid
@@ -34,7 +34,7 @@ def version() -> dict:
 @router.post("/feedback", response_model=FeedbackCreateResponse)
 def create_feedback(
     request: Request,
-    message_type: str = Form(...),
+    message_type: FeedbackMessageType = Form(...),
     subject: str = Form(...),
     message: str = Form(..., min_length=10, max_length=2000),
     email: str = Form(""),
@@ -133,7 +133,7 @@ def create_feedback(
             )
 
     feedback = repo.create(
-        message_type=message_type,
+        message_type=str(message_type.value),
         email=email,
         subject=subject,
         message=message,

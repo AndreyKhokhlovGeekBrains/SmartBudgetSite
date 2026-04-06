@@ -1,11 +1,18 @@
 from datetime import datetime
+from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
 
+class FeedbackMessageType(str, Enum):
+    SITE_ISSUE = "site_issue"
+    GENERAL_QUESTION = "general_question"
+    PRODUCT_FEEDBACK = "product_feedback"
+
+
 class FeedbackCreate(BaseModel):
     sale_id: int | None = None
-    message_type: str = Field(..., min_length=3, max_length=30)
+    message_type: FeedbackMessageType
     email: EmailStr | None = None
     subject: str = Field(..., min_length=3, max_length=200)
     message: str = Field(..., min_length=10, max_length=2000)
@@ -18,7 +25,7 @@ class FeedbackCreate(BaseModel):
 
     @model_validator(mode="after")
     def validate_product_feedback_fields(self):
-        if self.message_type == "product_feedback":
+        if self.message_type == FeedbackMessageType.PRODUCT_FEEDBACK:
             if not self.email:
                 raise ValueError("Email is required for product feedback.")
             if self.sale_id is None:

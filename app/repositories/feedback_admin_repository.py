@@ -16,11 +16,14 @@ class FeedbackAdminRepository:
 
     def list_feedback(self) -> list[FeedbackMessage]:
         """
-        Return all feedback messages ordered by newest first.
+        Return all feedback messages ordered by unresolved first, then newest first.
         """
         stmt = (
             select(FeedbackMessage)
-            .order_by(FeedbackMessage.created_at.desc())
+            .order_by(
+                FeedbackMessage.is_resolved.asc(),
+                FeedbackMessage.created_at.desc(),
+            )
         )
         return list(self.db.scalars(stmt).all())
 

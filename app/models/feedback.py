@@ -1,3 +1,8 @@
+# Message type meaning:
+# - site_issue: private support/admin handling only
+# - general_question: private admin reply by email only
+# - product_feedback: may be answered privately and may later be published on public reviews page
+
 from datetime import datetime, UTC
 
 from sqlalchemy import Boolean, DateTime, Text, String, func
@@ -32,6 +37,25 @@ class FeedbackMessage(Base):
         default=False,
         nullable=False,
     )
+    admin_reply: Mapped[str | None] = mapped_column(Text, nullable=True)
+    is_published: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+    published_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    reply_sent_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+    reply_sent_to_email: Mapped[str | None] = mapped_column(
+        String(200),
+        nullable=True,
+    )
+
     attachments = relationship(
         "FeedbackAttachment",
         back_populates="feedback",

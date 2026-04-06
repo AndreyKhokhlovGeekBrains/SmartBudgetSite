@@ -1,53 +1,50 @@
 {% extends "base.html" %}
 
-{% block title %}Feedback Admin{% endblock %}
+{% block title %}Admin Feedback{% endblock %}
 
 {% block content %}
-<section class="container" style="max-width: 1100px; margin: 40px auto;">
-    <h1 style="margin-bottom: 24px;">Feedback Inbox</h1>
+<section class="container" style="max-width: 1200px; margin: 40px auto;">
+    <h1>Admin Feedback</h1>
 
     {% if items %}
-        <div style="display: grid; gap: 16px;">
+    <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th style="text-align: left; padding: 10px; border-bottom: 1px solid #ddd;">ID</th>
+                <th style="text-align: left; padding: 10px; border-bottom: 1px solid #ddd;">Created</th>
+                <th style="text-align: left; padding: 10px; border-bottom: 1px solid #ddd;">Type</th>
+                <th style="text-align: left; padding: 10px; border-bottom: 1px solid #ddd;">Email</th>
+                <th style="text-align: left; padding: 10px; border-bottom: 1px solid #ddd;">Subject</th>
+                <th style="text-align: left; padding: 10px; border-bottom: 1px solid #ddd;">Resolved</th>
+                <th style="text-align: left; padding: 10px; border-bottom: 1px solid #ddd;">Open</th>
+            </tr>
+        </thead>
+        <tbody>
             {% for item in items %}
-                <article style="border: 1px solid #d9d9d9; border-radius: 10px; padding: 16px; background: #fff;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
-                        <div>
-                            <div style="font-size: 14px; color: #666; margin-bottom: 6px;">
-                                #{{ item.id }} · {{ item.created_at.strftime('%Y-%m-%d %H:%M') }}
-                            </div>
-
-                            <div style="font-weight: 600; margin-bottom: 6px;">
-                                {{ item.subject }}
-                            </div>
-
-                            <div style="font-size: 14px; color: #444; margin-bottom: 6px;">
-                                {{ item.message_type }} · {{ item.email }}
-                            </div>
-
-                            <div style="font-size: 14px;">
-                                Status:
-                                {% if item.is_resolved %}
-                                    <strong>Resolved</strong>
-                                {% else %}
-                                    <strong>New</strong>
-                                {% endif %}
-                            </div>
-                        </div>
-
-                        <div>
-                            <a href="/admin/feedback/{{ item.id }}"
-                               style="display: inline-block; padding: 10px 14px; border-radius: 8px; text-decoration: none; border: 1px solid #ccc;">
-                                Open
-                            </a>
-                        </div>
-                    </div>
-                </article>
+            <tr>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">{{ item.id }}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">
+                    {{ item.created_at.strftime("%Y-%m-%d %H:%M") if item.created_at else "" }}
+                </td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">{{ item.type }}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">{{ item.email }}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">{{ item.subject }}</td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">
+                    {% if item.is_resolved %}
+                        <span style="color: green; font-weight: 600;">Resolved</span>
+                    {% else %}
+                        <span style="color: #d9534f; font-weight: 600;">Open</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 10px; border-bottom: 1px solid #eee;">
+                    <a href="/admin/feedback/{{ item.id }}">View</a>
+                </td>
+            </tr>
             {% endfor %}
-        </div>
+        </tbody>
+    </table>
     {% else %}
-        <div style="border: 1px solid #d9d9d9; border-radius: 10px; padding: 24px; background: #fff;">
-            No feedback messages yet.
-        </div>
+    <p>No feedback messages found.</p>
     {% endif %}
 </section>
 {% endblock %}
