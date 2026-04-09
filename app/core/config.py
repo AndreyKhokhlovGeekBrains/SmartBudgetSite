@@ -2,6 +2,8 @@ import os
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+# ENV_FILE allows switching environments (dev/prod/test)
+# Default is ".env" if ENV_FILE is not explicitly set
 ENV_FILE = os.getenv("ENV_FILE", ".env")
 
 
@@ -21,6 +23,9 @@ class Settings(BaseSettings):
 
     SECRET_KEY: str = ""
     UPLOAD_DIR: str = "uploads"
+
+    MAIL_FROM_EMAIL: str = ""
+    MAIL_FROM_NAME: str = "SmartBudget"
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

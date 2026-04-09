@@ -1,3 +1,12 @@
+"""
+Application dependencies.
+
+Important:
+- Use get_db from this module everywhere in routes
+- Do not duplicate get_db in other modules
+"""
+
+
 from collections.abc import Generator
 from sqlalchemy.orm import Session
 

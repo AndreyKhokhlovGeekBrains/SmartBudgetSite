@@ -104,22 +104,25 @@ Important:
 
 ## Email sending rules
 
-Admin UI currently treats email sending as a one-time action.
+Admin UI treats email sending as a one-time action.
 
 Rules:
-- email can be sent only if `admin_reply` is not empty
-- email cannot be sent more than once from admin UI
-- if `reply_sent_at` is set, repeated sending is blocked
-- after first send, further conversation should continue in the external email client
-- if a review is already published, email sending from admin UI is blocked
+- email can be sent only for:
+  - `general_question`
+  - `site_issue`
+- email requires:
+  - non-empty `admin_reply`
+  - non-empty `email`
+- email cannot be sent more than once:
+  - if `reply_sent_at` is set, repeated sending is blocked
+- email sending is blocked if:
+  - feedback is already published (`is_published = true`)
+  - feedback type is not eligible (e.g. `product_feedback`)
 
-Tracking fields:
-- `reply_sent_at`
-- `reply_sent_to_email`
-
-Open question:
-- define final rule for messages where `email` is empty
-- especially important for `site_issue` and `general_question`, because currently email may be absent there
+After sending:
+- `reply_sent_at` is set
+- `reply_sent_to_email` is stored
+- further communication must continue in external email client
 
 ---
 
@@ -148,15 +151,45 @@ Design decision:
 
 ## Next implementation priorities
 
-1. Add tests for:
+1. Move remaining admin feedback logic to service layer:
    - resolve toggle
    - reply draft save
-   - send email rules
-   - publish rules
-   - type-specific restrictions
 
-2. Define final email requirement rules:
-   - what to do when `email` is missing
-   - whether email should become mandatory for all message types or only for some flows
+2. Add service tests for remaining feedback rules:
+   - email already sent
+   - missing admin reply for email sending
+   - product_feedback is not allowed for email sending
+   - cannot send email for published feedback
+   - cannot publish without admin reply
+   - publish -> unpublish toggle flow
 
-3. Only after that, implement public `/reviews` page
+3. After service coverage is complete, review whether route tests are still needed for critical admin actions
+
+4. Only after that, implement public `/reviews` page
+
+---
+
+## Product Q&A (product_qna)
+
+Purpose:
+- store curated public questions and answers about products
+- act as a knowledge base / FAQ
+
+Important:
+- Q&A entries are short and focused
+- they are not full articles or guides
+
+Source of data:
+- Q&A is derived from feedback messages, but manually curated
+
+Workflow:
+1. user sends a message via feedback form
+2. admin reviews the message
+3. if it contains a useful question:
+   - admin rewrites it into a clear question
+   - writes a concise answer
+4. Q&A can be published on product page
+
+Difference from long-form content:
+- Q&A = short answers
+- articles/guides = separate feature (not implemented yet)

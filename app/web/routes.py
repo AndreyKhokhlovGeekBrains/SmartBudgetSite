@@ -4,13 +4,12 @@ from fastapi.templating import Jinja2Templates
 
 from app.products_catalog import products_index, product_by_slug
 from app.core.i18n import get_lang, set_lang_cookie, t
-from app.core.db import get_db
+from app.dependencies import get_db
 from app.repositories.feedback_admin_repository import FeedbackAdminRepository
+from app.services.feedback_service import send_feedback_reply, toggle_feedback_publish
 
 from sqlalchemy.orm import Session
-
 from datetime import datetime, UTC
-
 
 router = APIRouter()
 
@@ -106,6 +105,7 @@ async def admin_feedback_detail(
         },
     )
 
+
 @router.post("/admin/feedback/{feedback_id}/resolve")
 async def admin_feedback_resolve(
     feedback_id: int,
@@ -127,6 +127,7 @@ async def admin_feedback_resolve(
         url=f"/admin/feedback/{feedback_id}",
         status_code=303,
     )
+
 
 @router.post("/admin/feedback/{feedback_id}/reply")
 async def admin_feedback_save_reply(
@@ -151,79 +152,26 @@ async def admin_feedback_save_reply(
         status_code=303,
     )
 
+
 @router.post("/admin/feedback/{feedback_id}/publish")
 async def admin_feedback_toggle_publish(
     feedback_id: int,
     db: Session = Depends(get_db),
 ):
-    repo = FeedbackAdminRepository(db)
-    item = repo.get_feedback_by_id(feedback_id)
-
-    if not item:
-        raise HTTPException(status_code=404)
-
-    if item.type != "product_feedback":
-        raise HTTPException(
-            status_code=400,
-            detail="Only product feedback can be published",
-        )
-
-    if not item.admin_reply:
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot publish without admin reply",
-        )
-
-    item.is_published = not item.is_published
-    item.published_at = datetime.now(UTC) if item.is_published else None
-    db.commit()
+    toggle_feedback_publish(db=db, feedback_id=feedback_id)
 
     return RedirectResponse(
         url=f"/admin/feedback/{feedback_id}",
         status_code=303,
     )
 
+
 @router.post("/admin/feedback/{feedback_id}/send-email")
 def send_feedback_email(
     feedback_id: int,
     db: Session = Depends(get_db),
 ):
-    repo = FeedbackAdminRepository(db)
-    item = repo.get_feedback_by_id(feedback_id)
-
-    if not item:
-        raise HTTPException(status_code=404, detail="Feedback not found")
-
-    # Only for non-public types (email communication)
-    if item.type not in ("general_question", "site_issue"):
-        raise HTTPException(
-            status_code=400,
-            detail="Email reply is not applicable for this feedback type",
-        )
-
-    if not item.admin_reply:
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot send email without reply text",
-        )
-
-    if item.reply_sent_at:
-        raise HTTPException(
-            status_code=400,
-            detail="Email already sent",
-        )
-
-    if item.is_published:
-        raise HTTPException(
-            status_code=400,
-            detail="Cannot send email for published review",
-        )
-
-    # Simulate sending email (later we replace with real SMTP)
-    item.reply_sent_at = datetime.now(UTC)
-    item.reply_sent_to_email = item.email
-
-    db.commit()
+    send_feedback_reply(db=db, feedback_id=feedback_id)
 
     return RedirectResponse(
         url=f"/admin/feedback/{feedback_id}?email_sent=1",

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.core.db import get_db
+from app.dependencies import get_db
 from app.schemas.feedback import FeedbackCreate, FeedbackCreateResponse
 from app.repositories.feedback_repository import FeedbackRepository
 

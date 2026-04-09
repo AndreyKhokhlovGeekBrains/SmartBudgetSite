@@ -1,0 +1,46 @@
+from app.models.feedback import FeedbackMessage
+
+
+def test_send_email_fails_when_email_missing(client, db_session):
+    """
+    Test case: sending email reply when user email is missing
+
+    What we verify:
+    - Endpoint /admin/feedback/{id}/send-email is reachable
+    - If feedback has no email:
+        -> request is rejected
+        -> HTTP 400 is returned
+        -> correct error message is provided
+    """
+
+    feedback = FeedbackMessage(
+        type="general_question",
+        name="Test User",
+        email=None,
+        subject="Test subject",
+        message="Test message",
+        page_url="/feedback",
+        user_agent="test-agent",
+        admin_reply="Test reply",
+        is_resolved=False,
+        is_published=False,
+    )
+
+    db_session.add(feedback)
+    db_session.commit()
+    db_session.refresh(feedback)
+
+    response = client.post(
+        f"/admin/feedback/{feedback.id}/send-email"
+    )
+
+    # print(response.status_code)
+    # print(response.text)
+
+    # Check HTTP response status
+    assert response.status_code == 400
+
+    data = response.json()
+
+    # Email should not be sent without user email
+    assert data["detail"] == "Cannot send email: user email is missing"

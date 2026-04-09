@@ -27,7 +27,7 @@ class FeedbackMessage(Base):
     )
     type: Mapped[str] = mapped_column(String(20), nullable=False)
     name: Mapped[str | None] = mapped_column(String(200), nullable=True)
-    email: Mapped[str] = mapped_column(String(200), nullable=False)
+    email: Mapped[str] = mapped_column(String(200), nullable=True)
     subject: Mapped[str] = mapped_column(String(200), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     page_url: Mapped[str | None] = mapped_column(Text, nullable=True)
