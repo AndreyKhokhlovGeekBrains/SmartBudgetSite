@@ -151,21 +151,13 @@ Design decision:
 
 ## Next implementation priorities
 
-1. Move remaining admin feedback logic to service layer:
-   - resolve toggle
-   - reply draft save
+1. review whether route tests are still needed for critical admin actions
 
-2. Add service tests for remaining feedback rules:
-   - email already sent
-   - missing admin reply for email sending
-   - product_feedback is not allowed for email sending
-   - cannot send email for published feedback
-   - cannot publish without admin reply
-   - publish -> unpublish toggle flow
+2. isolate email sending in tests:
+   - mock mail service in service/route tests
+   - ensure tests never send real SMTP emails
 
-3. After service coverage is complete, review whether route tests are still needed for critical admin actions
-
-4. Only after that, implement public `/reviews` page
+3. only after that, implement public `/reviews` page
 
 ---
 
@@ -202,19 +194,25 @@ Covered by tests:
 - send email:
   - missing email
   - success
-  - type restriction (allowed / not allowed)
+  - type restriction
+  - email already sent
+  - missing admin reply
+  - sending email for published feedback
 - publish:
   - fail for non-product feedback
   - success
+  - publish without admin reply
+  - publish → unpublish toggle flow
+- resolve:
+  - toggle to resolved
+  - toggle back to unresolved
+- reply draft:
+  - save success
+  - empty reply normalization (`"" -> None`)
 
-Not yet covered:
-- email already sent
-- missing admin reply (email)
-- sending email for published feedback
-- publish without admin reply
-- publish → unpublish toggle flow
-- resolve toggle
-- reply draft save
+Note:
+- tests currently need email sending isolation
+- real SMTP sending must be mocked in automated tests
 
 ## Design clarification: feedback vs review vs Q&A
 
