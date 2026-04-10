@@ -78,7 +78,12 @@
             <strong>Email sent to:</strong> {{ item.reply_sent_to_email }}
         </div>
         <div>
-            <strong>Email sent at:</strong> {{ item.reply_sent_at }}
+            <strong>Email sent at:</strong>
+            {% if local_reply_sent_at %}
+                {{ local_reply_sent_at.strftime("%Y-%m-%d %H:%M:%S") }}
+            {% else %}
+                —
+            {% endif %}
         </div>
         {% endif %}
 

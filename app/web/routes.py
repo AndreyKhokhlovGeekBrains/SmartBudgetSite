@@ -6,10 +6,17 @@ from app.products_catalog import products_index, product_by_slug
 from app.core.i18n import get_lang, set_lang_cookie, t
 from app.dependencies import get_db
 from app.repositories.feedback_admin_repository import FeedbackAdminRepository
-from app.services.feedback_service import send_feedback_reply, toggle_feedback_publish
+from app.services.feedback_service import (
+    send_feedback_reply,
+    toggle_feedback_publish,
+    toggle_feedback_resolved,
+    save_feedback_reply_draft
+    )
 
 from sqlalchemy.orm import Session
-from datetime import datetime, UTC
+from datetime import timezone, timedelta
+
+moscow_tz = timezone(timedelta(hours=3))
 
 router = APIRouter()
 
@@ -69,6 +76,7 @@ async def product_detail(request: Request, slug: str):
         "product": product,
     })
 
+
 @router.get("/admin/feedback", response_class=HTMLResponse)
 async def admin_feedback_list(
     request: Request,
@@ -97,11 +105,17 @@ async def admin_feedback_detail(
     if not item:
         raise HTTPException(status_code=404)
 
+    local_reply_sent_at = None
+
+    if item.reply_sent_at:
+        local_reply_sent_at = item.reply_sent_at.astimezone(moscow_tz)
+
     return render(
         request,
         "admin_feedback_detail.html",
         {
             "item": item,
+            "local_reply_sent_at": local_reply_sent_at,
         },
     )
 
@@ -109,19 +123,9 @@ async def admin_feedback_detail(
 @router.post("/admin/feedback/{feedback_id}/resolve")
 async def admin_feedback_resolve(
     feedback_id: int,
-    request: Request,
     db: Session = Depends(get_db),
 ):
-    repo = FeedbackAdminRepository(db)
-    item = repo.get_feedback_by_id(feedback_id)
-
-    if not item:
-        raise HTTPException(status_code=404)
-
-    repo.update_resolved_status(
-        feedback_id=feedback_id,
-        is_resolved=not item.is_resolved,
-    )
+    toggle_feedback_resolved(db=db, feedback_id=feedback_id)
 
     return RedirectResponse(
         url=f"/admin/feedback/{feedback_id}",
@@ -136,16 +140,13 @@ async def admin_feedback_save_reply(
     db: Session = Depends(get_db),
 ):
     form = await request.form()
-    admin_reply = str(form.get("admin_reply", "")).strip()
+    admin_reply = str(form.get("admin_reply", ""))
 
-    repo = FeedbackAdminRepository(db)
-    item = repo.get_feedback_by_id(feedback_id)
-
-    if not item:
-        raise HTTPException(status_code=404)
-
-    item.admin_reply = admin_reply or None
-    db.commit()
+    save_feedback_reply_draft(
+        db=db,
+        feedback_id=feedback_id,
+        admin_reply=admin_reply,
+    )
 
     return RedirectResponse(
         url=f"/admin/feedback/{feedback_id}?saved=1",
@@ -177,3 +178,4 @@ def send_feedback_email(
         url=f"/admin/feedback/{feedback_id}?email_sent=1",
         status_code=303,
     )
+

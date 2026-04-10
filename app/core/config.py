@@ -26,6 +26,11 @@ class Settings(BaseSettings):
 
     MAIL_FROM_EMAIL: str = ""
     MAIL_FROM_NAME: str = "SmartBudget"
+    MAIL_SMTP_HOST: str = ""
+    MAIL_SMTP_PORT: int = 587
+    MAIL_SMTP_USER: str = ""
+    MAIL_SMTP_PASSWORD: str = ""
+    MAIL_SMTP_TLS: bool = True
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

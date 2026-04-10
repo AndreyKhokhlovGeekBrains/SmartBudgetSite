@@ -107,17 +107,17 @@ Important:
 Admin UI treats email sending as a one-time action.
 
 Rules:
-- email can be sent only for:
-  - `general_question`
-  - `site_issue`
+- email can be sent for all feedback types (if email is available)
+
 - email requires:
   - non-empty `admin_reply`
   - non-empty `email`
+
 - email cannot be sent more than once:
   - if `reply_sent_at` is set, repeated sending is blocked
+
 - email sending is blocked if:
   - feedback is already published (`is_published = true`)
-  - feedback type is not eligible (e.g. `product_feedback`)
 
 After sending:
 - `reply_sent_at` is set
@@ -193,3 +193,67 @@ Workflow:
 Difference from long-form content:
 - Q&A = short answers
 - articles/guides = separate feature (not implemented yet)
+
+---
+
+## Test coverage status
+
+Covered by tests:
+- send email:
+  - missing email
+  - success
+  - type restriction (allowed / not allowed)
+- publish:
+  - fail for non-product feedback
+  - success
+
+Not yet covered:
+- email already sent
+- missing admin reply (email)
+- sending email for published feedback
+- publish without admin reply
+- publish → unpublish toggle flow
+- resolve toggle
+- reply draft save
+
+## Design clarification: feedback vs review vs Q&A
+
+Although `product_feedback` messages can be used to create public content,
+these concepts are intentionally separated:
+
+- Feedback message:
+  - raw user input
+  - stored in `feedback_messages`
+  - may remain private
+
+- Public review:
+  - derived from `product_feedback`
+  - may reuse user message + admin reply
+  - intended for `/reviews` page
+
+- Product Q&A:
+  - curated and rewritten content
+  - not a direct copy of feedback
+  - stored separately in `product_qna`
+
+Important:
+- feedback_messages should never be treated as final public content
+- publication is a transformation, not a flag
+
+## Future data model note
+
+Current implementation uses `is_published` and `published_at` inside `feedback_messages`.
+
+This is acceptable as a temporary admin workflow solution, but it should be treated as transitional.
+
+Why:
+- one feedback message may later need to produce:
+  - a public review
+  - a Q&A entry
+  - or remain private only
+- storing publication state inside `feedback_messages` couples raw input with public content lifecycle
+
+Long-term direction:
+- `feedback_messages` should remain the source of raw private input
+- public reviews should eventually have their own table / entity
+- `product_qna` should remain a separate curated entity

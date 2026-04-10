@@ -14,11 +14,13 @@ Important:
 
 
 from datetime import datetime, UTC
-
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from app.repositories.feedback_admin_repository import FeedbackAdminRepository
+from app.models.feedback import FeedbackMessage
+from app.services.mail_service import send_email
+from app.core.config import settings
 
 
 def send_feedback_reply(db: Session, feedback_id: int) -> None:
@@ -70,13 +72,19 @@ def send_feedback_reply(db: Session, feedback_id: int) -> None:
             detail="Cannot send email for published review",
         )
 
-    # Simulate sending email (later we replace with real SMTP)
+    # Send email (stub for now)
+    send_email(
+        to_email=item.email,
+        subject=f"{settings.MAIL_FROM_NAME}: reply to your message",
+        body=item.admin_reply,
+    )
+
     item.reply_sent_at = datetime.now(UTC)
     item.reply_sent_to_email = item.email
 
     db.commit()
 
-def toggle_feedback_publish(db: Session, feedback_id: int) -> None:
+def toggle_feedback_publish(db: Session, feedback_id: int) -> FeedbackMessage:
     """
     Toggle public review publication for product feedback.
 
@@ -114,3 +122,40 @@ def toggle_feedback_publish(db: Session, feedback_id: int) -> None:
     item.published_at = datetime.now(UTC) if item.is_published else None
 
     db.commit()
+    db.refresh(item)
+
+    return item
+
+def toggle_feedback_resolved(db: Session, feedback_id: int):
+    """
+    Toggle resolved status for a feedback message.
+    """
+    repo = FeedbackAdminRepository(db)
+    item = repo.get_feedback_by_id(feedback_id)
+
+    if not item:
+        raise HTTPException(status_code=404, detail="Feedback not found")
+
+    repo.update_resolved_status(
+        feedback_id=feedback_id,
+        is_resolved=not item.is_resolved,
+    )
+
+    return item
+
+def save_feedback_reply_draft(db: Session, feedback_id: int, admin_reply: str):
+    """
+    Save or update admin reply draft.
+    """
+    repo = FeedbackAdminRepository(db)
+    item = repo.get_feedback_by_id(feedback_id)
+
+    if not item:
+        raise HTTPException(status_code=404, detail="Feedback not found")
+
+    item.admin_reply = admin_reply.strip() or None
+    db.commit()
+    db.refresh(item)
+
+    return item
+

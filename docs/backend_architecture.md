@@ -196,28 +196,41 @@ Completed:
 - removed duplicate DB dependency definitions
 - made `feedback_messages.email` nullable in model and database
 - added Alembic migration for nullable email
+
 - introduced service layer for feedback business logic
 - moved email sending logic from `web/routes.py` to `app/services/feedback_service.py`
 - moved publish/unpublish logic from `web/routes.py` to `app/services/feedback_service.py`
+- moved resolve logic from web/routes.py to app/services/feedback_service.py
+- moved reply draft save logic from web/routes.py to app/services/feedback_service.py
+
 - added service tests for:
   - send feedback reply: missing email
   - send feedback reply: success
   - toggle publish: fail for non-product feedback
   - toggle publish: success
-- admin UI now reflects email/publish status more clearly
+  - resolve toggle (True ↔ False)
+  - email already sent
+  - missing admin reply (email)
+  - cannot send email for published feedback
+  - cannot publish without admin reply
+  - publish → unpublish toggle flow
+  - reply draft save
+  - empty reply normalization ("" → None)
 
-Still not refactored:
-- `admin_feedback_resolve`
-- `admin_feedback_save_reply`
+- introduced mail service (`app/services/mail_service.py`)
+- implemented real SMTP email sending (Gmail App Password)
+- integrated mail service into feedback service
+- added end-to-end email sending via admin UI
+
+- verified full flow:
+  - UI → route → service → mail service → SMTP → real email delivery
+
+- ensured separation of concerns:
+  - business logic in feedback_service
+  - email sending isolated in mail_service
 
 Next sprint priorities:
-1. move resolve logic to service layer
-2. move reply-draft save logic to service layer
-3. add service tests for:
-   - email already sent
-   - missing admin reply
-   - product_feedback is not allowed for email sending
-   - cannot send email for published feedback
-   - cannot publish without admin reply
-   - toggle publish twice (publish -> unpublish)
-4. review whether route tests are needed for critical admin actions after service coverage is complete
+1. review whether route tests are needed for critical admin actions after service coverage is complete
+2. isolate email sending in tests:
+   - mock mail service in service/route tests
+   - ensure tests never send real SMTP emails
