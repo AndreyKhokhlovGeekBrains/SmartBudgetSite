@@ -50,3 +50,15 @@ class FeedbackAdminRepository:
         self.db.commit()
         self.db.refresh(feedback)
         return feedback
+
+    def list_published_product_feedback(self, product_id: int):
+        return (
+            self.db.query(FeedbackMessage)
+            .filter(
+                FeedbackMessage.type == "product_feedback",
+                FeedbackMessage.is_published.is_(True),
+                FeedbackMessage.product_id == product_id,
+            )
+            .order_by(FeedbackMessage.published_at.desc())
+            .all()
+        )

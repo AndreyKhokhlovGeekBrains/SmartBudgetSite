@@ -287,3 +287,25 @@ img {
     padding: 0 2px;
   }
 }
+
+@media (max-width: 767px) {
+  .site-footer .footer-row {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 14px;
+  }
+
+  .site-footer .footer-left,
+  .site-footer .footer-center,
+  .site-footer .footer-right {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .site-footer .footer-center,
+  .site-footer .footer-right {
+    flex-wrap: wrap;
+  }
+}

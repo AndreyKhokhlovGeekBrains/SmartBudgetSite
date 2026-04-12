@@ -560,6 +560,10 @@
   margin-top: 8px;
 }
 
+.sb-hero__faq.sb-hero__reviews {
+  margin-top: 0;
+}
+
 .sb-hero__faq a {
   font-size: 14px;
   color: #6b7280; /* спокойный серый */

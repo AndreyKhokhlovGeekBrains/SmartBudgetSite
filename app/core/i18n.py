@@ -164,6 +164,7 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "faq_a5": "In that case, use the feedback page and describe the issue. I can help you check Excel settings and explain how to open the file correctly.",
 
         "sb_landing_faq_link": "Frequently asked questions",
+        "sb_landing_reviews_link": "User reviews",
 
         "feedback_title": "Feedback",
         "feedback_intro": "Use this form to send feedback, report a bug, or ask a question about SmartBudget.",
@@ -369,6 +370,7 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "faq_a5": "В этом случае используйте страницу обратной связи и опишите проблему. Я смогу подсказать, что проверить в настройках Excel и как корректно открыть файл.",
 
         "sb_landing_faq_link": "Ответы на частые вопросы",
+        "sb_landing_reviews_link": "Отзывы пользователей",
 
         "feedback_title": "Обратная связь",
         "feedback_intro": "Здесь вы можете отправить отзыв, сообщить об ошибке или задать вопрос по SmartBudget.",

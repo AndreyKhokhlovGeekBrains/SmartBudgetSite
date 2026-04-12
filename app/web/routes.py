@@ -14,6 +14,8 @@ from app.services.feedback_service import (
     )
 
 from sqlalchemy.orm import Session
+from sqlalchemy import select
+from app.models.product import Product
 from datetime import timezone, timedelta
 
 moscow_tz = timezone(timedelta(hours=3))
@@ -187,15 +189,31 @@ def send_feedback_email(
         )
 
 
-@router.get("/reviews", response_class=HTMLResponse)
+@router.get("/reviews/{slug}", response_class=HTMLResponse)
 async def reviews_page(
+    slug: str,
     request: Request,
     db: Session = Depends(get_db),
 ):
-    repo = FeedbackAdminRepository(db)
+    feedback_repo = FeedbackAdminRepository(db)
 
-    published_reviews = repo.list_published_product_feedback()
+    product = db.execute(
+        select(Product).where(Product.slug == slug)
+    ).scalar_one_or_none()
+
+    if not product:
+        raise HTTPException(status_code=404)
+
+    reviews = feedback_repo.list_published_product_feedback(
+        product_id=product.id
+    )
 
     return render(request, "reviews.html", {
-        "reviews": published_reviews,
+        "reviews": reviews,
+        "product": product,
     })
+
+
+@router.get("/reviews")
+async def reviews_redirect():
+    return RedirectResponse(url="/reviews/smartbudget", status_code=307)

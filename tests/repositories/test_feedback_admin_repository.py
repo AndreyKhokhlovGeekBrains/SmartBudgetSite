@@ -1,13 +1,35 @@
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import datetime
 
 from app.models.feedback import FeedbackMessage
+from app.models.product import Product
 from app.repositories.feedback_admin_repository import FeedbackAdminRepository
 
 
 def test_list_published_product_feedback_returns_only_published_product_feedback(db_session):
     repo = FeedbackAdminRepository(db_session)
+
+    product = Product(
+        slug="smartbudget",
+        name="SmartBudget",
+        edition="Standard",
+        version="1.0",
+        status="in_sale",
+        price=49.00,
+    )
+    other_product = Product(
+        slug="other-product",
+        name="Other Product",
+        edition="Standard",
+        version="1.0",
+        status="in_sale",
+        price=29.00,
+    )
+    db_session.add_all([product, other_product])
+    db_session.commit()
+    db_session.refresh(product)
+    db_session.refresh(other_product)
 
     old_review = FeedbackMessage(
         type="product_feedback",
@@ -18,6 +40,7 @@ def test_list_published_product_feedback_returns_only_published_product_feedback
         admin_reply="Reply 1",
         is_published=True,
         published_at=datetime(2026, 4, 1, 10, 0, 0),
+        product_id=product.id,
     )
 
     new_review = FeedbackMessage(
@@ -29,6 +52,7 @@ def test_list_published_product_feedback_returns_only_published_product_feedback
         admin_reply="Reply 2",
         is_published=True,
         published_at=datetime(2026, 4, 2, 10, 0, 0),
+        product_id=product.id,
     )
 
     hidden_product_feedback = FeedbackMessage(
@@ -39,6 +63,7 @@ def test_list_published_product_feedback_returns_only_published_product_feedback
         message="Draft message",
         admin_reply="Reply 3",
         is_published=False,
+        product_id=product.id,
     )
 
     general_question = FeedbackMessage(
@@ -50,6 +75,19 @@ def test_list_published_product_feedback_returns_only_published_product_feedback
         admin_reply="Reply 4",
         is_published=True,
         published_at=datetime(2026, 4, 3, 10, 0, 0),
+        product_id=product.id,
+    )
+
+    other_product_review = FeedbackMessage(
+        type="product_feedback",
+        name="User 5",
+        email="u5@example.com",
+        subject="Other product review",
+        message="Other product message",
+        admin_reply="Reply 5",
+        is_published=True,
+        published_at=datetime(2026, 4, 4, 10, 0, 0),
+        product_id=other_product.id,
     )
 
     db_session.add_all([
@@ -57,10 +95,11 @@ def test_list_published_product_feedback_returns_only_published_product_feedback
         new_review,
         hidden_product_feedback,
         general_question,
+        other_product_review,
     ])
     db_session.commit()
 
-    result = repo.list_published_product_feedback()
+    result = repo.list_published_product_feedback(product_id=product.id)
 
     assert len(result) == 2
     assert result[0].subject == "New review"
