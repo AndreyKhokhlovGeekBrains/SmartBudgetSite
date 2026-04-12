@@ -27,9 +27,9 @@ def render(request: Request, template_name: str, context: dict):
     lang = get_lang(request)
 
     response = templates.TemplateResponse(
+        request,
         template_name,
         {
-            "request": request,
             "lang": lang,
             "t": lambda k: t(lang, k),
             **context,

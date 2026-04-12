@@ -31,19 +31,19 @@ def test_send_email_fails_when_email_missing(client, db_session):
     db_session.refresh(feedback)
 
     response = client.post(
-        f"/admin/feedback/{feedback.id}/send-email"
+        f"/admin/feedback/{feedback.id}/send-email",
+        follow_redirects=False,
     )
 
     # print(response.status_code)
     # print(response.text)
 
     # Check HTTP response status
-    assert response.status_code == 400
-
-    data = response.json()
-
-    # Email should not be sent without user email
-    assert data["detail"] == "Cannot send email: user email is missing"
+    assert response.status_code in (302, 303)
+    assert response.headers["location"] == (
+        f"/admin/feedback/{feedback.id}"
+        "?error=Cannot%20send%20email:%20user%20email%20is%20missing"
+    )
 
 def test_send_email_success(client, db_session):
     """

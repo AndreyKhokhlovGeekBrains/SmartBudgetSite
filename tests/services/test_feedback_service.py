@@ -11,6 +11,14 @@ from app.models.feedback import FeedbackMessage
 from fastapi import HTTPException
 
 
+@pytest.fixture(autouse=True)
+def mock_mail_service(monkeypatch):
+    monkeypatch.setattr(
+        "app.services.feedback_service.send_email",
+        lambda **kwargs: None,
+    )
+
+
 def test_send_feedback_reply_fails_when_email_missing(db_session):
     """
     Service test: should fail if email is missing
