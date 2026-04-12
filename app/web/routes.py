@@ -186,3 +186,16 @@ def send_feedback_email(
             status_code=303,
         )
 
+
+@router.get("/reviews", response_class=HTMLResponse)
+async def reviews_page(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    repo = FeedbackAdminRepository(db)
+
+    published_reviews = repo.list_published_product_feedback()
+
+    return render(request, "reviews.html", {
+        "reviews": published_reviews,
+    })

@@ -203,6 +203,17 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "feedback_dropzone_no_files": "No files selected",
         "feedback_dropzone_button": "Choose files",
 
+        "reviews_title": "Reviews",
+        "reviews_subtitle": "Public product reviews will appear here.",
+
+        "reviews_empty": "There are no published reviews yet.",
+        "reviews_from_label": "From",
+        "reviews_reply_label": "Reply",
+        "reviews_anonymous": "Anonymous",
+        "reviews_no_subject": "No subject",
+
+        "reviews_published_label": "Published",
+
     },
     "ru": {
         "brand_name": "Андрей Хохлов",
@@ -397,6 +408,17 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "feedback_dropzone_hint": "Поддерживаются PNG, JPG, WEBP и PDF",
         "feedback_dropzone_no_files": "Файлы не выбраны",
         "feedback_dropzone_button": "Выбрать файлы",
+
+        "reviews_title": "Отзывы",
+        "reviews_subtitle": "Публичные отзывы о продукте будут отображаться здесь.",
+
+        "reviews_empty": "Пока опубликованных отзывов нет.",
+        "reviews_from_label": "Автор",
+        "reviews_reply_label": "Ответ",
+        "reviews_anonymous": "Анонимно",
+        "reviews_no_subject": "Без темы",
+
+        "reviews_published_label": "Опубликовано",
 
     },
 }

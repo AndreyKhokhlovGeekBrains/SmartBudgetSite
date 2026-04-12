@@ -1,10 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>$Title$</title>
-</head>
-<body>
-$END$
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}{{ t("reviews_title") }}{% endblock %}
+
+{% block content %}
+<section class="container">
+    <h1>{{ t("reviews_title") }}</h1>
+
+    {% if reviews %}
+        <div class="reviews-list">
+            {% for review in reviews %}
+                <article class="review-card">
+                    <h2>{{ review.subject or t("reviews_no_subject") }}</h2>
+
+                    {% if review.published_at %}
+                        <p class="review-meta">
+                            <strong>{{ t("reviews_published_label") }}:</strong>
+                            {{ review.published_at.strftime("%d.%m.%Y") }}
+                        </p>
+                    {% endif %}
+
+                    <p>
+                        <strong>{{ t("reviews_from_label") }}:</strong>
+                        {{ review.name or t("reviews_anonymous") }}
+                    </p>
+
+                    <p>{{ review.message }}</p>
+
+                    {% if review.admin_reply %}
+                        <div class="review-admin-reply">
+                            <strong>{{ t("reviews_reply_label") }}:</strong>
+                            <p>{{ review.admin_reply }}</p>
+                        </div>
+                    {% endif %}
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>{{ t("reviews_empty") }}</p>
+    {% endif %}
+</section>
+{% endblock %}
