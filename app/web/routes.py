@@ -172,10 +172,17 @@ def send_feedback_email(
     feedback_id: int,
     db: Session = Depends(get_db),
 ):
-    send_feedback_reply(db=db, feedback_id=feedback_id)
+    try:
+        send_feedback_reply(db=db, feedback_id=feedback_id)
 
-    return RedirectResponse(
-        url=f"/admin/feedback/{feedback_id}?email_sent=1",
-        status_code=303,
-    )
+        return RedirectResponse(
+            url=f"/admin/feedback/{feedback_id}?email_sent=1",
+            status_code=303,
+        )
+
+    except HTTPException as e:
+        return RedirectResponse(
+            url=f"/admin/feedback/{feedback_id}?error={e.detail}",
+            status_code=303,
+        )
 
