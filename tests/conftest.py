@@ -39,6 +39,8 @@ from app.core.db import Base
 from app.dependencies import get_db
 from app.core.config import settings
 
+from app.services import mail_service
+
 
 TEST_DB_FILE = Path(tempfile.gettempdir()) / "smartbudget_test_feedback.db"
 TEST_DATABASE_URL = f"sqlite:///{TEST_DB_FILE}"
@@ -125,3 +127,26 @@ def db_session() -> Generator:
 def client() -> Generator[TestClient, None, None]:
     with TestClient(app) as test_client:
         yield test_client
+
+
+@pytest.fixture(autouse=True)
+def disable_real_email_sending(monkeypatch):
+    """
+    Block real SMTP sending in all tests.
+
+    Replaces mail_service.send_email with a harmless stub.
+    """
+    sent_emails = []
+
+    def fake_send_email(*, to_email: str, subject: str, body: str) -> None:
+        sent_emails.append(
+            {
+                "to_email": to_email,
+                "subject": subject,
+                "body": body,
+            }
+        )
+
+    monkeypatch.setattr(mail_service, "send_email", fake_send_email)
+
+    return sent_emails

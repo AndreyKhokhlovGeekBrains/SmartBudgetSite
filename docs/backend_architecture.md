@@ -12,6 +12,8 @@ When continuing development in a new session:
 
 3. Then continue from the first unfinished item
 
+---
+
 # Backend Architecture
 
 ## Purpose
@@ -34,6 +36,7 @@ Examples:
 - `/feedback`
 - `/admin/feedback`
 - `/admin/feedback/{id}/send-email`
+- `/admin/products`
 
 ---
 
@@ -73,6 +76,7 @@ Purpose:
 
 Examples:
 - `FeedbackAdminRepository`
+- `ProductsRepository`
 
 ---
 
@@ -122,10 +126,6 @@ API route → Service → Repository → DB
 When adding new functionality, follow this order:
 
 ### 1. Define business logic in service
-
-Example:
-- create function in `app/services/...`
-- implement all validation and rules here
 
 ```python
 def some_business_action(db: Session, ...):
@@ -191,46 +191,313 @@ If a route starts to contain:
 
 ## Sprint checkpoint: admin feedback refactoring and tests
 
-Completed:
+### Completed:
+
 - unified `get_db` usage via `app.dependencies`
 - removed duplicate DB dependency definitions
-- made `feedback_messages.email` nullable in model and database
-- added Alembic migration for nullable email
+- made `feedback_messages.email` nullable
+- added Alembic migration
+- introduced service layer
+- moved all feedback logic to `feedback_service`
+- isolated email sending in `mail_service`
 
-- introduced service layer for feedback business logic
-- moved email sending logic from `web/routes.py` to `app/services/feedback_service.py`
-- moved publish/unpublish logic from `web/routes.py` to `app/services/feedback_service.py`
-- moved resolve logic from web/routes.py to app/services/feedback_service.py
-- moved reply draft save logic from web/routes.py to app/services/feedback_service.py
+- added full service test coverage:
+  - email sending rules
+  - publish/unpublish
+  - resolve toggle
+  - reply draft
+  - validation edge cases
 
-- added service tests for:
-  - send feedback reply: missing email
-  - send feedback reply: success
-  - toggle publish: fail for non-product feedback
-  - toggle publish: success
-  - resolve toggle (True ↔ False)
-  - email already sent
-  - missing admin reply (email)
-  - cannot send email for published feedback
-  - cannot publish without admin reply
-  - publish → unpublish toggle flow
-  - reply draft save
-  - empty reply normalization ("" → None)
+- added route-level tests for critical flows
+- implemented real SMTP sending (Gmail App Password)
 
-- introduced mail service (`app/services/mail_service.py`)
-- implemented real SMTP email sending (Gmail App Password)
-- integrated mail service into feedback service
-- added end-to-end email sending via admin UI
+- ensured:
+  - clean separation of concerns
+  - no real emails in tests (global mocking)
 
-- verified full flow:
-  - UI → route → service → mail service → SMTP → real email delivery
+### Architecture decision:
 
-- ensured separation of concerns:
-  - business logic in feedback_service
-  - email sending isolated in mail_service
+- service tests = business logic
+- route tests = wiring only
 
-Next sprint priorities:
-1. review whether route tests are needed for critical admin actions after service coverage is complete
-2. isolate email sending in tests:
-   - mock mail service in service/route tests
-   - ensure tests never send real SMTP emails
+---
+
+## Sprint 12: current admin products state
+
+### Implemented:
+
+- `ProductsRepository`
+- route `/admin/products`
+- route `/admin/products/new` (GET)
+- template `admin_products_list.html`
+- template `admin_product_form.html`
+- basic route test for `/admin/products`
+- list page is styled and acts as central admin UI
+
+### Current limitations:
+
+- Edit flow is not implemented
+- Create form is temporary
+- POST create must NOT be finalized yet
+- product model still reflects old pricing logic
+
+---
+
+## Sprint checkpoint: product-based reviews
+
+### Completed:
+
+- added `product_id` to feedback
+- created FK and migration
+- backfilled existing data
+- implemented product-scoped reviews
+- added `/reviews/{slug}`
+- redirect `/reviews → /reviews/smartbudget`
+- updated repository, routes, tests
+
+### Architecture decisions:
+
+- reviews are product-scoped
+- use `product_id` (not slug) internally
+- reviews are scoped per product SKU (e.g. SmartBudget RU vs SmartBudget INT are independent)
+
+---
+
+## Next sprint priorities
+
+### 1. Product model redesign
+
+- product = sellable package (SKU)
+- introduce:
+  - SmartBudget RU
+  - SmartBudget INT
+- each product = its own downloadable archive:
+  - Excel
+  - PDF walkthrough
+
+---
+
+### 2. Product pricing architecture
+
+- remove ambiguous `price`
+- introduce currency-aware pricing
+
+Initial:
+- RU → RUB
+- INT → EUR
+
+Requirement:
+- must support future USD without redesign
+
+---
+
+### 3. Admin product management
+
+- redesign create/edit forms
+- keep `/admin/products` as main screen
+- implement Edit AFTER model redesign
+
+---
+
+### 4. Merchant of Record evaluation
+
+- prefer MoR over custom checkout
+
+Evaluate:
+- Paddle
+- Lemon Squeezy
+- Stripe
+
+---
+
+### 5. Sales tracking (admin)
+
+- sales list
+- filtering
+- purchase validation consistency
+
+---
+
+### 6. Reviews UX improvements
+
+- show preview on landing
+- optional rating later
+
+---
+
+### 7. Feedback tightening
+
+- enforce `product_id`
+- validate `sale_id ↔ product_id`
+
+---
+
+## Product categorical fields design note
+
+Use string + allowed sets:
+
+- edition: {"Standard", "Pro"}
+- status: {"in_sale", "in_development", "discontinued"}
+
+### Reason:
+
+- simple
+- no migrations
+- controlled via UI
+
+---
+
+## Admin UI access design note
+
+### Current:
+
+- no auth
+- admin routes hidden from UI
+
+### Rule:
+
+- do NOT expose admin links publicly
+
+### Future:
+
+- add auth
+- separate admin layout or conditional rendering
+
+---
+
+## Product model redesign note
+
+### Important:
+
+- SmartBudget RU and SmartBudget INT = separate SKUs
+- each has:
+  - its own archive
+  - its own lifecycle
+
+### Implication:
+
+- product = sellable package, not abstract concept
+
+---
+
+## Product pricing and currency design note
+
+### Proposed MVP fields for `product_prices`
+
+- `id`
+- `product_id`
+- `currency_code`
+- `amount`
+- `is_active`
+- `created_at`
+
+### MVP rules
+
+- one product SKU may have multiple price records over time
+- only one active price per currency for a given product
+- initial launch expectation:
+  - `SmartBudget RU` → one active `RUB` price
+  - `SmartBudget INT` → one active `EUR` price
+- future extension:
+  - `USD` can be added as an additional currency without changing `products`
+
+### Problem:
+
+- price without currency is invalid
+
+### Decision:
+
+- pricing must be separate from product
+- no FX conversion inside app
+
+### Target:
+
+- products → identity
+- product_prices → pricing
+
+### Rules:
+
+- one active price per product (MVP)
+- allow multiple currencies later
+
+### Initial:
+
+- RU → RUB
+- INT → EUR
+
+### Future:
+
+- add USD without redesign
+
+---
+
+## Payments strategy note
+
+### Direction:
+
+- use Merchant of Record
+
+### Why:
+
+- reduce complexity:
+  - payments
+  - taxes
+  - compliance
+
+### Candidates:
+
+- Paddle
+- Lemon Squeezy
+- Stripe
+
+### Rule:
+
+- keep internal model provider-agnostic
+- do not couple DB to payment provider
+
+### Currency design decision (MVP)
+
+- currency is stored as string (`currency_code`)
+- no separate `currencies` table in MVP
+- avoids unnecessary joins and complexity
+
+Examples:
+- "RUB"
+- "EUR"
+
+Future:
+- introduce `currencies` table only if:
+  - formatting logic is needed
+  - FX or localization is introduced
+
+### Product identity (slug)
+
+- `slug` must uniquely identify a sellable product (SKU)
+- do not reuse the same slug for multiple variants
+
+Examples:
+- smartbudget-ru
+- smartbudget-int
+
+Reason:
+- routing (/products/{slug})
+- reviews (/reviews/{slug})
+- clear separation between product variants
+
+### Product deliverable (MVP)
+
+- each product includes its own downloadable archive
+- archive contains:
+  - Excel file (SmartBudget)
+  - PDF walkthrough
+
+- archive is stored as a single file per product
+- no separate file entities in MVP
+
+Reason:
+- simplifies implementation
+- aligns with SKU-based product model
+- avoids premature file versioning complexity
+
+Future:
+- allow multiple files and versioning (separate table)

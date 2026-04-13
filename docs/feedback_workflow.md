@@ -9,65 +9,73 @@ This document describes how feedback messages are handled in the admin UI and wh
 ## Feedback message types
 
 ### 1. `site_issue`
-Purpose:
+
+**Purpose:**
 - private support only
 - should not be published publicly
 
-Expected handling:
+**Expected handling:**
 - admin reviews the message
 - admin prepares a reply draft
-- admin may send one email reply to the user if an email is available
-- after that, further communication should continue in the email client, not in admin UI
+- admin may send one email reply (if email is available)
+- further communication continues in email client
 
-Publication rules:
+**Publication rules:**
 - must never be published as a public review
 
 ---
 
 ### 2. `general_question`
-Purpose:
+
+**Purpose:**
 - private communication only
 - should not be published publicly
 
-Expected handling:
+**Expected handling:**
 - admin reviews the message
 - admin prepares a reply draft
-- admin may send one email reply to the user if an email is available
-- after that, further communication should continue in the email client, not in admin UI
+- admin may send one email reply (if email is available)
+- further communication continues in email client
 
-Publication rules:
+**Publication rules:**
 - must never be published as a public review
 
 ---
 
 ### 3. `product_feedback`
-Purpose:
-- product-related feedback from the user
-- may be handled privately and may optionally become a public review
 
-Expected handling:
+**Purpose:**
+- product-related feedback
+- may become a public review
+
+**Expected handling:**
 - admin reviews the message
 - admin prepares a reply draft
-- admin may send one email reply to the user if an email is available
-- alternatively, admin may publish the feedback as a public review
-- once published, email sending from admin UI is no longer allowed
+- admin may send one email reply
+- alternatively, admin may publish as public review
 
-Publication rules:
+**Important:**
+- once published → email sending is blocked
+
+**Publication rules:**
 - only `product_feedback` can be published
-- publication requires non-empty `admin_reply`
-- when published:
-  - `is_published = true`
-  - `published_at` is set
-- when unpublished:
-  - `is_published = false`
-  - `published_at = null`
+- requires non-empty `admin_reply`
+
+When published:
+- `is_published = true`
+- `published_at` is set
+
+When unpublished:
+- `is_published = false`
+- `published_at = null`
 
 ---
 
 ## Admin UI workflow
 
 ### List page
-The admin list page shows:
+
+Shows:
 - feedback id
 - created_at
 - type
@@ -75,183 +83,287 @@ The admin list page shows:
 - subject
 - resolved status
 
-Sorting:
-- unresolved messages first
-- newest messages first inside each group
+**Sorting:**
+- unresolved first
+- newest first inside groups
 
 ---
 
 ### Detail page
-The detail page allows admin to:
-- view message details
-- mark message as resolved / open
+
+Allows admin to:
+- view message
+- mark resolved / open
 - edit reply draft
-- send one email reply
-- publish / unpublish product feedback as a public review
+- send email
+- publish / unpublish review
 
 ---
 
 ## Reply Draft
 
-`admin_reply` is an internal draft stored in the database.
+`admin_reply` is an internal draft.
 
-Important:
-- it is not sent automatically
-- it can be edited at any time before sending email
-- it is also used as the required admin response before public review publication
+**Important:**
+- not sent automatically
+- editable anytime before sending
+- required for publishing
 
 ---
 
 ## Email sending rules
 
-Admin UI treats email sending as a one-time action.
+Email is a **one-time action**.
 
-Rules:
-- email can be sent for all feedback types (if email is available)
+**Requirements:**
+- non-empty `admin_reply`
+- non-empty `email`
 
-- email requires:
-  - non-empty `admin_reply`
-  - non-empty `email`
+**Restrictions:**
+- cannot send more than once (`reply_sent_at`)
+- cannot send if `is_published = true`
 
-- email cannot be sent more than once:
-  - if `reply_sent_at` is set, repeated sending is blocked
-
-- email sending is blocked if:
-  - feedback is already published (`is_published = true`)
-
-After sending:
+**After sending:**
 - `reply_sent_at` is set
 - `reply_sent_to_email` is stored
-- further communication must continue in external email client
+- дальнейшее общение вне админки
 
 ---
 
 ## Publication rules
 
-Public review publication is allowed only for `product_feedback`.
+Only `product_feedback` can be published.
 
-Rules:
-- publish button is shown only for `product_feedback`
-- publish action is blocked for all other message types
-- publish action requires non-empty `admin_reply`
-- published reviews should later be shown on a public `/reviews` page
+**Rules:**
+- publish button only for product feedback
+- requires non-empty `admin_reply`
+- blocked for other types
 
 ---
 
-## Current design decision
+## Product-based reviews
 
-Admin UI is not a full email client.
+Reviews are tied to specific product SKUs (sellable packages).
 
-Design decision:
-- admin prepares and sends the first reply from admin UI
-- after that, the conversation moves to the normal email client
-- admin UI should not implement full reply-thread management
+Important:
+- each review belongs to a specific product variant (e.g. SmartBudget RU or SmartBudget INT)
+- reviews are NOT shared between different product variants
+
+**Requirements:**
+- `type = product_feedback`
+- `is_published = true`
+- `product_id` is set
+
+**Display:**
+- `/reviews/{slug}` → per product
+- `/reviews` → redirect
+
+**Consistency:**
+- `product_id` must match `sale_id` (if exists)
+- feedback without `product_id` cannot be published
+
+**Design decision:**
+- no global reviews
+- product-scoped from start
+
+Important:
+- reviews are tied to specific product SKUs (sellable packages)
+- each review belongs to one specific product variant
+- SmartBudget RU and SmartBudget INT must have separate reviews
+- reviews are not shared across different product variants
+
+---
+
+## Design decision
+
+Admin UI is **not an email client**.
+
+- admin sends first reply
+- дальнейшее общение → email
+- no thread management in admin
 
 ---
 
 ## Next implementation priorities
 
-1. review whether route tests are still needed for critical admin actions
+### 1. Product model redesign
 
-2. isolate email sending in tests:
-   - mock mail service in service/route tests
-   - ensure tests never send real SMTP emails
-
-3. only after that, implement public `/reviews` page
+- product = SKU
+- SmartBudget RU
+- SmartBudget INT
+- each = archive (Excel + PDF)
 
 ---
 
-## Product Q&A (product_qna)
+### 2. Product pricing architecture
 
-Purpose:
-- store curated public questions and answers about products
-- act as a knowledge base / FAQ
+- remove raw `price`
+- introduce currency-aware model
 
-Important:
-- Q&A entries are short and focused
-- they are not full articles or guides
+Initial:
+- RU → RUB
+- INT → EUR
 
-Source of data:
-- Q&A is derived from feedback messages, but manually curated
+Future:
+- USD without redesign
 
-Workflow:
-1. user sends a message via feedback form
-2. admin reviews the message
-3. if it contains a useful question:
-   - admin rewrites it into a clear question
-   - writes a concise answer
-4. Q&A can be published on product page
+---
 
-Difference from long-form content:
+### 3. Merchant of Record
+
+- evaluate MoR-first approach
+- keep model provider-agnostic
+
+---
+
+### 4. Admin product management
+
+- `/admin/products` = main UI
+- implement Edit after redesign
+
+---
+
+### 5. Sales management
+
+- sales list
+- filtering
+- validation
+
+---
+
+### 6. Reviews UX
+
+- preview on landing
+- improve UI
+
+---
+
+### 7. Feedback tightening
+
+- require `product_id`
+- validate `sale_id ↔ product_id`
+
+---
+
+## Product Q&A (`product_qna`)
+
+**Purpose:**
+- curated FAQ
+
+**Source:**
+- derived from feedback
+
+**Workflow:**
+1. user sends feedback
+2. admin reviews
+3. if useful:
+   - rewrite question
+   - write answer
+4. publish as Q&A
+
+**Difference:**
 - Q&A = short answers
-- articles/guides = separate feature (not implemented yet)
+- articles = separate feature
 
 ---
 
 ## Test coverage status
 
-Covered by tests:
+### Covered:
+
 - send email:
   - missing email
   - success
-  - type restriction
-  - email already sent
-  - missing admin reply
-  - sending email for published feedback
-- publish:
-  - fail for non-product feedback
-  - success
-  - publish without admin reply
-  - publish → unpublish toggle flow
-- resolve:
-  - toggle to resolved
-  - toggle back to unresolved
-- reply draft:
-  - save success
-  - empty reply normalization (`"" -> None`)
+  - already sent
+  - missing reply
+  - published restriction
 
-Note:
-- tests currently need email sending isolation
-- real SMTP sending must be mocked in automated tests
+- publish:
+  - invalid type
+  - success
+  - toggle
+  - missing reply
+
+- resolve toggle
+- reply draft save
+- empty normalization
+
+---
+
+### Routes:
+
+- send email:
+  - success
+  - repeated send blocked
+
+- publish:
+  - publish/unpublish
+
+---
+
+### Test isolation:
+
+- SMTP blocked
+- mail mocked globally
+
+---
+
+### Architecture note:
+
+- service tests → business logic
+- route tests → wiring only
+
+---
+
+### Known limitation:
+
+- mail sending not fully isolated everywhere yet
+
+---
 
 ## Design clarification: feedback vs review vs Q&A
 
-Although `product_feedback` messages can be used to create public content,
-these concepts are intentionally separated:
+- **Feedback:**
+  - raw input
+  - private
 
-- Feedback message:
-  - raw user input
-  - stored in `feedback_messages`
-  - may remain private
+- **Review:**
+  - derived from feedback
+  - public
 
-- Public review:
-  - derived from `product_feedback`
-  - may reuse user message + admin reply
-  - intended for `/reviews` page
+- **Q&A:**
+  - curated
+  - rewritten
 
-- Product Q&A:
-  - curated and rewritten content
-  - not a direct copy of feedback
-  - stored separately in `product_qna`
+**Important:**
+- feedback ≠ public content
+- publication = transformation
 
-Important:
-- feedback_messages should never be treated as final public content
-- publication is a transformation, not a flag
+---
 
 ## Future data model note
 
-Current implementation uses `is_published` and `published_at` inside `feedback_messages`.
+Current:
+- `is_published` inside `feedback_messages`
 
-This is acceptable as a temporary admin workflow solution, but it should be treated as transitional.
+This is temporary.
 
-Why:
-- one feedback message may later need to produce:
-  - a public review
-  - a Q&A entry
-  - or remain private only
-- storing publication state inside `feedback_messages` couples raw input with public content lifecycle
+**Problem:**
+- mixes raw input with public content lifecycle
 
-Long-term direction:
-- `feedback_messages` should remain the source of raw private input
-- public reviews should eventually have their own table / entity
-- `product_qna` should remain a separate curated entity
+**Future:**
+- feedback → private
+- reviews → separate table
+- Q&A → separate table
+
+---
+
+## Related architecture
+
+See:
+
+- `docs/feedback_and_reviews_architecture.md`
+
+Target:
+- reviews separated from feedback
+- feedback remains private channel

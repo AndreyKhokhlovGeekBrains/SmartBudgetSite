@@ -8,6 +8,7 @@ from sqlalchemy.sql.sqltypes import Numeric
 from app.core.db import Base
 
 ALLOWED_EDITIONS = {"Standard", "Pro"}
+ALLOWED_PRODUCT_STATUSES = {"in_sale", "in_development", "discontinued"}
 
 
 class Product(Base):
@@ -57,6 +58,12 @@ class Product(Base):
     def validate_edition(self, key, value):
         if value not in ALLOWED_EDITIONS:
             raise ValueError(f"Invalid edition: {value}")
+        return value
+
+    @validates("status")
+    def validate_status(self, key, value):
+        if value not in ALLOWED_PRODUCT_STATUSES:
+            raise ValueError(f"Invalid status: {value}")
         return value
 
 # Example:

@@ -12,6 +12,7 @@ from app.services.feedback_service import (
     toggle_feedback_resolved,
     save_feedback_reply_draft
     )
+from app.models.product import ALLOWED_EDITIONS, ALLOWED_PRODUCT_STATUSES
 
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -217,3 +218,73 @@ async def reviews_page(
 @router.get("/reviews")
 async def reviews_redirect():
     return RedirectResponse(url="/reviews/smartbudget", status_code=307)
+
+
+@router.get("/admin/products")
+async def admin_products_list(request: Request, db: Session = Depends(get_db)):
+    from app.repositories.products_repository import ProductsRepository
+
+    repo = ProductsRepository(db)
+    product_list  = repo.list_products()
+
+    lang = get_lang(request)
+
+    return templates.TemplateResponse(
+        request,
+        "admin_products_list.html",
+        {
+            "products": product_list,
+            "t": lambda key: t(lang, key),
+        },
+    )
+
+
+@router.get("/admin/products/new")
+async def admin_products_new(request: Request):
+    lang = get_lang(request)
+
+    return templates.TemplateResponse(
+        request,
+        "admin_product_form.html",
+        {
+            "t": lambda key: t(lang, key),
+            "product": None,
+            "allowed_editions": sorted(ALLOWED_EDITIONS),
+            "allowed_statuses": sorted(ALLOWED_PRODUCT_STATUSES),
+            "form_action": "/admin/products/new",
+            "page_title": "Create product",
+        },
+    )
+
+
+from fastapi import Form
+
+@router.post("/admin/products/new")
+async def admin_products_create(
+    request: Request,
+    db: Session = Depends(get_db),
+    name: str = Form(...),
+    slug: str = Form(...),
+    edition: str = Form(...),
+    version: str = Form(...),
+    price: float = Form(...),
+    status: str = Form(...),
+):
+    from app.models.product import Product
+
+    product = Product(
+        name=name,
+        slug=slug,
+        edition=edition,
+        version=version,
+        price=price,
+        status=status,
+    )
+
+    db.add(product)
+    db.commit()
+
+    return RedirectResponse(
+        url="/admin/products",
+        status_code=303,
+    )

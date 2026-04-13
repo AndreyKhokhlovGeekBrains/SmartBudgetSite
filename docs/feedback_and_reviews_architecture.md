@@ -1,5 +1,13 @@
 # Feedback and Reviews Architecture
 
+> Status: Transitional / Future-oriented design
+>
+> Note:
+> Current implementation uses `feedback_messages` with `is_published` flag.
+> This document describes the target architecture where public reviews
+> are separated into a dedicated model.
+> Current implementation publishes directly from `feedback_messages`, but target architecture treats publication as creation of a separate public entity.
+
 ## 1. Internal feedback inbox
 Purpose: collect and process incoming user messages.
 
