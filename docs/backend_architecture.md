@@ -263,35 +263,9 @@ If a route starts to contain:
 
 ---
 
-## Next sprint priorities
+## Next sprint priorities (after Sprint 14)
 
-### 1. Product model redesign
-
-- product = sellable package (SKU)
-- introduce:
-  - SmartBudget RU
-  - SmartBudget INT
-- each product = its own downloadable archive:
-  - Excel
-  - PDF walkthrough
-
----
-
-### 2. Product pricing architecture
-
-- remove ambiguous `price`
-- introduce currency-aware pricing
-
-Initial:
-- RU → RUB
-- INT → EUR
-
-Requirement:
-- must support future USD without redesign
-
----
-
-### 3. Admin product management
+### 1. Admin product management
 
 - redesign create/edit forms
 - keep `/admin/products` as main screen
@@ -299,7 +273,7 @@ Requirement:
 
 ---
 
-### 4. Merchant of Record evaluation
+### 2. Merchant of Record evaluation
 
 - prefer MoR over custom checkout
 
@@ -310,7 +284,7 @@ Evaluate:
 
 ---
 
-### 5. Sales tracking (admin)
+### 3. Sales tracking (admin)
 
 - sales list
 - filtering
@@ -318,14 +292,14 @@ Evaluate:
 
 ---
 
-### 6. Reviews UX improvements
+### 4. Reviews UX improvements
 
 - show preview on landing
 - optional rating later
 
 ---
 
-### 7. Feedback tightening
+### 5. Feedback tightening
 
 - enforce `product_id`
 - validate `sale_id ↔ product_id`
@@ -501,3 +475,62 @@ Reason:
 
 Future:
 - allow multiple files and versioning (separate table)
+
+## Sprint 14: Product pricing redesign (SKU + product_prices)
+
+### Completed:
+
+- removed `price` field from `products`
+- introduced `product_prices` table:
+  - `product_id`
+  - `currency_code`
+  - `amount`
+  - `is_active`
+  - `created_at`
+- implemented data migration:
+  - backfilled prices from `products.price`
+  - preserved all existing price data
+
+- introduced service layer logic:
+  - `set_product_price`
+  - deactivates previous active price
+  - creates new active price
+  - validates:
+    - currency (RUB/EUR)
+    - amount > 0
+    - product existence
+
+- added DB-level constraint:
+  - partial unique index:
+    - one active price per (product_id, currency_code)
+
+- updated repository:
+  - replaced direct `price` usage with join to `product_prices`
+  - active price resolved in SQL (not in template)
+
+- updated admin UI:
+  - displays active price (amount + currency)
+  - added `slug` column (SKU visibility)
+
+- updated tests:
+  - service tests for pricing logic:
+    - create first price
+    - replace active price
+    - reject invalid currency
+  - updated admin route test to use new pricing model
+
+### Architecture decisions:
+
+- product = sellable SKU (not abstract product)
+- pricing is separated from product identity
+- pricing is append-only (history preserved)
+- business rules enforced in service layer
+- critical invariants enforced at DB level (partial index)
+
+### Result:
+
+- flexible pricing model
+- supports:
+  - multiple currencies
+  - price history
+  - future USD extension without schema change

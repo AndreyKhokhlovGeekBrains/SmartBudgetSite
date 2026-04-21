@@ -1,5 +1,24 @@
 # Feedback Workflow
 
+## Scope
+
+This document describes ONLY:
+
+- feedback lifecycle
+- admin workflow
+- publication rules
+- business rules for feedback → review → Q&A
+
+It does NOT describe:
+
+- database schema
+- backend layers
+- repository/service architecture
+- product/pricing models
+
+For system architecture and data model, see:
+- docs/backend_architecture.md
+
 ## Purpose
 
 This document describes how feedback messages are handled in the admin UI and what business rules apply to each message type.
@@ -346,15 +365,27 @@ Future:
 Current:
 - `is_published` inside `feedback_messages`
 
-This is temporary.
+This is a transitional solution.
 
-**Problem:**
-- mixes raw input with public content lifecycle
+Target architecture:
 
-**Future:**
-- feedback → private
-- reviews → separate table
-- Q&A → separate table
+- feedback_messages:
+  - private, raw user input
+  - never used directly for public display
+
+- product_reviews:
+  - separate table
+  - stores only approved and curated public reviews
+  - linked to product_id
+
+- product_qna:
+  - separate table
+  - curated Q&A content
+
+Rationale:
+- separation of concerns
+- no mixing raw input with public content
+- independent lifecycle for reviews and Q&A
 
 ---
 

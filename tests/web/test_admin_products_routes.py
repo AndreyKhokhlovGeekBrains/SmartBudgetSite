@@ -1,10 +1,9 @@
 from __future__ import annotations
-
 from typing import Any
-
 from fastapi.testclient import TestClient
-
 from app.models.product import Product
+from decimal import Decimal
+from app.services.product_service import set_product_price
 
 
 def test_admin_products_list_page_renders_products(
@@ -18,15 +17,23 @@ def test_admin_products_list_page_renders_products(
     """
 
     product = Product(
-        slug="smartbudget",
+        slug="smartbudget-ru-standard",
         name="SmartBudget",
         edition="Standard",
         version="1.0",
-        price=49.0,
+        archive_path="products/smartbudget-ru-standard/v1/archive.zip",
         status="in_sale",
     )
     db_session.add(product)
     db_session.commit()
+    db_session.refresh(product)
+
+    set_product_price(
+        db=db_session,
+        product_id=product.id,
+        currency_code="RUB",
+        amount=Decimal("49.00"),
+    )
 
     response = client.get("/admin/products")
 
@@ -35,5 +42,6 @@ def test_admin_products_list_page_renders_products(
     assert "Standard" in response.text
     assert "1.0" in response.text
     assert "in_sale" in response.text
+    assert "49.00 RUB" in response.text
 
 

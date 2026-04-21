@@ -1,11 +1,11 @@
 from datetime import date, datetime
-from decimal import Decimal
 
 from sqlalchemy import String, Date, DateTime, UniqueConstraint, func
-from sqlalchemy.orm import Mapped, mapped_column, validates
-from sqlalchemy.sql.sqltypes import Numeric
+from sqlalchemy.orm import Mapped, mapped_column, validates, relationship
 
 from app.core.db import Base
+
+from app.models.product_price import ProductPrice
 
 ALLOWED_EDITIONS = {"Standard", "Pro"}
 ALLOWED_PRODUCT_STATUSES = {"in_sale", "in_development", "discontinued"}
@@ -21,10 +21,13 @@ class Product(Base):
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
     # Stable identifier for URLs / internal references
-    slug: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
+    slug: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, index=True)
 
     # Public product name, e.g. SmartBudget
     name: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
+
+    # Path to the downloadable product archive
+    archive_path: Mapped[str] = mapped_column(String(500), nullable=False)
 
     # Product edition / variant, e.g. Standard, Pro
     edition: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
@@ -35,8 +38,12 @@ class Product(Base):
     # Release date can be empty for products still in development
     release_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 
-    # Commercial price for checkout/catalog
-    price: Mapped[Decimal | None] = mapped_column(Numeric(10, 2), nullable=False)
+    # Related price records (history + multiple currencies support)
+    prices: Mapped[list["ProductPrice"]] = relationship(
+        "ProductPrice",
+        backref="product",
+        cascade="all, delete-orphan",
+    )
 
     # Examples: in_sale, in_development, discontinued
     status: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
@@ -66,13 +73,3 @@ class Product(Base):
             raise ValueError(f"Invalid status: {value}")
         return value
 
-# Example:
-# slug = "smartbudget"
-# name = "SmartBudget"
-# edition = "Base"
-# version = "1.0"
-#
-# slug = "smartbudget"
-# name = "SmartBudget"
-# edition = "Pro"
-# version = "1.0"
