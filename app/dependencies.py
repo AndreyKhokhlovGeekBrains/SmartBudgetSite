@@ -9,8 +9,12 @@ Important:
 
 from collections.abc import Generator
 from sqlalchemy.orm import Session
+from fastapi import Request, HTTPException, Depends
 
+from app.core.config import settings
 from app.core.db import SessionLocal
+
+ADMIN_COOKIE_NAME = "admin_token"
 
 
 def get_db() -> Generator[Session, None, None]:
@@ -20,3 +24,21 @@ def get_db() -> Generator[Session, None, None]:
         yield db
     finally:
         db.close()
+
+
+def require_admin(request: Request) -> None:
+    """
+    Ensures that request is made by authenticated admin.
+
+    Business rules:
+    - Access allowed only if cookie matches admin_token
+
+    Side effects:
+    - None
+
+    Invariants:
+    - Raises 403 if not authenticated
+    """
+
+    if request.cookies.get(ADMIN_COOKIE_NAME) != settings.admin_token:
+        raise HTTPException(status_code=403, detail="Admin access denied")

@@ -6,6 +6,7 @@ from typing import Any
 from fastapi.testclient import TestClient
 
 from app.models.feedback import FeedbackMessage
+from tests.conftest import auth_client
 
 
 def test_admin_send_email_route_success_redirects_and_sets_reply_sent(
@@ -35,7 +36,7 @@ def test_admin_send_email_route_success_redirects_and_sets_reply_sent(
     db_session.commit()
     db_session.refresh(feedback)
 
-    response = client.post(
+    response = auth_client(client).post(
         f"/admin/feedback/{feedback.id}/send-email",
         follow_redirects=False,
     )
@@ -80,7 +81,7 @@ def test_admin_send_email_route_blocks_second_send_and_does_not_change_reply_sen
     db_session.commit()
     db_session.refresh(feedback)
 
-    response = client.post(
+    response = auth_client(client).post(
         f"/admin/feedback/{feedback.id}/send-email",
         follow_redirects=False,
     )
@@ -121,7 +122,7 @@ def test_admin_toggle_publish_route_success(
     db_session.commit()
     db_session.refresh(feedback)
 
-    response = client.post(
+    response = auth_client(client).post(
         f"/admin/feedback/{feedback.id}/publish",
         follow_redirects=False,
     )
@@ -163,7 +164,7 @@ def test_admin_toggle_publish_route_unpublish(
     db_session.commit()
     db_session.refresh(feedback)
 
-    response = client.post(
+    response = auth_client(client).post(
         f"/admin/feedback/{feedback.id}/publish",
         follow_redirects=False,
     )

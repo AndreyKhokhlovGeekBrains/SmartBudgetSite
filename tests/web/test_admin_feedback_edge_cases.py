@@ -3,6 +3,7 @@
 
 
 from app.models.feedback import FeedbackMessage
+from tests.conftest import auth_client
 
 
 def test_send_email_fails_when_email_missing(client, db_session):
@@ -34,7 +35,7 @@ def test_send_email_fails_when_email_missing(client, db_session):
     db_session.commit()
     db_session.refresh(feedback)
 
-    response = client.post(
+    response = auth_client(client).post(
         f"/admin/feedback/{feedback.id}/send-email",
         follow_redirects=False,
     )

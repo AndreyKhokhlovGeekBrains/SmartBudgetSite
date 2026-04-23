@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Request, HTTPException, Depends
+from fastapi import APIRouter, Request, HTTPException, Depends, Form
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from app.products_catalog import products_index, product_by_slug
 from app.core.i18n import get_lang, set_lang_cookie, t
-from app.dependencies import get_db
+from app.core.config import settings
+from app.dependencies import get_db, require_admin
 from app.repositories.feedback_admin_repository import FeedbackAdminRepository
 from app.services.feedback_service import (
     send_feedback_reply,
@@ -12,18 +13,27 @@ from app.services.feedback_service import (
     toggle_feedback_resolved,
     save_feedback_reply_draft
     )
-from app.models.product import ALLOWED_EDITIONS, ALLOWED_PRODUCT_STATUSES
+from app.models.product import ALLOWED_EDITIONS, ALLOWED_PRODUCT_STATUSES, Product
+from app.models.product_price import ProductPrice
 
 from sqlalchemy.orm import Session
 from sqlalchemy import select
 from app.models.product import Product
 from datetime import timezone, timedelta
+from decimal import Decimal
+
 
 moscow_tz = timezone(timedelta(hours=3))
 
 router = APIRouter()
 
 templates = Jinja2Templates(directory="app/templates")
+
+ADMIN_COOKIE_NAME = "admin_token"
+
+admin_router = APIRouter(
+    dependencies=[Depends(require_admin)]
+)
 
 
 def render(request: Request, template_name: str, context: dict):
@@ -80,7 +90,7 @@ async def product_detail(request: Request, slug: str):
     })
 
 
-@router.get("/admin/feedback", response_class=HTMLResponse)
+@admin_router.get("/admin/feedback", response_class=HTMLResponse)
 async def admin_feedback_list(
     request: Request,
     db: Session = Depends(get_db),
@@ -96,7 +106,7 @@ async def admin_feedback_list(
         },
     )
 
-@router.get("/admin/feedback/{feedback_id}", response_class=HTMLResponse)
+@admin_router.get("/admin/feedback/{feedback_id}", response_class=HTMLResponse)
 async def admin_feedback_detail(
     request: Request,
     feedback_id: int,
@@ -123,7 +133,7 @@ async def admin_feedback_detail(
     )
 
 
-@router.post("/admin/feedback/{feedback_id}/resolve")
+@admin_router.post("/admin/feedback/{feedback_id}/resolve")
 async def admin_feedback_resolve(
     feedback_id: int,
     db: Session = Depends(get_db),
@@ -136,7 +146,7 @@ async def admin_feedback_resolve(
     )
 
 
-@router.post("/admin/feedback/{feedback_id}/reply")
+@admin_router.post("/admin/feedback/{feedback_id}/reply")
 async def admin_feedback_save_reply(
     feedback_id: int,
     request: Request,
@@ -157,7 +167,7 @@ async def admin_feedback_save_reply(
     )
 
 
-@router.post("/admin/feedback/{feedback_id}/publish")
+@admin_router.post("/admin/feedback/{feedback_id}/publish")
 async def admin_feedback_toggle_publish(
     feedback_id: int,
     db: Session = Depends(get_db),
@@ -170,7 +180,7 @@ async def admin_feedback_toggle_publish(
     )
 
 
-@router.post("/admin/feedback/{feedback_id}/send-email")
+@admin_router.post("/admin/feedback/{feedback_id}/send-email")
 def send_feedback_email(
     feedback_id: int,
     db: Session = Depends(get_db),
@@ -220,12 +230,15 @@ async def reviews_redirect():
     return RedirectResponse(url="/reviews/smartbudget", status_code=307)
 
 
-@router.get("/admin/products")
-async def admin_products_list(request: Request, db: Session = Depends(get_db)):
+@admin_router.get("/admin/products")
+async def admin_products_list(
+    request: Request,
+    db: Session = Depends(get_db),
+):
     from app.repositories.products_repository import ProductsRepository
 
     repo = ProductsRepository(db)
-    product_list  = repo.list_products()
+    product_list = repo.list_products()
 
     lang = get_lang(request)
 
@@ -239,16 +252,14 @@ async def admin_products_list(request: Request, db: Session = Depends(get_db)):
     )
 
 
-@router.get("/admin/products/new")
+@admin_router.get("/admin/products/new")
 async def admin_products_new(request: Request):
-    lang = get_lang(request)
-
-    return templates.TemplateResponse(
+    return render(
         request,
         "admin_product_form.html",
         {
-            "t": lambda key: t(lang, key),
             "product": None,
+            "active_price": None,
             "allowed_editions": sorted(ALLOWED_EDITIONS),
             "allowed_statuses": sorted(ALLOWED_PRODUCT_STATUSES),
             "form_action": "/admin/products/new",
@@ -257,9 +268,7 @@ async def admin_products_new(request: Request):
     )
 
 
-from fastapi import Form
-
-@router.post("/admin/products/new")
+@admin_router.post("/admin/products/new")
 async def admin_products_create(
     request: Request,
     db: Session = Depends(get_db),
@@ -267,24 +276,262 @@ async def admin_products_create(
     slug: str = Form(...),
     edition: str = Form(...),
     version: str = Form(...),
-    price: float = Form(...),
+    price: Decimal = Form(...),
+    currency_code: str = Form(...),
     status: str = Form(...),
 ):
-    from app.models.product import Product
+    """
+    Creates product and its initial active price.
+
+    Business rules:
+    - Product is stored in Product table
+    - Price is stored in ProductPrice table
+    - New price is created as active
+    - Currency code is normalized to uppercase
+
+    Side effects:
+    - Inserts one row into products
+    - Inserts one row into product_prices
+
+    Invariants / restrictions:
+    - price must not be stored in Product model
+    - currency_code is stored as uppercase ISO-like code
+    """
 
     product = Product(
-        name=name,
-        slug=slug,
+        name=name.strip(),
+        slug=slug.strip(),
         edition=edition,
-        version=version,
-        price=price,
+        version=version.strip(),
         status=status,
     )
 
     db.add(product)
+    db.flush()
+
+    product_price = ProductPrice(
+        product_id=product.id,
+        currency_code=currency_code.strip().upper(),
+        amount=price,
+        is_active=True,
+    )
+
+    db.add(product_price)
     db.commit()
 
     return RedirectResponse(
         url="/admin/products",
         status_code=303,
     )
+
+
+@admin_router.get("/admin/products/{product_id}/edit")
+async def admin_products_edit(
+    product_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Opens edit form for existing product with active price.
+
+    Business rules:
+    - Product must exist
+    - Active price is loaded separately from ProductPrice
+    - Form must receive both product and current active price
+
+    Side effects:
+    - None
+
+    Invariants / restrictions:
+    - Returns 404 if product not found
+    """
+
+    from sqlalchemy import select
+    from app.models.product_price import ProductPrice
+
+    product = db.get(Product, product_id)
+
+    if not product:
+        raise HTTPException(status_code=404)
+
+    active_price = db.execute(
+        select(ProductPrice).where(
+            ProductPrice.product_id == product_id,
+            ProductPrice.is_active == True  # noqa: E712
+        )
+    ).scalar_one_or_none()
+
+    lang = get_lang(request)
+
+    return templates.TemplateResponse(
+        request,
+        "admin_product_form.html",
+        {
+            "t": lambda key: t(lang, key),
+            "product": product,
+            "active_price": active_price,
+            "allowed_editions": sorted(ALLOWED_EDITIONS),
+            "allowed_statuses": sorted(ALLOWED_PRODUCT_STATUSES),
+            "form_action": f"/admin/products/{product_id}/edit",
+            "page_title": "Edit product",
+        },
+    )
+
+
+@admin_router.post("/admin/products/{product_id}/edit")
+async def admin_products_update(
+    product_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    name: str = Form(...),
+    slug: str = Form(...),
+    edition: str = Form(...),
+    version: str = Form(...),
+    price: Decimal = Form(...),
+    currency_code: str = Form(...),
+    status: str = Form(...),
+):
+    """
+    Updates product fields and replaces active price if needed.
+
+    Business rules:
+    - Product must exist
+    - Product fields are stored in Product
+    - Price is stored in ProductPrice
+    - Only one active price per product/currency should remain active
+
+    Side effects:
+    - Updates Product row
+    - May deactivate existing active ProductPrice row
+    - May insert new active ProductPrice row
+
+    Invariants / restrictions:
+    - Returns 404 if product not found
+    - currency_code is normalized to uppercase
+    """
+
+    from sqlalchemy import select
+    from app.models.product_price import ProductPrice
+
+    product = db.get(Product, product_id)
+
+    if not product:
+        raise HTTPException(status_code=404)
+
+    product.name = name.strip()
+    product.slug = slug.strip()
+    product.edition = edition
+    product.version = version.strip()
+    product.status = status
+
+    normalized_currency = currency_code.strip().upper()
+
+    active_price = db.execute(
+        select(ProductPrice).where(
+            ProductPrice.product_id == product_id,
+            ProductPrice.is_active == True,  # noqa: E712
+        )
+    ).scalar_one_or_none()
+
+    should_replace_price = (
+        active_price is None
+        or active_price.amount != price
+        or active_price.currency_code != normalized_currency
+    )
+
+    if should_replace_price:
+        if active_price:
+            active_price.is_active = False
+
+        new_price = ProductPrice(
+            product_id=product.id,
+            currency_code=normalized_currency,
+            amount=price,
+            is_active=True,
+        )
+        db.add(new_price)
+
+    db.commit()
+
+    return RedirectResponse(
+        url="/admin/products",
+        status_code=303,
+    )
+
+
+@router.get("/admin/login", response_class=HTMLResponse)
+async def admin_login_page(request: Request):
+    return render(request, "admin_login.html", {})
+
+
+@router.post("/admin/login")
+async def admin_login(
+    request: Request,
+    token: str = Form(...),
+):
+    """
+    Stores admin token in cookie after successful validation.
+
+    Business rules:
+    - Login is allowed only when provided token matches settings.admin_token
+    - Valid token is stored in cookie for subsequent admin requests
+
+    Side effects:
+    - Sets HTTP cookie in response
+
+    Invariants / restrictions:
+    - Invalid token returns 403
+    """
+
+    if token != settings.admin_token:
+        raise HTTPException(status_code=403, detail="Invalid admin token")
+
+    response = RedirectResponse(
+        url="/admin",
+        status_code=303,
+    )
+    response.set_cookie(
+        key=ADMIN_COOKIE_NAME,
+        value=token,
+        httponly=True,
+        samesite="lax",
+    )
+    return response
+
+
+@admin_router.get("/admin", response_class=HTMLResponse)
+async def admin_dashboard(
+    request: Request,
+):
+    return render(
+        request,
+        "admin_dashboard.html",
+        {}
+    )
+
+
+@admin_router.post("/admin/logout")
+async def admin_logout():
+    """
+    Clears admin auth cookie and redirects to admin login page.
+
+    Business rules:
+    - Admin session is represented by cookie only
+    - Logout must always clear the admin cookie
+
+    Side effects:
+    - Removes admin auth cookie from browser
+
+    Invariants / restrictions:
+    - Safe to call even if cookie is already missing
+    """
+
+    response = RedirectResponse(
+        url="/admin/login",
+        status_code=303,
+    )
+    response.delete_cookie("admin_token")
+    return response
+
+
+router.include_router(admin_router)

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 
 from app.models.feedback import FeedbackMessage
 from app.models.product import Product
+from app.services.product_service import set_product_price
 from app.repositories.feedback_admin_repository import FeedbackAdminRepository
 
 
@@ -16,19 +18,31 @@ def test_list_published_product_feedback_returns_only_published_product_feedback
         edition="Standard",
         version="1.0",
         status="in_sale",
-        price=49.00,
+        archive_path="test/path.zip",
     )
+
+    db_session.add(product)
+    db_session.commit()
+    db_session.refresh(product)
+
+    set_product_price(
+        db=db_session,
+        product_id=product.id,
+        currency_code="RUB",
+        amount=Decimal("49.00"),
+    )
+
     other_product = Product(
         slug="other-product",
         name="Other Product",
         edition="Standard",
         version="1.0",
         status="in_sale",
-        price=29.00,
+        archive_path="test/path.zip",
     )
-    db_session.add_all([product, other_product])
+
+    db_session.add(other_product)
     db_session.commit()
-    db_session.refresh(product)
     db_session.refresh(other_product)
 
     old_review = FeedbackMessage(

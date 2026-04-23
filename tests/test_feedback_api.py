@@ -1,4 +1,6 @@
 # tests/test_feedback_api.py
+from decimal import Decimal
+from app.services.product_service import set_product_price
 
 def test_create_general_feedback_success(client, db_session):
     """
@@ -90,11 +92,19 @@ def test_create_product_feedback_with_verified_purchase(client, db_session):
         name="SmartBudget",
         edition="Standard",
         version="1.0",
-        price=10.00,
-        status="active",
+        status="in_sale",
+        archive_path="test/path.zip",
     )
     db_session.add(product)
-    db_session.flush()
+    db_session.commit()
+    db_session.refresh(product)
+
+    set_product_price(
+        db=db_session,
+        product_id=product.id,
+        currency_code="RUB",
+        amount=Decimal("49.00"),
+    )
 
     sale = Sale(
         product_id=product.id,

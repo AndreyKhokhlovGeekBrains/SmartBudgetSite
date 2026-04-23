@@ -13,7 +13,7 @@ def test_reviews_page_returns_200(client: TestClient, db_session) -> None:
         edition="Standard",
         version="1.0",
         status="in_sale",
-        price=49.00,
+        archive_path="test/path.zip",
     )
     db_session.add(product)
     db_session.commit()
@@ -31,7 +31,7 @@ def test_reviews_page_shows_only_published_product_feedback(client, db_session):
         edition="Standard",
         version="1.0",
         status="in_sale",
-        price=49.00,
+        archive_path="test/path.zip",
     )
     other_product = Product(
         slug="other-product",
@@ -39,7 +39,7 @@ def test_reviews_page_shows_only_published_product_feedback(client, db_session):
         edition="Standard",
         version="1.0",
         status="in_sale",
-        price=29.00,
+        archive_path="test/path.zip",
     )
     db_session.add_all([product, other_product])
     db_session.commit()

@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     MAIL_SMTP_PASSWORD: str = ""
     MAIL_SMTP_TLS: bool = True
 
+    admin_token: str
+
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
         env_file_encoding="utf-8",

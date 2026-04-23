@@ -45,8 +45,8 @@ def test_check_purchase_verified(client, db_session):
         name="SmartBudget",
         edition="Standard",
         version="1.0",
-        price=10.00,
-        status="active"
+        status="in_sale",
+        archive_path="test/path.zip",
     )
 
     db_session.add(product)
@@ -114,10 +114,10 @@ def test_product_invalid_edition(db_session):
         product = Product(
             slug="smartbudget-invalid",
             name="SmartBudget",
-            edition="InvalidEdition",  # not in ALLOWED_EDITIONS
+            edition="InvalidEdition",
             version="1.0",
-            price=10.00,
-            status="active"
+            status="in_sale",
+            archive_path="test/path.zip",
         )
         db_session.add(product)
         db_session.flush()

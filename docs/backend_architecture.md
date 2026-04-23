@@ -265,7 +265,7 @@ If a route starts to contain:
 
 ## Next sprint priorities (after Sprint 14)
 
-### 1. Admin product management
+### 1. Admin product management (completed in sprint 15)
 
 - redesign create/edit forms
 - keep `/admin/products` as main screen
@@ -534,3 +534,70 @@ Future:
   - multiple currencies
   - price history
   - future USD extension without schema change
+
+## Sprint 15: Admin product management + admin auth
+
+### Completed:
+
+#### Admin authentication
+
+- implemented admin login (`/admin/login`)
+- implemented logout (`/admin/logout`)
+- introduced cookie-based auth (`admin_token`)
+- moved auth logic to `app.dependencies.require_admin`
+- applied protection via `admin_router` (router-level dependency)
+- removed query-based token access (URL no longer exposes secrets)
+
+#### Admin dashboard
+
+- added `/admin` as entry point
+- created `admin_dashboard.html`
+- added navigation:
+  - Products
+  - Feedback
+- unified UI with existing admin styles
+
+#### Admin products (full flow)
+
+- implemented create product:
+  - Product + ProductPrice (separated)
+- implemented edit product:
+  - updates Product fields
+  - replaces active ProductPrice if changed
+- restored `/admin/products/new` (GET)
+- ensured:
+  - one active price per currency
+  - no price stored in Product model
+
+#### UI improvements
+
+- styled:
+  - product form
+  - dashboard
+  - login page
+- introduced reusable admin form layout (`admin_products.css`)
+
+#### Test updates
+
+- migrated all tests to new pricing model:
+  - removed `price` from Product
+  - added `set_product_price`
+- updated product status values (`in_sale` instead of `active`)
+- added required `archive_path` in tests
+- introduced helper `auth_client` for admin routes
+- fixed all admin route tests (403 → authorized access)
+- full test suite passing
+
+### Architecture decisions:
+
+- admin auth = simple cookie-based (no JWT)
+- admin protection applied at router level (not per route)
+- product creation MUST include initial price
+- tests must always reflect real DB constraints
+
+### Result:
+
+- working admin panel (auth + navigation)
+- correct product + pricing model
+- stable test suite
+- clean base for next steps (payments, sales, reviews UX)

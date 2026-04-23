@@ -65,6 +65,14 @@ def override_get_db() -> Generator:
         db.close()
 
 
+def auth_client(client):
+    """
+    Returns client with admin auth cookie set.
+    """
+    client.cookies.set("admin_token", "supersecret")
+    return client
+
+
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_database() -> Generator[None, None, None]:
     # Clean old test DB file if it exists
@@ -150,3 +158,5 @@ def disable_real_email_sending(monkeypatch):
     monkeypatch.setattr(mail_service, "send_email", fake_send_email)
 
     return sent_emails
+
+

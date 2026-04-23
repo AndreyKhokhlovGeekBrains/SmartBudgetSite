@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/admin_products.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-form">
+    <h1 class="admin-form-title">Admin Dashboard</h1>
+
+    <div class="admin-dashboard-links">
+        <a href="/admin/products" class="admin-link-card">
+            Products
+        </a>
+
+        <a href="/admin/feedback" class="admin-link-card">
+            Feedback
+        </a>
+    </div>
+
+    <form method="post" action="/admin/logout" style="margin-top: 20px;">
+        <button type="submit" class="btn-primary">Log out</button>
+    </form>
+</div>
+{% endblock %}
