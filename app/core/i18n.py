@@ -215,6 +215,16 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
 
         "reviews_published_label": "Published",
 
+        "checkout.title": "Checkout",
+        "checkout.product": "Product",
+        "checkout.edition": "Edition",
+        "checkout.total": "Total",
+        "checkout.pay_sbp": "Pay via SBP",
+        "checkout.pay_ru_card": "Russian card / YooMoney / SberPay / T-Pay",
+        "checkout.pay_international_card": "Pay with international card",
+        "checkout.pay_crypto": "Pay with cryptocurrency",
+        "checkout.package": "Package",
+
     },
     "ru": {
         "brand_name": "Андрей Хохлов",
@@ -421,6 +431,16 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "reviews_no_subject": "Без темы",
 
         "reviews_published_label": "Опубликовано",
+
+        "checkout.title": "Оплата",
+        "checkout.product": "Продукт",
+        "checkout.edition": "Версия",
+        "checkout.total": "Итого",
+        "checkout.pay_sbp": "Оплата через СБП",
+        "checkout.pay_ru_card": "Карта РФ / ЮMoney / SberPay / T-Pay",
+        "checkout.pay_international_card": "Оплата зарубежной картой",
+        "checkout.pay_crypto": "Оплатить криптовалютой",
+        "checkout.package": "Пакет",
 
     },
 }

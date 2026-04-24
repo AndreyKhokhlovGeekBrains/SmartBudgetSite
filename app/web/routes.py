@@ -7,6 +7,7 @@ from app.core.i18n import get_lang, set_lang_cookie, t
 from app.core.config import settings
 from app.dependencies import get_db, require_admin
 from app.repositories.feedback_admin_repository import FeedbackAdminRepository
+from app.repositories.products_repository import ProductsRepository
 from app.services.feedback_service import (
     send_feedback_reply,
     toggle_feedback_publish,
@@ -535,3 +536,40 @@ async def admin_logout():
 
 
 router.include_router(admin_router)
+
+
+@router.get("/checkout/{slug}")
+def checkout_page(
+    request: Request,
+    slug: str,
+    db: Session = Depends(get_db),
+):
+    """
+    Render checkout page for a sellable product SKU.
+
+    Business rules:
+    - Checkout is product-specific.
+    - Product is resolved by slug.
+    - Active price must exist before checkout can be shown.
+
+    Side effects:
+    - None. Read-only page rendering.
+
+    Invariants / restrictions:
+    - Payment provider is not selected here.
+    - User manually selects payment method on the page.
+    """
+
+    product, price = ProductsRepository(db).get_product_with_active_price_by_slug(slug)
+
+    if product is None or price is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+
+    return render(
+        request,
+        "checkout.html",
+        {
+            "product": product,
+            "price": price,
+        },
+    )

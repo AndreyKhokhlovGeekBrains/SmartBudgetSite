@@ -263,24 +263,29 @@ If a route starts to contain:
 
 ---
 
-## Next sprint priorities (after Sprint 14)
+## Next sprint priorities (after Sprint 15)
 
-### 1. Admin product management (completed in sprint 15)
+### 1. Purchase flow (product family → SKU → checkout)
 
-- redesign create/edit forms
-- keep `/admin/products` as main screen
-- implement Edit AFTER model redesign
+- introduce `family_slug` in `products`
+- group SKUs by product family
+- implement purchase options page:
+  - `/products/{family_slug}/buy`
+- display all available SKUs for selected family:
+  - RU / INT
+  - Standard / Pro
+- link each option to:
+  - `/checkout/{product_slug}`
 
 ---
 
-### 2. Merchant of Record evaluation
+### 2. Merchant of Record integration (Paddle)
 
-- prefer MoR over custom checkout
-
-Evaluate:
-- Paddle
-- Lemon Squeezy
-- Stripe
+- create Paddle account
+- configure product in Paddle
+- implement checkout redirect / link
+- define success URL
+- plan webhook handling (no full implementation yet)
 
 ---
 
@@ -303,6 +308,15 @@ Evaluate:
 
 - enforce `product_id`
 - validate `sale_id ↔ product_id`
+
+---
+
+### 6. Deployment preparation
+
+- connect domain
+- choose hosting (VPS / PaaS)
+- prepare environment variables
+- basic production setup
 
 ---
 
@@ -340,6 +354,42 @@ Use string + allowed sets:
 ---
 
 ## Product model redesign note
+
+## Product family / purchase options note
+
+Current `products` table represents sellable SKUs.
+
+Examples:
+- smartbudget-ru-standard
+- smartbudget-ru-pro
+- smartbudget-int-standard
+- smartbudget-int-pro
+
+For purchase option pages, products must be grouped by product family.
+
+Example flow:
+- landing page: `/products/smartbudget`
+- purchase options page: `/products/smartbudget/buy`
+- checkout page: `/checkout/{product_slug}`
+
+Important:
+The purchase options page must NOT show all products from the `products` table.
+It should show only SKUs that belong to the selected product family.
+
+Reason:
+In the future, the site may sell other products, such as:
+- books
+- templates
+- consultations
+- other digital products
+
+Possible implementation options:
+- add `family_slug` to `products`
+- or introduce a separate `product_families` table
+
+MVP direction:
+Use `family_slug` on `products` first, because it is simple and enough for grouping SKUs.
+A separate `product_families` table can be introduced later if product-family metadata becomes necessary.
 
 ### Important:
 
@@ -406,6 +456,54 @@ Use string + allowed sets:
 ---
 
 ## Payments strategy note
+
+### Checkout UX strategy
+
+SmartBudget uses a single checkout page with multiple explicit payment options.
+
+Route:
+- /checkout/{product_slug}
+
+Payment options (MVP):
+- Russian payments (SBP / local methods)
+- International payments (Paddle)
+- (optional) crypto
+
+Key rule:
+Do NOT auto-detect user country.
+User manually selects the working payment method.
+
+Reason:
+- avoids incorrect routing (VPN, relocations)
+- simplifies debugging
+- supports both RU and INT audiences
+
+Design:
+- order summary at the top
+- vertical list of large payment buttons
+- mobile-first layout
+
+### Checkout UI checkpoint
+
+Implemented:
+- public route `/checkout/{product_slug}`
+- checkout template with i18n keys
+- dedicated `checkout.css`
+- product summary card:
+  - product
+  - package
+  - edition
+  - total
+- neutral payment method selection:
+  - SBP
+  - Russian card / YooMoney / SberPay / T-Pay
+  - international card
+  - crypto
+- no payment provider integration yet
+
+Decision:
+- Paddle integration should be handled in a separate sprint after provider setup is ready.
+- Current checkout page remains provider-agnostic and uses placeholder links.
 
 ### Direction:
 

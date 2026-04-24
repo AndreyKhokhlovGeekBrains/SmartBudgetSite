@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/checkout.css') }}">
+{% endblock %}
+
+{% block title %}{{ t("checkout.title") }} · SmartBudget{% endblock %}
+
+{% block content %}
+<section class="checkout-page">
+    <div class="checkout-card">
+        <h1 class="checkout-title">{{ t("checkout.title") }}</h1>
+
+        <div class="checkout-summary">
+            <div class="checkout-row">
+                <span>{{ t("checkout.product") }}</span>
+                <strong>{{ product.name }}</strong>
+            </div>
+
+            <div class="checkout-row">
+                <span>{{ t("checkout.package") }}</span>
+                <strong>
+                    {% if "-ru-" in product.slug %}
+                        RU
+                    {% elif "-int-" in product.slug %}
+                        INT
+                    {% else %}
+                        —
+                    {% endif %}
+                </strong>
+            </div>
+
+            <div class="checkout-row">
+                <span>{{ t("checkout.edition") }}</span>
+                <strong>{{ product.edition }}</strong>
+            </div>
+
+            <div class="checkout-divider"></div>
+
+            <div class="checkout-total">
+                <span>{{ t("checkout.total") }}</span>
+                <strong>{{ price.amount }} {{ price.currency_code }}</strong>
+            </div>
+        </div>
+
+        <div class="payment-options">
+            <a class="payment-button" href="#">
+                {{ t("checkout.pay_sbp") }}
+            </a>
+
+            <a class="payment-button" href="#">
+                {{ t("checkout.pay_ru_card") }}
+            </a>
+
+            <a class="payment-button" href="#">
+                {{ t("checkout.pay_international_card") }}
+            </a>
+
+            <a class="payment-button" href="#">
+                {{ t("checkout.pay_crypto") }}
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

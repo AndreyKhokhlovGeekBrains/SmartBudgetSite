@@ -31,3 +31,37 @@ class ProductsRepository:
         )
 
         return result
+
+    def get_product_with_active_price_by_slug(self, slug: str):
+        """
+        Fetch product and its active price by slug.
+
+        Business rules:
+        - Product is identified by unique slug (SKU).
+        - Only active price should be returned.
+
+        Side effects:
+        - None (read-only query).
+
+        Invariants / restrictions:
+        - At most one active price per (product_id, currency_code).
+        """
+
+        result = (
+            self.db.query(Product, ProductPrice)
+            .outerjoin(
+                ProductPrice,
+                and_(
+                    ProductPrice.product_id == Product.id,
+                    ProductPrice.is_active.is_(True),
+                ),
+            )
+            .filter(Product.slug == slug)
+            .first()
+        )
+
+        if result is None:
+            return None, None
+
+        product, price = result
+        return product, price
