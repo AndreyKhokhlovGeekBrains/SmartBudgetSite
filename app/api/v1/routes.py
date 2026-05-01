@@ -239,7 +239,7 @@ def check_purchase(
     purchases = [PurchaseItem(**item) for item in purchases_data]
 
     return PurchaseLookupResponse(
-        verified=len(purchases) > 0,
+        verified=any(item.get("item_type") == "product" for item in purchases_data),
         purchases=purchases,
     )
 

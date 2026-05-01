@@ -404,6 +404,131 @@ A separate `product_families` table can be introduced later if product-family me
 
 ---
 
+## Purchase flow product/add-on/service model
+
+Core decision:
+
+- `products` table stores downloadable product SKUs only.
+- A consultation is not a downloadable product SKU.
+- A consultation may be sold in two ways:
+  - as an optional add-on attached to a SmartBudget purchase
+  - as a standalone paid service available only to verified SmartBudget customers
+- Pro editions must stay separate from consultation logic.
+
+Current planned product SKUs:
+
+- SmartBudget RU Standard — 3900 RUB
+- SmartBudget INT Standard — 39 EUR
+
+Future product SKUs:
+
+- SmartBudget RU Pro
+- SmartBudget INT Pro
+
+Pro edition concept:
+
+- Pro is a separate future product edition.
+- Pro may include advanced analytics and optional AI features via user-provided API key.
+- Pro must not be modeled as “Standard + consultation”.
+
+Consultation service concept:
+
+- 1:1 consultation is a paid non-downloadable service.
+- Suggested service code:
+  - `consultation_1h`
+- Suggested service type:
+  - `consultation`
+- Suggested starting price:
+  - 79 EUR for standalone consultation
+  - discounted add-on price when purchased together with SmartBudget, e.g. 35 EUR
+  - separate RUB prices TBD
+- Consultation availability is limited by predefined calendar slots.
+- Consultation capacity must be controlled by schedule limits, not by manual negotiation.
+- Consultation booking should be integrated with Calendly or a similar booking provider connected to Google Calendar.
+
+Purchase flow logic:
+
+### 1. Product purchase without consultation
+
+- User selects one product SKU.
+- User pays for the product.
+- After successful payment, user receives access to the downloadable archive.
+- Sales/admin must clearly show that the order contains product only and no consultation add-on.
+
+### 2. Product purchase with consultation add-on
+
+- User selects one product SKU.
+- On the purchase/checkout flow, user may optionally add a 1-hour consultation.
+- Order/payment should support:
+  - required product order item (`product_id`)
+  - optional service/add-on order item for consultation (`service_code = consultation_1h`)
+- After successful payment:
+  - user receives access to the downloadable archive
+  - user receives access to book a consultation slot
+- Admin must be able to see that this sale includes consultation.
+- Sales/admin view should distinguish:
+  - SmartBudget only
+  - SmartBudget + consultation
+
+Important rule:
+
+- The consultation booking link must not be publicly visible before payment.
+- The booking link is shown only after successful payment or through a verified purchase flow.
+
+### 3. Standalone consultation purchase
+
+- Standalone consultation is a separate paid service flow.
+- Standalone consultation must be available only to verified SmartBudget customers.
+- Verification should reuse the existing email-based purchase check flow.
+- Customer enters/verifies the email used for SmartBudget purchase.
+- If purchase is verified, the customer can continue to standalone consultation purchase.
+- Customer must be able to preview available slots before payment.
+- Customer selects a suitable slot first.
+- Payment is required to confirm the booking.
+- If the nearest available slot is too far away, the customer can abandon the flow before payment.
+
+Recommended MVP implementation:
+
+- Do not build a custom calendar/booking engine in the MVP.
+- Use Calendly or a similar booking provider integrated with Google Calendar.
+- For standalone consultation:
+  - verify SmartBudget purchase by email first
+  - show available slots
+  - let customer select a slot
+  - require payment before confirmation
+- For product add-on consultation:
+  - payment first
+  - booking link only after successful payment
+
+Admin visibility requirements:
+
+- Admin sales table must show whether an order includes consultation.
+- Admin should be able to filter or visually identify orders with consultation.
+- Future admin consultation view should show:
+  - customer email
+  - related sale/order
+  - product SKU, if consultation was purchased as add-on
+  - consultation type/code
+  - booking status
+  - scheduled date/time, if available from booking provider
+  - payment status
+
+Architecture principle:
+
+- Product = downloadable file/archive.
+- Service/add-on = paid non-downloadable service.
+- Do not create duplicated product SKUs like:
+  - “SmartBudget INT Standard + Consultation”
+  - “SmartBudget RU Standard + Consultation”
+- Use orders/order items instead of SKU duplication.
+- Sales should represent the whole transaction.
+- Order items should represent what was purchased:
+  - product item
+  - optional service/add-on item
+- This keeps future Pro editions clean and avoids product catalog explosion.
+
+---
+
 ## Product pricing and currency design note
 
 ### Proposed MVP fields for `product_prices`
@@ -699,3 +824,110 @@ Future:
 - correct product + pricing model
 - stable test suite
 - clean base for next steps (payments, sales, reviews UX)
+
+---
+
+## Sales and order items model (MVP direction)
+
+### Migration from current sales model
+
+Current state:
+- `sales` already exists
+- current `Sale` model stores `product_id` directly
+- current purchase verification joins `Sale.product_id → Product.id`
+
+Target state:
+- keep `sales` as order header
+- move purchased entities to `sale_items`
+- product purchase becomes a `sale_items` row with `item_type = "product"` and `product_id`
+- consultation becomes a `sale_items` row with `item_type = "service"` and `service_code`
+- after migration, purchase verification must check paid sales with at least one product item
+
+### Core idea
+
+- One purchase = one sale (order)
+- Sale may contain multiple items
+
+### Order structure
+
+Sale:
+- id
+- email
+- created_at
+- total_amount
+- currency
+
+Order items:
+- id
+- sale_id
+- item_type: {"product", "service"}
+- product_id (nullable)
+- service_code (nullable)
+- amount
+
+### Examples
+
+#### 1. Product only
+
+Sale:
+- total = 39 EUR
+
+Items:
+- product (smartbudget-int-standard)
+
+#### 2. Product + consultation
+
+Sale:
+- total = 74 EUR
+
+Items:
+- product (smartbudget-int-standard)
+- service (consultation_1h)
+
+#### 3. Standalone consultation
+
+Sale:
+- total = 79 EUR
+
+Items:
+- service (consultation_1h)
+
+### Important rules
+
+- Do NOT encode consultation in product
+- Do NOT create separate SKUs for bundles
+- Always use order items
+
+### Known limitation (MVP)
+
+- Current schema cannot represent service-only purchases
+- Any sale is treated as product purchase due to `Sale.product_id`
+- `/v1/check-purchase` therefore always returns `verified = True` for any paid sale
+
+### Protected future behavior
+
+- There is an xfailed test:
+  - `test_check_purchase_not_verified_for_service_only`
+- This test defines the correct future behavior:
+  - service-only purchase → `verified = False`
+- After introducing `sale_items`, this test must be enabled and must pass
+
+
+## Purchase verification rules
+
+### Current behavior (MVP)
+
+- purchase verification is based on `sales`
+- any paid sale is treated as a valid product purchase
+- `/v1/check-purchase` returns `verified = True` if any paid sale exists
+
+### Future behavior
+
+- purchase verification must be based on `sale_items`
+- only items with `item_type = "product"` grant verified status
+- service-only purchases must NOT grant verified status
+
+### Test coverage
+
+- `test_check_purchase_returns_product_item_type` → validates current + future API contract
+- `test_check_purchase_not_verified_for_service_only` → xfailed test defining correct future behavior

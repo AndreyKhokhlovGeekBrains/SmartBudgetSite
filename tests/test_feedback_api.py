@@ -88,6 +88,7 @@ def test_create_product_feedback_with_verified_purchase(client, db_session):
     from app.models.sale import Sale
 
     product = Product(
+        family_slug="smartbudget",
         slug="smartbudget",
         name="SmartBudget",
         edition="Standard",

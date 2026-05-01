@@ -8,6 +8,7 @@ from app.models.product import Product
 
 def test_reviews_page_returns_200(client: TestClient, db_session) -> None:
     product = Product(
+        family_slug="smartbudget",
         slug="smartbudget",
         name="SmartBudget",
         edition="Standard",
@@ -26,6 +27,7 @@ def test_reviews_page_returns_200(client: TestClient, db_session) -> None:
 
 def test_reviews_page_shows_only_published_product_feedback(client, db_session):
     product = Product(
+        family_slug="smartbudget",
         slug="smartbudget",
         name="SmartBudget",
         edition="Standard",
@@ -34,6 +36,7 @@ def test_reviews_page_shows_only_published_product_feedback(client, db_session):
         archive_path="test/path.zip",
     )
     other_product = Product(
+        family_slug="smartbudget",
         slug="other-product",
         name="Other Product",
         edition="Standard",

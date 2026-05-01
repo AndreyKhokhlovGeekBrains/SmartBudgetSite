@@ -18,6 +18,7 @@ def test_admin_products_list_page_renders_products(
     """
 
     product = Product(
+        family_slug="smartbudget",
         slug="smartbudget-ru-standard",
         name="SmartBudget",
         edition="Standard",

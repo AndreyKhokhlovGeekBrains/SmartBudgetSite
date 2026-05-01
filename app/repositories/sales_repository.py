@@ -39,6 +39,7 @@ def get_verified_purchases_by_email(
             "product_slug": row.product_slug,
             "edition": row.edition,
             "created_at": row.created_at,
+            "item_type": "product",
         }
         for row in rows
     ]

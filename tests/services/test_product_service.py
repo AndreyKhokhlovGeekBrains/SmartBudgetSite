@@ -9,6 +9,7 @@ from fastapi import HTTPException
 
 def test_set_product_price_creates_first_active_price(db_session):
     product = Product(
+        family_slug="smartbudget",
         slug="smartbudget-ru-standard",
         name="SmartBudget RU Standard",
         edition="Standard",
@@ -46,6 +47,7 @@ def test_set_product_price_creates_first_active_price(db_session):
 
 def test_set_product_price_replaces_active_price(db_session):
     product = Product(
+        family_slug="smartbudget",
         slug="smartbudget-ru-standard",
         name="SmartBudget RU Standard",
         edition="Standard",
@@ -93,6 +95,7 @@ def test_set_product_price_replaces_active_price(db_session):
 
 def test_set_product_price_rejects_unsupported_currency(db_session):
     product = Product(
+        family_slug="smartbudget",
         slug="smartbudget-ru-standard",
         name="SmartBudget RU Standard",
         edition="Standard",

@@ -20,6 +20,14 @@ class Product(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
 
+    # Product family identifier used to group related SKUs.
+    # Example: smartbudget
+    family_slug: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        index=True
+    )
+
     # Stable identifier for URLs / internal references
     slug: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, index=True)
 

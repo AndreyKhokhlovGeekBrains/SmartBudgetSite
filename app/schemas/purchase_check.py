@@ -9,6 +9,7 @@ class PurchaseItem(BaseModel):
     product_slug: str | None = None
     edition: str | None = None
     created_at: datetime | None = None
+    item_type: str
 
 
 class PurchaseLookupRequest(BaseModel):

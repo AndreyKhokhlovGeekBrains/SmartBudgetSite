@@ -273,10 +273,12 @@ async def admin_products_new(request: Request):
 async def admin_products_create(
     request: Request,
     db: Session = Depends(get_db),
+    family_slug: str = Form(...),
     name: str = Form(...),
     slug: str = Form(...),
     edition: str = Form(...),
     version: str = Form(...),
+    archive_path: str = Form(...),
     price: Decimal = Form(...),
     currency_code: str = Form(...),
     status: str = Form(...),
@@ -286,6 +288,7 @@ async def admin_products_create(
 
     Business rules:
     - Product is stored in Product table
+    - Product must belong to a product family
     - Price is stored in ProductPrice table
     - New price is created as active
     - Currency code is normalized to uppercase
@@ -296,14 +299,17 @@ async def admin_products_create(
 
     Invariants / restrictions:
     - price must not be stored in Product model
+    - family_slug is required for purchase flow grouping
     - currency_code is stored as uppercase ISO-like code
     """
 
     product = Product(
+        family_slug=family_slug.strip(),
         name=name.strip(),
         slug=slug.strip(),
         edition=edition,
         version=version.strip(),
+        archive_path=archive_path.strip(),
         status=status,
     )
 

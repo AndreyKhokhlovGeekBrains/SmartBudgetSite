@@ -40,6 +40,15 @@
     .admin-products-empty {
         margin-top: 16px;
     }
+
+    .admin-table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    .admin-table-wrapper table {
+        min-width: 1100px;
+    }
 </style>
 
 <div class="admin-products-page">
@@ -53,11 +62,13 @@
         + Create product
     </a>
 
+    <div class="admin-table-wrapper">
     <table class="admin-products-table">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Name</th>
+                <th>Family</th>
                 <th>Slug</th>
                 <th>Edition</th>
                 <th>Version</th>
@@ -71,6 +82,7 @@
             <tr>
                 <td>{{ p.id }}</td>
                 <td>{{ p.name }}</td>
+                <td>{{ p.family_slug }}</td>
                 <td>{{ p.slug }}</td>
                 <td>{{ p.edition }}</td>
                 <td>{{ p.version }}</td>
@@ -89,6 +101,7 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
 
     {% if not products %}
     <p class="admin-products-empty">No products found.</p>

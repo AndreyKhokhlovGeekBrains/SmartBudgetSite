@@ -13,6 +13,7 @@ def test_list_published_product_feedback_returns_only_published_product_feedback
     repo = FeedbackAdminRepository(db_session)
 
     product = Product(
+        family_slug="smartbudget",
         slug="smartbudget",
         name="SmartBudget",
         edition="Standard",
@@ -33,6 +34,7 @@ def test_list_published_product_feedback_returns_only_published_product_feedback
     )
 
     other_product = Product(
+        family_slug="smartbudget",
         slug="other-product",
         name="Other Product",
         edition="Standard",
