@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="container">
+    <h1>{{ t("product_buy_title") }}</h1>
+    <p>{{ t("product_buy_subtitle") }}</p>
+
+    <div class="products-list">
+        {% for product, price in products %}
+            <div class="product-card">
+                <h2>{{ product.name }}</h2>
+
+                <p>
+                    {{ t("product_buy_edition") }}: {{ product.edition }}<br>
+                    {{ t("product_buy_file_version") }}: {{ product.version }}<br>
+                    {{ t("checkout.package") }}:
+                    {% if "-ru-" in product.slug %}
+                        <strong>RU</strong>
+                    {% elif "-int-" in product.slug %}
+                        <strong>INT</strong>
+                    {% else %}
+                        <strong>—</strong>
+                    {% endif %}
+                </p>
+
+                {% if price %}
+                    <p>
+                        <strong>{{ price.amount }} {{ price.currency_code }}</strong>
+                    </p>
+                {% else %}
+                    <p>
+                        <strong>{{ t("product_buy_price_not_configured") }}</strong>
+                    </p>
+                {% endif %}
+
+                <div class="product-addon">
+                    <label>
+                        <input
+                            type="checkbox"
+                            name="consultation"
+                            value="1"
+                            onchange="
+                                const link = this.closest('.product-card').querySelector('.checkout-link');
+                                const baseUrl = link.dataset.baseUrl;
+                                link.href = this.checked ? baseUrl + '?consultation=1' : baseUrl;
+                            "
+                        >
+                        {{ t("product_buy_add_consultation") }}
+                    </label>
+                </div>
+
+                <a
+                    href="/checkout/{{ product.slug }}"
+                    data-base-url="/checkout/{{ product.slug }}"
+                    class="btn checkout-link"
+                >
+                    {{ t("product_buy_cta") }}
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

@@ -224,6 +224,16 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "checkout.pay_international_card": "Pay with international card",
         "checkout.pay_crypto": "Pay with cryptocurrency",
         "checkout.package": "Package",
+        "checkout.consultation": "Personal consultation",
+        "checkout.included": "Added",
+
+        "product_buy_title": "Select your SmartBudget version",
+        "product_buy_subtitle": "Compare available options and continue to checkout.",
+        "product_buy_edition": "Edition",
+        "product_buy_file_version": "File version",
+        "product_buy_price_not_configured": "Price is not configured",
+        "product_buy_cta": "Continue to checkout",
+        "product_buy_add_consultation": "Add a personal SmartBudget setup consultation",
 
     },
     "ru": {
@@ -441,6 +451,16 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "checkout.pay_international_card": "Оплата зарубежной картой",
         "checkout.pay_crypto": "Оплатить криптовалютой",
         "checkout.package": "Пакет",
+        "checkout.consultation": "Личная консультация",
+        "checkout.included": "Добавлена",
+
+        "product_buy_title": "Выберите версию SmartBudget",
+        "product_buy_subtitle": "Сравните доступные варианты и перейдите к оплате подходящей версии.",
+        "product_buy_edition": "Версия",
+        "product_buy_file_version": "Файл",
+        "product_buy_price_not_configured": "Цена не настроена",
+        "product_buy_cta": "Перейти к оплате",
+        "product_buy_add_consultation": "Добавить личную консультацию по настройке SmartBudget",
 
     },
 }

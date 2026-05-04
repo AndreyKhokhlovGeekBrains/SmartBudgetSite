@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, HTTPException, Depends, Form
+from fastapi import APIRouter, Request, HTTPException, Depends, Form, Query
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 
@@ -16,6 +16,7 @@ from app.services.feedback_service import (
     )
 from app.models.product import ALLOWED_EDITIONS, ALLOWED_PRODUCT_STATUSES, Product
 from app.models.product_price import ProductPrice
+from app.utils.product_utils import get_product_package
 
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -546,9 +547,10 @@ router.include_router(admin_router)
 
 @router.get("/checkout/{slug}")
 def checkout_page(
-    request: Request,
     slug: str,
+    request: Request,
     db: Session = Depends(get_db),
+    consultation: int | None = Query(default=None),
 ):
     """
     Render checkout page for a sellable product SKU.
@@ -571,11 +573,56 @@ def checkout_page(
     if product is None or price is None:
         raise HTTPException(status_code=404, detail="Product not found")
 
+    package = get_product_package(product.slug)
+
     return render(
         request,
         "checkout.html",
         {
             "product": product,
             "price": price,
+            "consultation": consultation == 1,
+            "package": package,
+        },
+    )
+
+
+@router.get("/products/{family_slug}/buy")
+def product_buy_page(
+    family_slug: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Render product family purchase selection page.
+
+    Business rules:
+    - family_slug identifies a product family, for example SmartBudget.
+    - The page shows only products currently available for sale.
+    - If no products are available for this family, return 404.
+
+    Side effects:
+    - None. Read-only page rendering.
+
+    Invariants / restrictions:
+    - Does not create sales.
+    - Does not start payment processing.
+    """
+
+    repository = ProductsRepository(db)
+    family_products = repository.list_products_by_family_slug(family_slug)
+
+    if not products:
+        raise HTTPException(status_code=404, detail="Product family not found")
+
+    lang = get_lang(request)
+
+    return templates.TemplateResponse(
+        request,
+        "product_buy.html",
+        {
+            "products": family_products,
+            "family_slug": family_slug,
+            "t": lambda key: t(lang, key),
         },
     )

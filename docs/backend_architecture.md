@@ -3,12 +3,14 @@
 When continuing development in a new session:
 
 1. Start by reviewing:
-   - docs/backend_architecture.md
-   - docs/feedback_workflow.md
+
+   * docs/backend_architecture.md
+   * docs/feedback_workflow.md
 
 2. Focus on:
-   - "Sprint checkpoint" section (current state)
-   - "Next sprint priorities" section
+
+   * "Sprint checkpoint" section (current state)
+   * "Next sprint priorities" section
 
 3. Then continue from the first unfinished item
 
@@ -27,75 +29,93 @@ This document describes the structure of the backend and separation of responsib
 The backend is divided into several logical layers:
 
 ### 1. Web layer (`app/web`)
+
 Purpose:
-- Render HTML pages (Jinja templates)
-- Handle browser-based interactions
-- Return `TemplateResponse` or `RedirectResponse`
+
+* Render HTML pages (Jinja templates)
+* Handle browser-based interactions
+* Return `TemplateResponse` or `RedirectResponse`
 
 Examples:
-- `/feedback`
-- `/admin/feedback`
-- `/admin/feedback/{id}/send-email`
-- `/admin/products`
+
+* `/feedback`
+* `/admin/feedback`
+* `/admin/feedback/{id}/send-email`
+* `/admin/products`
 
 ---
 
 ### 2. API layer (`app/api/v1`)
+
 Purpose:
-- Provide JSON endpoints
-- Used by frontend or external clients
-- Return structured data (Pydantic models)
+
+* Provide JSON endpoints
+* Used by frontend or external clients
+* Return structured data (Pydantic models)
 
 Examples:
-- `/v1/check-purchase`
-- `/v1/feedback`
+
+* `/v1/check-purchase`
+* `/v1/feedback`
 
 ---
 
 ### 3. Service layer (`app/services`)
+
 Purpose:
-- Contain business logic
-- Independent from HTTP (no Request/Response)
-- Reusable across Web and API
+
+* Contain business logic
+* Independent from HTTP (no Request/Response)
+* Reusable across Web and API
 
 Examples:
-- `send_feedback_reply`
-- `toggle_feedback_publish`
+
+* `send_feedback_reply`
+* `toggle_feedback_publish`
 
 Rules:
-- Services may raise `HTTPException`
-- Services operate on database models
-- Services should not render templates
+
+* Services may raise `HTTPException`
+* Services operate on database models
+* Services should not render templates
 
 ---
 
 ### 4. Repository layer (`app/repositories`)
+
 Purpose:
-- Encapsulate database access
-- Provide reusable DB queries
+
+* Encapsulate database access
+* Provide reusable DB queries
 
 Examples:
-- `FeedbackAdminRepository`
-- `ProductsRepository`
+
+* `FeedbackAdminRepository`
+* `ProductsRepository`
 
 ---
 
 ### 5. Core layer (`app/core`)
+
 Purpose:
-- Infrastructure
-- Database engine, session
-- Config, logging, i18n
+
+* Infrastructure
+* Database engine, session
+* Config, logging, i18n
 
 ---
 
 ### 6. Dependencies (`app/dependencies`)
+
 Purpose:
-- Dependency Injection (DI)
-- Provide shared dependencies (e.g. DB session)
+
+* Dependency Injection (DI)
+* Provide shared dependencies (e.g. DB session)
 
 Important rule:
-- Use `get_db` from this module everywhere
-- Do not duplicate dependency functions
+
+* Use `get_db` from this module everywhere
+* Do not duplicate dependency functions
 
 ---
 
@@ -113,11 +133,11 @@ API route → Service → Repository → DB
 
 ## Design principles
 
-- Keep routes thin (no business logic)
-- Move logic to services
-- Avoid duplication
-- Use a single DI entry point
-- Keep layers independent
+* Keep routes thin (no business logic)
+* Move logic to services
+* Avoid duplication
+* Use a single DI entry point
+* Keep layers independent
 
 ---
 
@@ -137,19 +157,21 @@ def some_business_action(db: Session, ...):
 ### 2. Use service in route
 
 Web route:
-- call service
-- return `TemplateResponse` or `RedirectResponse`
+
+* call service
+* return `TemplateResponse` or `RedirectResponse`
 
 API route:
-- call service
-- return JSON
+
+* call service
+* return JSON
 
 ---
 
 ### 3. Use repository inside service
 
-- do not access DB directly from routes
-- use repository methods for queries
+* do not access DB directly from routes
+* use repository methods for queries
 
 ---
 
@@ -157,12 +179,13 @@ API route:
 
 Prefer testing services:
 
-- test business logic directly
-- verify DB changes
-- verify exceptions (status_code, detail)
+* test business logic directly
+* verify DB changes
+* verify exceptions (status_code, detail)
 
 Optionally:
-- add route tests for critical endpoints
+
+* add route tests for critical endpoints
 
 ---
 
@@ -170,10 +193,10 @@ Optionally:
 
 Avoid:
 
-- putting business logic in routes
-- duplicating logic across routes
-- creating multiple `get_db` implementations
-- mixing HTML rendering with business rules
+* putting business logic in routes
+* duplicating logic across routes
+* creating multiple `get_db` implementations
+* mixing HTML rendering with business rules
 
 ---
 
@@ -181,9 +204,9 @@ Avoid:
 
 If a route starts to contain:
 
-- multiple `if` conditions
-- validation logic
-- DB updates
+* multiple `if` conditions
+* validation logic
+* DB updates
 
 → move this logic to a service
 
@@ -193,32 +216,41 @@ If a route starts to contain:
 
 ### Completed:
 
-- unified `get_db` usage via `app.dependencies`
-- removed duplicate DB dependency definitions
-- made `feedback_messages.email` nullable
-- added Alembic migration
-- introduced service layer
-- moved all feedback logic to `feedback_service`
-- isolated email sending in `mail_service`
+* unified `get_db` usage via `app.dependencies`
 
-- added full service test coverage:
-  - email sending rules
-  - publish/unpublish
-  - resolve toggle
-  - reply draft
-  - validation edge cases
+* removed duplicate DB dependency definitions
 
-- added route-level tests for critical flows
-- implemented real SMTP sending (Gmail App Password)
+* made `feedback_messages.email` nullable
 
-- ensured:
-  - clean separation of concerns
-  - no real emails in tests (global mocking)
+* added Alembic migration
+
+* introduced service layer
+
+* moved all feedback logic to `feedback_service`
+
+* isolated email sending in `mail_service`
+
+* added full service test coverage:
+
+  * email sending rules
+  * publish/unpublish
+  * resolve toggle
+  * reply draft
+  * validation edge cases
+
+* added route-level tests for critical flows
+
+* implemented real SMTP sending (Gmail App Password)
+
+* ensured:
+
+  * clean separation of concerns
+  * no real emails in tests (global mocking)
 
 ### Architecture decision:
 
-- service tests = business logic
-- route tests = wiring only
+* service tests = business logic
+* route tests = wiring only
 
 ---
 
@@ -226,20 +258,20 @@ If a route starts to contain:
 
 ### Implemented:
 
-- `ProductsRepository`
-- route `/admin/products`
-- route `/admin/products/new` (GET)
-- template `admin_products_list.html`
-- template `admin_product_form.html`
-- basic route test for `/admin/products`
-- list page is styled and acts as central admin UI
+* `ProductsRepository`
+* route `/admin/products`
+* route `/admin/products/new` (GET)
+* template `admin_products_list.html`
+* template `admin_product_form.html`
+* basic route test for `/admin/products`
+* list page is styled and acts as central admin UI
 
 ### Current limitations:
 
-- Edit flow is not implemented
-- Create form is temporary
-- POST create must NOT be finalized yet
-- product model still reflects old pricing logic
+* Edit flow is not implemented
+* Create form is temporary
+* POST create must NOT be finalized yet
+* product model still reflects old pricing logic
 
 ---
 
@@ -247,76 +279,185 @@ If a route starts to contain:
 
 ### Completed:
 
-- added `product_id` to feedback
-- created FK and migration
-- backfilled existing data
-- implemented product-scoped reviews
-- added `/reviews/{slug}`
-- redirect `/reviews → /reviews/smartbudget`
-- updated repository, routes, tests
+* added `product_id` to feedback
+* created FK and migration
+* backfilled existing data
+* implemented product-scoped reviews
+* added `/reviews/{slug}`
+* redirect `/reviews → /reviews/smartbudget`
+* updated repository, routes, tests
 
 ### Architecture decisions:
 
-- reviews are product-scoped
-- use `product_id` (not slug) internally
-- reviews are scoped per product SKU (e.g. SmartBudget RU vs SmartBudget INT are independent)
+* reviews are product-scoped
+* use `product_id` (not slug) internally
+* reviews are scoped per product SKU (e.g. SmartBudget RU vs SmartBudget INT are independent)
 
 ---
 
-## Next sprint priorities (after Sprint 15)
+## Sprint 17: Product family purchase flow
 
-### 1. Purchase flow (product family → SKU → checkout)
+### Completed:
 
-- introduce `family_slug` in `products`
-- group SKUs by product family
-- implement purchase options page:
-  - `/products/{family_slug}/buy`
-- display all available SKUs for selected family:
-  - RU / INT
-  - Standard / Pro
-- link each option to:
-  - `/checkout/{product_slug}`
+* added `family_slug` to products
+* implemented product-family purchase options route:
+
+  * `/products/{family_slug}/buy`
+* linked SmartBudget landing CTA to:
+
+  * `/products/smartbudget/buy`
+* added repository method:
+
+  * `ProductsRepository.list_products_by_family_slug`
+* purchase options page now:
+
+  * loads only products from the selected `family_slug`
+  * shows only products with status `in_sale`
+  * displays active product price from `product_prices`
+  * links selected SKU to `/checkout/{product_slug}`
+* checkout route now accepts optional consultation query flag:
+
+  * `/checkout/{product_slug}?consultation=1`
+* added shared helper:
+
+  * `app/utils/product_utils.py`
+  * `get_product_package(slug)`
+* package display (`RU` / `INT`) is now derived from selected product SKU, not from UI language
+* tests updated and passing:
+
+  * repository coverage for product-family filtering
+  * repository coverage for active price loading
+
+### Architecture decisions:
+
+* `family_slug` groups related SKUs under one product family
+* `slug` still identifies one exact sellable SKU
+* `/products/{family_slug}/buy` is the correct bridge between landing and checkout
+* UI language and product package are separate concepts
+* product package must be derived from selected product identity, not from current site language
+
+### Current limitation:
+
+* consultation can be selected in UI and passed to checkout as a query parameter
+* checkout can display that consultation was selected
+* consultation price is not yet calculated from the database
+* total amount still reflects product price only until service/add-on pricing is implemented
 
 ---
 
-### 2. Merchant of Record integration (Paddle)
+## Next sprint priorities (after Sprint 17)
 
-- create Paddle account
-- configure product in Paddle
-- implement checkout redirect / link
-- define success URL
-- plan webhook handling (no full implementation yet)
+### 1. Services/add-ons model for consultation pricing
 
----
+Implement a dedicated service/add-on model before finalizing checkout totals.
 
-### 3. Sales tracking (admin)
+Decision:
 
-- sales list
-- filtering
-- purchase validation consistency
+* `products` remains only for downloadable product SKUs
+* consultation must not be stored as a product SKU
+* consultation should be stored as a separate service/add-on entity
+* checkout total must be calculated from:
 
----
+  * selected product active price
+  * selected optional service/add-on active price
 
-### 4. Reviews UX improvements
+Planned model:
 
-- show preview on landing
-- optional rating later
+* `services`
 
----
+  * `id`
+  * `code`
+  * `name`
+  * `type`
+  * `status`
+* `service_prices`
 
-### 5. Feedback tightening
+  * `id`
+  * `service_id`
+  * `currency_code`
+  * `amount`
+  * `is_active`
+  * `created_at`
 
-- enforce `product_id`
-- validate `sale_id ↔ product_id`
+Initial service:
 
----
+* `code = consultation_1h`
+* `type = consultation`
+* active add-on price:
 
-### 6. Deployment preparation
+  * EUR price required
+  * RUB price TBD
 
-- connect domain
-- choose hosting (VPS / PaaS)
-- prepare environment variables
-- basic production setup
+Business rules:
+
+* consultation add-on price must be shown before checkout total
+* consultation must never look like a free bonus
+* checkout summary must show:
+
+  * SmartBudget product subtotal
+  * consultation subtotal, if selected
+  * final total amount
+* Calendly booking link must be shown only after successful payment, not before payment
+
+Implementation order:
+
+1. Implement `Service` and `ServicePrice` models + Alembic migration.
+2. Add repository/service method to fetch active consultation add-on price.
+3. Update checkout route to calculate:
+
+   * product amount
+   * consultation amount
+   * total amount
+4. Update checkout UI to display product subtotal, consultation price, and total.
+5. Add tests for checkout with and without consultation.
+
+### 2. Purchase flow UI polish
+
+* add dedicated CSS for `product_buy.html`
+* render product options as clean cards
+* show package (`RU` / `INT`), edition, version, price, and CTA clearly
+* make consultation add-on offer visible but not aggressive
+* ensure mobile layout is clean
+
+### 3. Sales migration to sale_items
+
+* keep `sales` as order header
+* move purchased entities to `sale_items`
+* represent product purchase as `item_type = "product"`
+* represent consultation as `item_type = "service"`
+* enable xfailed service-only verification test
+
+### 4. Merchant of Record integration (Paddle)
+
+* create Paddle account
+* configure product/service pricing in Paddle
+* implement checkout redirect / link
+* define success URL
+* plan webhook handling
+
+### 5. Sales tracking (admin)
+
+* sales list
+* filtering
+* purchase validation consistency
+* show whether sale contains consultation
+
+### 6. Reviews UX improvements
+
+* show preview on landing
+* optional rating later
+
+### 7. Feedback tightening
+
+* enforce `product_id`
+* validate `sale_id ↔ product_id`
+
+### 8. Deployment preparation
+
+* connect domain
+* choose hosting (VPS / PaaS)
+* prepare environment variables
+* basic production setup
 
 ---
 
@@ -324,14 +465,14 @@ If a route starts to contain:
 
 Use string + allowed sets:
 
-- edition: {"Standard", "Pro"}
-- status: {"in_sale", "in_development", "discontinued"}
+* edition: {"Standard", "Pro"}
+* status: {"in_sale", "in_development", "discontinued"}
 
 ### Reason:
 
-- simple
-- no migrations
-- controlled via UI
+* simple
+* no migrations
+* controlled via UI
 
 ---
 
@@ -339,17 +480,17 @@ Use string + allowed sets:
 
 ### Current:
 
-- no auth
-- admin routes hidden from UI
+* no auth
+* admin routes hidden from UI
 
 ### Rule:
 
-- do NOT expose admin links publicly
+* do NOT expose admin links publicly
 
 ### Future:
 
-- add auth
-- separate admin layout or conditional rendering
+* add auth
+* separate admin layout or conditional rendering
 
 ---
 
@@ -360,17 +501,19 @@ Use string + allowed sets:
 Current `products` table represents sellable SKUs.
 
 Examples:
-- smartbudget-ru-standard
-- smartbudget-ru-pro
-- smartbudget-int-standard
-- smartbudget-int-pro
+
+* smartbudget-ru-standard
+* smartbudget-ru-pro
+* smartbudget-int-standard
+* smartbudget-int-pro
 
 For purchase option pages, products must be grouped by product family.
 
 Example flow:
-- landing page: `/products/smartbudget`
-- purchase options page: `/products/smartbudget/buy`
-- checkout page: `/checkout/{product_slug}`
+
+* landing page: `/products/smartbudget`
+* purchase options page: `/products/smartbudget/buy`
+* checkout page: `/checkout/{product_slug}`
 
 Important:
 The purchase options page must NOT show all products from the `products` table.
@@ -378,14 +521,16 @@ It should show only SKUs that belong to the selected product family.
 
 Reason:
 In the future, the site may sell other products, such as:
-- books
-- templates
-- consultations
-- other digital products
+
+* books
+* templates
+* consultations
+* other digital products
 
 Possible implementation options:
-- add `family_slug` to `products`
-- or introduce a separate `product_families` table
+
+* add `family_slug` to `products`
+* or introduce a separate `product_families` table
 
 MVP direction:
 Use `family_slug` on `products` first, because it is simple and enough for grouping SKUs.
@@ -393,14 +538,15 @@ A separate `product_families` table can be introduced later if product-family me
 
 ### Important:
 
-- SmartBudget RU and SmartBudget INT = separate SKUs
-- each has:
-  - its own archive
-  - its own lifecycle
+* SmartBudget RU and SmartBudget INT = separate SKUs
+* each has:
+
+  * its own archive
+  * its own lifecycle
 
 ### Implication:
 
-- product = sellable package, not abstract concept
+* product = sellable package, not abstract concept
 
 ---
 
@@ -408,124 +554,136 @@ A separate `product_families` table can be introduced later if product-family me
 
 Core decision:
 
-- `products` table stores downloadable product SKUs only.
-- A consultation is not a downloadable product SKU.
-- A consultation may be sold in two ways:
-  - as an optional add-on attached to a SmartBudget purchase
-  - as a standalone paid service available only to verified SmartBudget customers
-- Pro editions must stay separate from consultation logic.
+* `products` table stores downloadable product SKUs only.
+* A consultation is not a downloadable product SKU.
+* A consultation may be sold in two ways:
+
+  * as an optional add-on attached to a SmartBudget purchase
+  * as a standalone paid service available only to verified SmartBudget customers
+* Pro editions must stay separate from consultation logic.
 
 Current planned product SKUs:
 
-- SmartBudget RU Standard — 3900 RUB
-- SmartBudget INT Standard — 39 EUR
+* SmartBudget RU Standard — 3900 RUB
+* SmartBudget INT Standard — 39 EUR
 
 Future product SKUs:
 
-- SmartBudget RU Pro
-- SmartBudget INT Pro
+* SmartBudget RU Pro
+* SmartBudget INT Pro
 
 Pro edition concept:
 
-- Pro is a separate future product edition.
-- Pro may include advanced analytics and optional AI features via user-provided API key.
-- Pro must not be modeled as “Standard + consultation”.
+* Pro is a separate future product edition.
+* Pro may include advanced analytics and optional AI features via user-provided API key.
+* Pro must not be modeled as “Standard + consultation”.
 
 Consultation service concept:
 
-- 1:1 consultation is a paid non-downloadable service.
-- Suggested service code:
-  - `consultation_1h`
-- Suggested service type:
-  - `consultation`
-- Suggested starting price:
-  - 79 EUR for standalone consultation
-  - discounted add-on price when purchased together with SmartBudget, e.g. 35 EUR
-  - separate RUB prices TBD
-- Consultation availability is limited by predefined calendar slots.
-- Consultation capacity must be controlled by schedule limits, not by manual negotiation.
-- Consultation booking should be integrated with Calendly or a similar booking provider connected to Google Calendar.
+* 1:1 consultation is a paid non-downloadable service.
+* Suggested service code:
+
+  * `consultation_1h`
+* Suggested service type:
+
+  * `consultation`
+* Suggested starting price:
+
+  * 79 EUR for standalone consultation
+  * discounted add-on price when purchased together with SmartBudget, e.g. 35 EUR
+  * separate RUB prices TBD
+* Consultation availability is limited by predefined calendar slots.
+* Consultation capacity must be controlled by schedule limits, not by manual negotiation.
+* Consultation booking should be integrated with Calendly or a similar booking provider connected to Google Calendar.
 
 Purchase flow logic:
 
 ### 1. Product purchase without consultation
 
-- User selects one product SKU.
-- User pays for the product.
-- After successful payment, user receives access to the downloadable archive.
-- Sales/admin must clearly show that the order contains product only and no consultation add-on.
+* User selects one product SKU.
+* User pays for the product.
+* After successful payment, user receives access to the downloadable archive.
+* Sales/admin must clearly show that the order contains product only and no consultation add-on.
 
 ### 2. Product purchase with consultation add-on
 
-- User selects one product SKU.
-- On the purchase/checkout flow, user may optionally add a 1-hour consultation.
-- Order/payment should support:
-  - required product order item (`product_id`)
-  - optional service/add-on order item for consultation (`service_code = consultation_1h`)
-- After successful payment:
-  - user receives access to the downloadable archive
-  - user receives access to book a consultation slot
-- Admin must be able to see that this sale includes consultation.
-- Sales/admin view should distinguish:
-  - SmartBudget only
-  - SmartBudget + consultation
+* User selects one product SKU.
+* On the purchase/checkout flow, user may optionally add a 1-hour consultation.
+* Order/payment should support:
+
+  * required product order item (`product_id`)
+  * optional service/add-on order item for consultation (`service_code = consultation_1h`)
+* After successful payment:
+
+  * user receives access to the downloadable archive
+  * user receives access to book a consultation slot
+* Admin must be able to see that this sale includes consultation.
+* Sales/admin view should distinguish:
+
+  * SmartBudget only
+  * SmartBudget + consultation
 
 Important rule:
 
-- The consultation booking link must not be publicly visible before payment.
-- The booking link is shown only after successful payment or through a verified purchase flow.
+* The consultation booking link must not be publicly visible before payment.
+* The booking link is shown only after successful payment or through a verified purchase flow.
 
 ### 3. Standalone consultation purchase
 
-- Standalone consultation is a separate paid service flow.
-- Standalone consultation must be available only to verified SmartBudget customers.
-- Verification should reuse the existing email-based purchase check flow.
-- Customer enters/verifies the email used for SmartBudget purchase.
-- If purchase is verified, the customer can continue to standalone consultation purchase.
-- Customer must be able to preview available slots before payment.
-- Customer selects a suitable slot first.
-- Payment is required to confirm the booking.
-- If the nearest available slot is too far away, the customer can abandon the flow before payment.
+* Standalone consultation is a separate paid service flow.
+* Standalone consultation must be available only to verified SmartBudget customers.
+* Verification should reuse the existing email-based purchase check flow.
+* Customer enters/verifies the email used for SmartBudget purchase.
+* If purchase is verified, the customer can continue to standalone consultation purchase.
+* Customer must be able to preview available slots before payment.
+* Customer selects a suitable slot first.
+* Payment is required to confirm the booking.
+* If the nearest available slot is too far away, the customer can abandon the flow before payment.
 
 Recommended MVP implementation:
 
-- Do not build a custom calendar/booking engine in the MVP.
-- Use Calendly or a similar booking provider integrated with Google Calendar.
-- For standalone consultation:
-  - verify SmartBudget purchase by email first
-  - show available slots
-  - let customer select a slot
-  - require payment before confirmation
-- For product add-on consultation:
-  - payment first
-  - booking link only after successful payment
+* Do not build a custom calendar/booking engine in the MVP.
+* Use Calendly or a similar booking provider integrated with Google Calendar.
+* For standalone consultation:
+
+  * verify SmartBudget purchase by email first
+  * show available slots
+  * let customer select a slot
+  * require payment before confirmation
+* For product add-on consultation:
+
+  * payment first
+  * booking link only after successful payment
 
 Admin visibility requirements:
 
-- Admin sales table must show whether an order includes consultation.
-- Admin should be able to filter or visually identify orders with consultation.
-- Future admin consultation view should show:
-  - customer email
-  - related sale/order
-  - product SKU, if consultation was purchased as add-on
-  - consultation type/code
-  - booking status
-  - scheduled date/time, if available from booking provider
-  - payment status
+* Admin sales table must show whether an order includes consultation.
+* Admin should be able to filter or visually identify orders with consultation.
+* Future admin consultation view should show:
+
+  * customer email
+  * related sale/order
+  * product SKU, if consultation was purchased as add-on
+  * consultation type/code
+  * booking status
+  * scheduled date/time, if available from booking provider
+  * payment status
 
 Architecture principle:
 
-- Product = downloadable file/archive.
-- Service/add-on = paid non-downloadable service.
-- Do not create duplicated product SKUs like:
-  - “SmartBudget INT Standard + Consultation”
-  - “SmartBudget RU Standard + Consultation”
-- Use orders/order items instead of SKU duplication.
-- Sales should represent the whole transaction.
-- Order items should represent what was purchased:
-  - product item
-  - optional service/add-on item
-- This keeps future Pro editions clean and avoids product catalog explosion.
+* Product = downloadable file/archive.
+* Service/add-on = paid non-downloadable service.
+* Do not create duplicated product SKUs like:
+
+  * “SmartBudget INT Standard + Consultation”
+  * “SmartBudget RU Standard + Consultation”
+* Use orders/order items instead of SKU duplication.
+* Sales should represent the whole transaction.
+* Order items should represent what was purchased:
+
+  * product item
+  * optional service/add-on item
+* This keeps future Pro editions clean and avoids product catalog explosion.
 
 ---
 
@@ -533,50 +691,52 @@ Architecture principle:
 
 ### Proposed MVP fields for `product_prices`
 
-- `id`
-- `product_id`
-- `currency_code`
-- `amount`
-- `is_active`
-- `created_at`
+* `id`
+* `product_id`
+* `currency_code`
+* `amount`
+* `is_active`
+* `created_at`
 
 ### MVP rules
 
-- one product SKU may have multiple price records over time
-- only one active price per currency for a given product
-- initial launch expectation:
-  - `SmartBudget RU` → one active `RUB` price
-  - `SmartBudget INT` → one active `EUR` price
-- future extension:
-  - `USD` can be added as an additional currency without changing `products`
+* one product SKU may have multiple price records over time
+* only one active price per currency for a given product
+* initial launch expectation:
+
+  * `SmartBudget RU` → one active `RUB` price
+  * `SmartBudget INT` → one active `EUR` price
+* future extension:
+
+  * `USD` can be added as an additional currency without changing `products`
 
 ### Problem:
 
-- price without currency is invalid
+* price without currency is invalid
 
 ### Decision:
 
-- pricing must be separate from product
-- no FX conversion inside app
+* pricing must be separate from product
+* no FX conversion inside app
 
 ### Target:
 
-- products → identity
-- product_prices → pricing
+* products → identity
+* product_prices → pricing
 
 ### Rules:
 
-- one active price per product (MVP)
-- allow multiple currencies later
+* one active price per product (MVP)
+* allow multiple currencies later
 
 ### Initial:
 
-- RU → RUB
-- INT → EUR
+* RU → RUB
+* INT → EUR
 
 ### Future:
 
-- add USD without redesign
+* add USD without redesign
 
 ---
 
@@ -587,176 +747,208 @@ Architecture principle:
 SmartBudget uses a single checkout page with multiple explicit payment options.
 
 Route:
-- /checkout/{product_slug}
+
+* /checkout/{product_slug}
 
 Payment options (MVP):
-- Russian payments (SBP / local methods)
-- International payments (Paddle)
-- (optional) crypto
+
+* Russian payments (SBP / local methods)
+* International payments (Paddle)
+* (optional) crypto
 
 Key rule:
 Do NOT auto-detect user country.
 User manually selects the working payment method.
 
 Reason:
-- avoids incorrect routing (VPN, relocations)
-- simplifies debugging
-- supports both RU and INT audiences
+
+* avoids incorrect routing (VPN, relocations)
+* simplifies debugging
+* supports both RU and INT audiences
 
 Design:
-- order summary at the top
-- vertical list of large payment buttons
-- mobile-first layout
+
+* order summary at the top
+* vertical list of large payment buttons
+* mobile-first layout
 
 ### Checkout UI checkpoint
 
 Implemented:
-- public route `/checkout/{product_slug}`
-- checkout template with i18n keys
-- dedicated `checkout.css`
-- product summary card:
-  - product
-  - package
-  - edition
-  - total
-- neutral payment method selection:
-  - SBP
-  - Russian card / YooMoney / SberPay / T-Pay
-  - international card
-  - crypto
-- no payment provider integration yet
+
+* public route `/checkout/{product_slug}`
+* checkout template with i18n keys
+* dedicated `checkout.css`
+* product summary card:
+
+  * product
+  * package
+  * edition
+  * total
+* neutral payment method selection:
+
+  * SBP
+  * Russian card / YooMoney / SberPay / T-Pay
+  * international card
+  * crypto
+* no payment provider integration yet
 
 Decision:
-- Paddle integration should be handled in a separate sprint after provider setup is ready.
-- Current checkout page remains provider-agnostic and uses placeholder links.
+
+* Paddle integration should be handled in a separate sprint after provider setup is ready.
+* Current checkout page remains provider-agnostic and uses placeholder links.
 
 ### Direction:
 
-- use Merchant of Record
+* use Merchant of Record
 
 ### Why:
 
-- reduce complexity:
-  - payments
-  - taxes
-  - compliance
+* reduce complexity:
+
+  * payments
+  * taxes
+  * compliance
 
 ### Candidates:
 
-- Paddle
-- Lemon Squeezy
-- Stripe
+* Paddle
+* Lemon Squeezy
+* Stripe
 
 ### Rule:
 
-- keep internal model provider-agnostic
-- do not couple DB to payment provider
+* keep internal model provider-agnostic
+* do not couple DB to payment provider
 
 ### Currency design decision (MVP)
 
-- currency is stored as string (`currency_code`)
-- no separate `currencies` table in MVP
-- avoids unnecessary joins and complexity
+* currency is stored as string (`currency_code`)
+* no separate `currencies` table in MVP
+* avoids unnecessary joins and complexity
 
 Examples:
-- "RUB"
-- "EUR"
+
+* "RUB"
+* "EUR"
 
 Future:
-- introduce `currencies` table only if:
-  - formatting logic is needed
-  - FX or localization is introduced
+
+* introduce `currencies` table only if:
+
+  * formatting logic is needed
+  * FX or localization is introduced
 
 ### Product identity (slug)
 
-- `slug` must uniquely identify a sellable product (SKU)
-- do not reuse the same slug for multiple variants
+* `slug` must uniquely identify a sellable product (SKU)
+* do not reuse the same slug for multiple variants
 
 Examples:
-- smartbudget-ru
-- smartbudget-int
+
+* smartbudget-ru
+* smartbudget-int
 
 Reason:
-- routing (/products/{slug})
-- reviews (/reviews/{slug})
-- clear separation between product variants
+
+* routing (/products/{slug})
+* reviews (/reviews/{slug})
+* clear separation between product variants
 
 ### Product deliverable (MVP)
 
-- each product includes its own downloadable archive
-- archive contains:
-  - Excel file (SmartBudget)
-  - PDF walkthrough
+* each product includes its own downloadable archive
 
-- archive is stored as a single file per product
-- no separate file entities in MVP
+* archive contains:
+
+  * Excel file (SmartBudget)
+  * PDF walkthrough
+
+* archive is stored as a single file per product
+
+* no separate file entities in MVP
 
 Reason:
-- simplifies implementation
-- aligns with SKU-based product model
-- avoids premature file versioning complexity
+
+* simplifies implementation
+* aligns with SKU-based product model
+* avoids premature file versioning complexity
 
 Future:
-- allow multiple files and versioning (separate table)
+
+* allow multiple files and versioning (separate table)
 
 ## Sprint 14: Product pricing redesign (SKU + product_prices)
 
 ### Completed:
 
-- removed `price` field from `products`
-- introduced `product_prices` table:
-  - `product_id`
-  - `currency_code`
-  - `amount`
-  - `is_active`
-  - `created_at`
-- implemented data migration:
-  - backfilled prices from `products.price`
-  - preserved all existing price data
+* removed `price` field from `products`
 
-- introduced service layer logic:
-  - `set_product_price`
-  - deactivates previous active price
-  - creates new active price
-  - validates:
-    - currency (RUB/EUR)
-    - amount > 0
-    - product existence
+* introduced `product_prices` table:
 
-- added DB-level constraint:
-  - partial unique index:
-    - one active price per (product_id, currency_code)
+  * `product_id`
+  * `currency_code`
+  * `amount`
+  * `is_active`
+  * `created_at`
 
-- updated repository:
-  - replaced direct `price` usage with join to `product_prices`
-  - active price resolved in SQL (not in template)
+* implemented data migration:
 
-- updated admin UI:
-  - displays active price (amount + currency)
-  - added `slug` column (SKU visibility)
+  * backfilled prices from `products.price`
+  * preserved all existing price data
 
-- updated tests:
-  - service tests for pricing logic:
-    - create first price
-    - replace active price
-    - reject invalid currency
-  - updated admin route test to use new pricing model
+* introduced service layer logic:
+
+  * `set_product_price`
+  * deactivates previous active price
+  * creates new active price
+  * validates:
+
+    * currency (RUB/EUR)
+    * amount > 0
+    * product existence
+
+* added DB-level constraint:
+
+  * partial unique index:
+
+    * one active price per (product_id, currency_code)
+
+* updated repository:
+
+  * replaced direct `price` usage with join to `product_prices`
+  * active price resolved in SQL (not in template)
+
+* updated admin UI:
+
+  * displays active price (amount + currency)
+  * added `slug` column (SKU visibility)
+
+* updated tests:
+
+  * service tests for pricing logic:
+
+    * create first price
+    * replace active price
+    * reject invalid currency
+  * updated admin route test to use new pricing model
 
 ### Architecture decisions:
 
-- product = sellable SKU (not abstract product)
-- pricing is separated from product identity
-- pricing is append-only (history preserved)
-- business rules enforced in service layer
-- critical invariants enforced at DB level (partial index)
+* product = sellable SKU (not abstract product)
+* pricing is separated from product identity
+* pricing is append-only (history preserved)
+* business rules enforced in service layer
+* critical invariants enforced at DB level (partial index)
 
 ### Result:
 
-- flexible pricing model
-- supports:
-  - multiple currencies
-  - price history
-  - future USD extension without schema change
+* flexible pricing model
+* supports:
+
+  * multiple currencies
+  * price history
+  * future USD extension without schema change
 
 ## Sprint 15: Admin product management + admin auth
 
@@ -764,66 +956,72 @@ Future:
 
 #### Admin authentication
 
-- implemented admin login (`/admin/login`)
-- implemented logout (`/admin/logout`)
-- introduced cookie-based auth (`admin_token`)
-- moved auth logic to `app.dependencies.require_admin`
-- applied protection via `admin_router` (router-level dependency)
-- removed query-based token access (URL no longer exposes secrets)
+* implemented admin login (`/admin/login`)
+* implemented logout (`/admin/logout`)
+* introduced cookie-based auth (`admin_token`)
+* moved auth logic to `app.dependencies.require_admin`
+* applied protection via `admin_router` (router-level dependency)
+* removed query-based token access (URL no longer exposes secrets)
 
 #### Admin dashboard
 
-- added `/admin` as entry point
-- created `admin_dashboard.html`
-- added navigation:
-  - Products
-  - Feedback
-- unified UI with existing admin styles
+* added `/admin` as entry point
+* created `admin_dashboard.html`
+* added navigation:
+
+  * Products
+  * Feedback
+* unified UI with existing admin styles
 
 #### Admin products (full flow)
 
-- implemented create product:
-  - Product + ProductPrice (separated)
-- implemented edit product:
-  - updates Product fields
-  - replaces active ProductPrice if changed
-- restored `/admin/products/new` (GET)
-- ensured:
-  - one active price per currency
-  - no price stored in Product model
+* implemented create product:
+
+  * Product + ProductPrice (separated)
+* implemented edit product:
+
+  * updates Product fields
+  * replaces active ProductPrice if changed
+* restored `/admin/products/new` (GET)
+* ensured:
+
+  * one active price per currency
+  * no price stored in Product model
 
 #### UI improvements
 
-- styled:
-  - product form
-  - dashboard
-  - login page
-- introduced reusable admin form layout (`admin_products.css`)
+* styled:
+
+  * product form
+  * dashboard
+  * login page
+* introduced reusable admin form layout (`admin_products.css`)
 
 #### Test updates
 
-- migrated all tests to new pricing model:
-  - removed `price` from Product
-  - added `set_product_price`
-- updated product status values (`in_sale` instead of `active`)
-- added required `archive_path` in tests
-- introduced helper `auth_client` for admin routes
-- fixed all admin route tests (403 → authorized access)
-- full test suite passing
+* migrated all tests to new pricing model:
+
+  * removed `price` from Product
+  * added `set_product_price`
+* updated product status values (`in_sale` instead of `active`)
+* added required `archive_path` in tests
+* introduced helper `auth_client` for admin routes
+* fixed all admin route tests (403 → authorized access)
+* full test suite passing
 
 ### Architecture decisions:
 
-- admin auth = simple cookie-based (no JWT)
-- admin protection applied at router level (not per route)
-- product creation MUST include initial price
-- tests must always reflect real DB constraints
+* admin auth = simple cookie-based (no JWT)
+* admin protection applied at router level (not per route)
+* product creation MUST include initial price
+* tests must always reflect real DB constraints
 
 ### Result:
 
-- working admin panel (auth + navigation)
-- correct product + pricing model
-- stable test suite
-- clean base for next steps (payments, sales, reviews UX)
+* working admin panel (auth + navigation)
+* correct product + pricing model
+* stable test suite
+* clean base for next steps (payments, sales, reviews UX)
 
 ---
 
@@ -832,102 +1030,118 @@ Future:
 ### Migration from current sales model
 
 Current state:
-- `sales` already exists
-- current `Sale` model stores `product_id` directly
-- current purchase verification joins `Sale.product_id → Product.id`
+
+* `sales` already exists
+* current `Sale` model stores `product_id` directly
+* current purchase verification joins `Sale.product_id → Product.id`
 
 Target state:
-- keep `sales` as order header
-- move purchased entities to `sale_items`
-- product purchase becomes a `sale_items` row with `item_type = "product"` and `product_id`
-- consultation becomes a `sale_items` row with `item_type = "service"` and `service_code`
-- after migration, purchase verification must check paid sales with at least one product item
+
+* keep `sales` as order header
+* move purchased entities to `sale_items`
+* product purchase becomes a `sale_items` row with `item_type = "product"` and `product_id`
+* consultation becomes a `sale_items` row with `item_type = "service"` and `service_id`
+* after migration, purchase verification must check paid sales with at least one product item
 
 ### Core idea
 
-- One purchase = one sale (order)
-- Sale may contain multiple items
+* One purchase = one sale (order)
+* Sale may contain multiple items
 
 ### Order structure
 
 Sale:
-- id
-- email
-- created_at
-- total_amount
-- currency
+
+* id
+* email
+* created_at
+* total_amount
+* currency
 
 Order items:
-- id
-- sale_id
-- item_type: {"product", "service"}
-- product_id (nullable)
-- service_code (nullable)
-- amount
+
+* id
+* sale_id
+* item_type: {"product", "service"}
+* product_id (nullable)
+* service_id (nullable)
+* amount
+* currency_code
 
 ### Examples
 
 #### 1. Product only
 
 Sale:
-- total = 39 EUR
+
+* total = 39 EUR
 
 Items:
-- product (smartbudget-int-standard)
+
+* product (smartbudget-int-standard)
 
 #### 2. Product + consultation
 
 Sale:
-- total = 74 EUR
+
+* total = 74 EUR
 
 Items:
-- product (smartbudget-int-standard)
-- service (consultation_1h)
+
+* product (smartbudget-int-standard)
+* service (consultation_1h)
 
 #### 3. Standalone consultation
 
 Sale:
-- total = 79 EUR
+
+* total = 79 EUR
 
 Items:
-- service (consultation_1h)
+
+* service (consultation_1h)
 
 ### Important rules
 
-- Do NOT encode consultation in product
-- Do NOT create separate SKUs for bundles
-- Always use order items
+* Do NOT encode consultation in product
+* Do NOT create separate SKUs for bundles
+* Always use order items
+* Use `service_id`, not free-text `service_code`, in `sale_items` once the `services` table exists
 
 ### Known limitation (MVP)
 
-- Current schema cannot represent service-only purchases
-- Any sale is treated as product purchase due to `Sale.product_id`
-- `/v1/check-purchase` therefore always returns `verified = True` for any paid sale
+* Current schema cannot represent service-only purchases
+* Any sale is treated as product purchase due to `Sale.product_id`
+* `/v1/check-purchase` therefore always returns `verified = True` for any paid sale
 
 ### Protected future behavior
 
-- There is an xfailed test:
-  - `test_check_purchase_not_verified_for_service_only`
-- This test defines the correct future behavior:
-  - service-only purchase → `verified = False`
-- After introducing `sale_items`, this test must be enabled and must pass
+* There is an xfailed test:
 
+  * `test_check_purchase_not_verified_for_service_only`
+* This test defines the correct future behavior:
+
+  * service-only purchase → `verified = False`
+* After introducing `sale_items`, this test must be enabled and must pass
 
 ## Purchase verification rules
 
 ### Current behavior (MVP)
 
-- purchase verification is based on `sales`
-- any paid sale is treated as a valid product purchase
-- `/v1/check-purchase` returns `verified = True` if any paid sale exists
+* purchase verification is based on `sales`
+* any paid sale is treated as a valid product purchase
+* `/v1/check-purchase` returns `verified = True` if any paid sale exists
 
 ### Future behavior
 
-- purchase verification must be based on `sale_items`
-- only items with `item_type = "product"` grant verified status
-- service-only purchases must NOT grant verified status
+* purchase verification must be based on `sale_items`
+* only items with `item_type = "product"` grant verified status
+* service-only purchases must NOT grant verified status
 
 ### Test coverage
 
-- `test_check_purchase_returns_product_item_type` → validates current + future API contract
-- `test_check_purchase_not_verified_for_service_only` → xfailed test defining correct future behavior
+* `test_check_purchase_returns_product_item_type` → validates current + future API contract
+* `test_check_purchase_not_verified_for_service_only` → xfailed test defining correct future behavior
+
+```
+```

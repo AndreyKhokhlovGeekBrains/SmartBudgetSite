@@ -19,21 +19,20 @@
 
             <div class="checkout-row">
                 <span>{{ t("checkout.package") }}</span>
-                <strong>
-                    {% if "-ru-" in product.slug %}
-                        RU
-                    {% elif "-int-" in product.slug %}
-                        INT
-                    {% else %}
-                        —
-                    {% endif %}
-                </strong>
+                <strong>{{ package }}</strong>
             </div>
 
             <div class="checkout-row">
                 <span>{{ t("checkout.edition") }}</span>
                 <strong>{{ product.edition }}</strong>
             </div>
+
+            {% if consultation %}
+                <div class="checkout-row">
+                    <span>{{ t("checkout.consultation") }}</span>
+                    <strong>{{ t("checkout.included") }}</strong>
+                </div>
+            {% endif %}
 
             <div class="checkout-divider"></div>
 

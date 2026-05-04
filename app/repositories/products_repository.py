@@ -65,3 +65,37 @@ class ProductsRepository:
 
         product, price = result
         return product, price
+
+    def list_products_by_family_slug(self, family_slug: str):
+        """
+        Fetch products available for purchase by product family with active prices.
+
+        Business rules:
+        - family_slug groups related product SKUs, for example SmartBudget RU/INT variants.
+        - Only products with status 'in_sale' are shown on the buy selection page.
+        - Only active prices are returned.
+
+        Side effects:
+        - None (read-only query).
+
+        Invariants / restrictions:
+        - Does not include discontinued or in-development products.
+        - Does not create sales or payment records.
+        """
+
+        result = (
+            self.db.query(Product, ProductPrice)
+            .outerjoin(
+                ProductPrice,
+                and_(
+                    ProductPrice.product_id == Product.id,
+                    ProductPrice.is_active.is_(True),
+                ),
+            )
+            .filter(Product.family_slug == family_slug)
+            .filter(Product.status == "in_sale")
+            .order_by(Product.name.asc(), Product.edition.asc(), Product.version.asc())
+            .all()
+        )
+
+        return result
