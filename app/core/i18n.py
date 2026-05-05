@@ -226,6 +226,7 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "checkout.package": "Package",
         "checkout.consultation": "Personal consultation",
         "checkout.included": "Added",
+        "checkout.price_product": "Product price",
 
         "product_buy_title": "Select your SmartBudget version",
         "product_buy_subtitle": "Compare available options and continue to checkout.",
@@ -234,6 +235,10 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "product_buy_price_not_configured": "Price is not configured",
         "product_buy_cta": "Continue to checkout",
         "product_buy_add_consultation": "Add a personal SmartBudget setup consultation",
+
+        "product.package_ru_hint": "Russian version of the product. Payments in RUB with local payment methods.",
+        "product.package_int_hint": "English version of the product. Payments in EUR with international cards.",
+        "product.recommended": "Recommended",
 
     },
     "ru": {
@@ -453,6 +458,7 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "checkout.package": "Пакет",
         "checkout.consultation": "Личная консультация",
         "checkout.included": "Добавлена",
+        "checkout.price_product": "Стоимость продукта",
 
         "product_buy_title": "Выберите версию SmartBudget",
         "product_buy_subtitle": "Сравните доступные варианты и перейдите к оплате подходящей версии.",
@@ -461,6 +467,10 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "product_buy_price_not_configured": "Цена не настроена",
         "product_buy_cta": "Перейти к оплате",
         "product_buy_add_consultation": "Добавить личную консультацию по настройке SmartBudget",
+
+        "product.package_ru_hint": "Версия на русском языке. Оплата в рублях и локальные платёжные методы.",
+        "product.package_int_hint": "Версия на английском языке. Оплата в евро и международные карты.",
+        "product.recommended": "Рекомендуем",
 
     },
 }

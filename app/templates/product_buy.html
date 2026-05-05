@@ -8,25 +8,36 @@
 
     <div class="products-list">
         {% for product, price in products %}
-            <div class="product-card">
+            <div class="product-card {% if '-int-' in product.slug %}recommended{% endif %}">
                 <h2>{{ product.name }}</h2>
 
+                {% if '-int-' in product.slug %}
+                    <div class="product-badge">
+                        {{ t("product.recommended") }}
+                    </div>
+                {% endif %}
+
                 <p>
-                    {{ t("product_buy_edition") }}: {{ product.edition }}<br>
-                    {{ t("product_buy_file_version") }}: {{ product.version }}<br>
                     {{ t("checkout.package") }}:
                     {% if "-ru-" in product.slug %}
-                        <strong>RU</strong>
+                        <strong>RU</strong><br>
+                        <span class="package-hint">{{ t("product.package_ru_hint") }}</span>
                     {% elif "-int-" in product.slug %}
-                        <strong>INT</strong>
+                        <strong>INT</strong><br>
+                        <span class="package-hint">{{ t("product.package_int_hint") }}</span>
                     {% else %}
                         <strong>—</strong>
                     {% endif %}
                 </p>
 
+                <p>
+                    {{ t("product_buy_edition") }}: {{ product.edition }}<br>
+                    {{ t("product_buy_file_version") }}: {{ product.version }}
+                </p>
+
                 {% if price %}
                     <p>
-                        <strong>{{ price.amount }} {{ price.currency_code }}</strong>
+                        <strong>{{ price.amount | money(lang) }} {{ price.currency_code }}</strong>
                     </p>
                 {% else %}
                     <p>

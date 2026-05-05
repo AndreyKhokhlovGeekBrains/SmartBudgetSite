@@ -8,6 +8,7 @@ from app.core.config import settings
 from app.dependencies import get_db, require_admin
 from app.repositories.feedback_admin_repository import FeedbackAdminRepository
 from app.repositories.products_repository import ProductsRepository
+from app.repositories.service_addon_repository import ServiceAddonRepository
 from app.services.feedback_service import (
     send_feedback_reply,
     toggle_feedback_publish,
@@ -55,6 +56,34 @@ def render(request: Request, template_name: str, context: dict):
         set_lang_cookie(response, lang)
 
     return response
+
+
+def format_money(value, lang: str = "ru"):
+    """
+    Format numeric value according to UI language.
+
+    Business rules:
+    - RU uses spaces for thousands and comma as decimal separator.
+    - EN uses comma for thousands and dot as decimal separator.
+
+    Side effects:
+    - None. Formatting only.
+
+    Invariants/restrictions:
+    - Always returns value with 2 decimal places.
+    """
+
+    amount = Decimal(value)
+
+    formatted = f"{amount:,.2f}"
+
+    if lang == "ru":
+        return formatted.replace(",", " ").replace(".", ",")
+
+    return formatted
+
+
+templates.env.filters["money"] = format_money
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -575,14 +604,38 @@ def checkout_page(
 
     package = get_product_package(product.slug)
 
+    addon = None
+
+    if consultation == 1:
+        addon = ServiceAddonRepository.get_active_addon(
+            db,
+            family_slug=product.family_slug,
+            package_code=package,
+            service_type="consultation",
+        )
+
+    total_amount = price.amount
+
+    if addon is not None:
+        total_amount += addon.amount
+
+    if addon is not None and addon.currency_code != price.currency_code:
+        raise HTTPException(
+            status_code=500,
+            detail="Currency mismatch between product and addon",
+        )
+
     return render(
         request,
         "checkout.html",
         {
             "product": product,
+            "addon": addon,
             "price": price,
+            "total_amount": total_amount,
             "consultation": consultation == 1,
             "package": package,
+            "lang": get_lang(request),
         },
     )
 

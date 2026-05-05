@@ -27,10 +27,15 @@
                 <strong>{{ product.edition }}</strong>
             </div>
 
-            {% if consultation %}
+            <div class="checkout-row">
+                <span>{{ t("checkout.price_product") }}</span>
+                <strong>{{ price.amount | money(lang) }} {{ price.currency_code }}</strong>
+            </div>
+
+            {% if addon %}
                 <div class="checkout-row">
                     <span>{{ t("checkout.consultation") }}</span>
-                    <strong>{{ t("checkout.included") }}</strong>
+                    <strong>{{ addon.amount | money(lang) }} {{ addon.currency_code }}</strong>
                 </div>
             {% endif %}
 
@@ -38,7 +43,7 @@
 
             <div class="checkout-total">
                 <span>{{ t("checkout.total") }}</span>
-                <strong>{{ price.amount }} {{ price.currency_code }}</strong>
+                <strong>{{ total_amount | money(lang) }} {{ price.currency_code }}</strong>
             </div>
         </div>
 
