@@ -91,3 +91,53 @@
 .payment-button-primary:hover {
     background: linear-gradient(135deg, #1e4ed8, #1a40c4);
 }
+
+@media (max-width: 480px) {
+    .checkout-page {
+        padding: 32px 14px;
+    }
+
+    .checkout-card {
+        padding: 22px;
+    }
+
+    .payment-button {
+        padding: 13px 12px;
+        line-height: 1.35;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+}
+
+@media (max-width: 400px) {
+.checkout-row,
+    .checkout-total {
+        display: block;
+    }
+
+    .checkout-row span:first-child,
+    .checkout-total span:first-child {
+        display: block;
+        margin-bottom: 4px;
+        color: #4b5563;
+    }
+
+    .checkout-row strong,
+    .checkout-total strong {
+        display: block;
+        text-align: left;
+    }
+
+    .checkout-summary {
+        text-align: center;
+    }
+
+    .checkout-row strong,
+    .checkout-total strong {
+    text-align: center;
+    }
+
+    .checkout-title {
+        text-align: center;
+    }
+}

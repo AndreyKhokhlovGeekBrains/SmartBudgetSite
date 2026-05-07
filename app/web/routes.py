@@ -676,6 +676,7 @@ def product_buy_page(
         {
             "products": family_products,
             "family_slug": family_slug,
+            "lang": lang,
             "t": lambda key: t(lang, key),
         },
     )

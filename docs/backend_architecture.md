@@ -1,3 +1,13 @@
+# Paste current backend_architecture.md here
+
+After you paste the current content, I will:
+
+* update Sprint 19 status
+* add completed UI/CSS improvements
+* refresh next priorities
+* prepare git commit summary
+
+`````
 Paste your current .md file here and we will update it for the next sprint.
 
 ````
@@ -399,28 +409,60 @@ If a route starts to contain:
 
 ---
 
-## Next sprint priorities (after Sprint 18)
+## Sprint 19: Purchase flow + checkout UI/CSS polish
 
-### 1. Purchase flow UI polish (CSS focus)
+### Completed:
 
-* add dedicated CSS for `product_buy.html`
-* convert product list into clean card layout
-* visually distinguish RU vs INT
+* created dedicated `product_buy.css`
+* redesigned `/products/{family_slug}/buy` into responsive product cards
+* implemented responsive 2-column → 1-column layout
+* improved:
 
-  * badge
-  * subtle color difference
-* highlight recommended option (INT)
-* improve spacing, typography, hierarchy
-* improve checkbox UX for consultation
+  * spacing
+  * typography
+  * CTA hierarchy
+  * card structure
+* replaced inline JavaScript in templates with structured event-based logic
+* added consultation checkbox UX improvements
+* implemented localization-aware recommended product logic:
 
-### 2. Checkout UI polish
+  * RU interface → RU package recommended
+  * EN interface → INT package recommended
+* fixed language propagation issue on `product_buy`
 
-* improve summary block styling
-* emphasize total amount
-* improve visual hierarchy of product vs add-on
-* align with premium SaaS checkout patterns
+  * added `lang` to template context
+* updated language switch UX:
 
-### 3. Sales migration to sale_items
+  * navigation now displays current language instead of target language
+* improved mobile/tablet responsiveness for:
+
+  * product cards
+  * hero typography
+  * CTA buttons
+  * checkout summary block
+  * payment buttons
+* added adaptive breakpoints for:
+
+  * tablets
+  * large phones
+  * compact phones
+* stabilized product card height alignment for 2-column layouts
+* improved ultra-mobile behavior (~320px width)
+* aligned checkout visual style with product-buy page
+
+### Architecture / UX decisions:
+
+* avoid inline JavaScript in templates where possible
+* UI language and recommended package are related UX concepts
+* mobile-first responsive polish is required even for MVP purchase flow
+* compact/mobile layouts should prefer readability over strict two-column preservation
+* checkout and product-buy pages should share a unified visual style
+
+---
+
+## Next sprint priorities (after Sprint 19)
+
+### 1. Sales migration to sale_items
 
 * keep `sales` as order header
 * introduce `sale_items`
@@ -430,7 +472,7 @@ If a route starts to contain:
   * service (consultation)
 * enable xfailed service-only verification test
 
-### 4. Merchant of Record integration (Paddle)
+### 2. Merchant of Record integration (Paddle)
 
 * create Paddle account
 * configure products and prices
@@ -438,23 +480,23 @@ If a route starts to contain:
 * define success URL
 * plan webhook handling
 
-### 5. Sales tracking (admin)
+### 3. Sales tracking (admin)
 
 * sales list
 * filtering
 * show consultation presence
 
-### 6. Reviews UX improvements
+### 4. Reviews UX improvements
 
 * show preview on landing
 * optional rating later
 
-### 7. Feedback tightening
+### 5. Feedback tightening
 
 * enforce `product_id`
 * validate `sale_id ↔ product_id`
 
-### 8. Deployment preparation
+### 6. Deployment preparation
 
 * connect domain
 * choose hosting (VPS / PaaS)
@@ -553,3 +595,5 @@ A separate `product_families` table can be introduced later if product-family me
 ---
 
 ````
+
+`````

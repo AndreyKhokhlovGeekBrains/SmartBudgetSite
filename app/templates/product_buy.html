@@ -1,5 +1,9 @@
 {% extends "base.html" %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/product_buy.css') }}">
+{% endblock %}
+
 {% block content %}
 
 <div class="container">
@@ -8,27 +12,30 @@
 
     <div class="products-list">
         {% for product, price in products %}
-            <div class="product-card {% if '-int-' in product.slug %}recommended{% endif %}">
+            {% set is_recommended = (lang == "ru" and "-ru-" in product.slug) or (lang == "en" and "-int-" in product.slug) %}
+            <div class="product-card {% if is_recommended %}recommended{% endif %}">
                 <h2>{{ product.name }}</h2>
 
-                {% if '-int-' in product.slug %}
+                {% if is_recommended %}
                     <div class="product-badge">
                         {{ t("product.recommended") }}
                     </div>
                 {% endif %}
 
-                <p>
-                    {{ t("checkout.package") }}:
-                    {% if "-ru-" in product.slug %}
-                        <strong>RU</strong><br>
-                        <span class="package-hint">{{ t("product.package_ru_hint") }}</span>
-                    {% elif "-int-" in product.slug %}
-                        <strong>INT</strong><br>
-                        <span class="package-hint">{{ t("product.package_int_hint") }}</span>
-                    {% else %}
-                        <strong>—</strong>
-                    {% endif %}
-                </p>
+                <div class="product-package">
+                    <p>
+                        {{ t("checkout.package") }}:
+                        {% if "-ru-" in product.slug %}
+                            <strong>RU</strong><br>
+                            <span class="package-hint">{{ t("product.package_ru_hint") }}</span>
+                        {% elif "-int-" in product.slug %}
+                            <strong>INT</strong><br>
+                            <span class="package-hint">{{ t("product.package_int_hint") }}</span>
+                        {% else %}
+                            <strong>—</strong>
+                        {% endif %}
+                    </p>
+                </div>
 
                 <p>
                     {{ t("product_buy_edition") }}: {{ product.edition }}<br>
@@ -46,18 +53,16 @@
                 {% endif %}
 
                 <div class="product-addon">
-                    <label>
+                    <label class="product-addon__label">
                         <input
+                            class="product-addon__checkbox"
                             type="checkbox"
                             name="consultation"
                             value="1"
-                            onchange="
-                                const link = this.closest('.product-card').querySelector('.checkout-link');
-                                const baseUrl = link.dataset.baseUrl;
-                                link.href = this.checked ? baseUrl + '?consultation=1' : baseUrl;
-                            "
                         >
-                        {{ t("product_buy_add_consultation") }}
+                        <span class="product-addon__text">
+                            {{ t("product_buy_add_consultation") }}
+                        </span>
                     </label>
                 </div>
 
@@ -72,5 +77,24 @@
         {% endfor %}
     </div>
 </div>
+
+<script>
+    document.querySelectorAll(".product-card").forEach((card) => {
+        const checkbox = card.querySelector(".product-addon__checkbox");
+        const checkoutLink = card.querySelector(".checkout-link");
+
+        if (!checkbox || !checkoutLink) {
+            return;
+        }
+
+        const baseUrl = checkoutLink.dataset.baseUrl;
+
+        checkbox.addEventListener("change", () => {
+            checkoutLink.href = checkbox.checked
+                ? `${baseUrl}?consultation=1`
+                : baseUrl;
+        });
+    });
+</script>
 
 {% endblock %}
