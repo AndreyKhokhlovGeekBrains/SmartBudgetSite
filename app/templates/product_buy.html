@@ -11,7 +11,10 @@
     <p>{{ t("product_buy_subtitle") }}</p>
 
     <div class="products-list">
-        {% for product, price in products %}
+        {% for option in product_options %}
+            {% set product = option.product %}
+            {% set price = option.price %}
+            {% set consultation_addon = option.consultation_addon %}
             {% set is_recommended = (lang == "ru" and "-ru-" in product.slug) or (lang == "en" and "-int-" in product.slug) %}
             <div class="product-card {% if is_recommended %}recommended{% endif %}">
                 <h2>{{ product.name }}</h2>
@@ -59,9 +62,23 @@
                             type="checkbox"
                             name="consultation"
                             value="1"
+                            {% if not consultation_addon %}disabled{% endif %}
                         >
                         <span class="product-addon__text">
                             {{ t("product_buy_add_consultation") }}
+
+                            {% if consultation_addon %}
+                                <span class="product-addon__price">
+                                    {{ t("product_buy_addon_special_price") }}:
+                                    <span class="product-addon__amount">
+                                        + {{ consultation_addon.amount | money(lang) }} {{ consultation_addon.currency_code }}
+                                    </span>
+                                </span>
+                            {% else %}
+                                <span class="product-addon__price-unavailable">
+                                    {{ t("product_buy_consultation_not_available") }}
+                                </span>
+                            {% endif %}
                         </span>
                     </label>
                 </div>

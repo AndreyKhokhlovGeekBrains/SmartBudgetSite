@@ -9,7 +9,7 @@ class ServiceAddonRepository:
 
     Business rules:
     - Only active add-ons should be used in checkout.
-    - Add-ons are selected by (family_slug, package_code, service_type).
+    - Add-ons are selected by: (family_slug, package_code, service_type, usage_type).
 
     Side effects:
     - None. Pure DB access layer.
@@ -25,9 +25,10 @@ class ServiceAddonRepository:
         family_slug: str,
         package_code: str,
         service_type: str,
+        usage_type: str,
     ) -> ServiceAddon | None:
         """
-        Get active add-on for given family/package/type.
+        Get active add-on for given family/package/service/usage combination.
         """
 
         return (
@@ -36,5 +37,6 @@ class ServiceAddonRepository:
             .filter(ServiceAddon.family_slug == family_slug)
             .filter(ServiceAddon.package_code == package_code)
             .filter(ServiceAddon.service_type == service_type)
+            .filter(ServiceAddon.usage_type == usage_type)
             .one_or_none()
         )

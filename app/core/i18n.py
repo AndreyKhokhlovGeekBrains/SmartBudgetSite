@@ -235,6 +235,7 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "product_buy_price_not_configured": "Price is not configured",
         "product_buy_cta": "Continue to checkout",
         "product_buy_add_consultation": "Add a personal SmartBudget setup consultation",
+        "product_buy_addon_special_price": "Special price with SmartBudget",
 
         "product.package_ru_hint": "Russian version of the product. Payments in RUB with local payment methods.",
         "product.package_int_hint": "English version of the product. Payments in EUR with international cards.",
@@ -467,10 +468,12 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "product_buy_price_not_configured": "Цена не настроена",
         "product_buy_cta": "Перейти к оплате",
         "product_buy_add_consultation": "Добавить личную консультацию по настройке SmartBudget",
+        "product_buy_addon_special_price": "Специальная цена при покупке",
 
         "product.package_ru_hint": "Версия на русском языке. Оплата в рублях и локальные платёжные методы.",
         "product.package_int_hint": "Версия на английском языке. Оплата в евро и международные карты.",
         "product.recommended": "Рекомендуем",
+
 
     },
 }

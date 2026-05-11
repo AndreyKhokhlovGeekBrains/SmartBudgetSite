@@ -5,6 +5,11 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.core.db import Base
 
+ALLOWED_USAGE_TYPES = {
+    "addon",
+    "standalone",
+}
+
 
 class ServiceAddon(Base):
     """
@@ -20,6 +25,10 @@ class ServiceAddon(Base):
 
     Invariants/restrictions:
     - code is unique and stable, e.g. consultation_1h.
+    - service_type describes WHAT the service is:
+      e.g. consultation, onboarding, support.
+    - usage_type describes HOW the service is sold:
+      e.g. addon, standalone.
     - amount must be non-negative.
     - currency_code is stored as ISO-like uppercase 3-letter code.
     """
@@ -32,6 +41,7 @@ class ServiceAddon(Base):
     name: Mapped[str] = mapped_column(String(200), nullable=False)
 
     service_type: Mapped[str] = mapped_column(String(50), nullable=False, index=True)
+    usage_type: Mapped[str] = mapped_column(String(30), nullable=False, index=True)
 
     family_slug: Mapped[str] = mapped_column(String(100), nullable=False, index=True)
     package_code: Mapped[str] = mapped_column(String(20), nullable=False, index=True)

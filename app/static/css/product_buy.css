@@ -70,9 +70,16 @@
 }
 
 .product-addon__text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
     color: #475569;
     font-size: 0.9rem;
     line-height: 1.4;
+}
+
+.product-addon__amount {
+    white-space: nowrap;
 }
 
 .product-package {

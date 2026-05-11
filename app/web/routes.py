@@ -588,6 +588,7 @@ def checkout_page(
     - Checkout is product-specific.
     - Product is resolved by slug.
     - Active price must exist before checkout can be shown.
+    - Consultation in checkout is treated as add-on usage only.
 
     Side effects:
     - None. Read-only page rendering.
@@ -612,6 +613,7 @@ def checkout_page(
             family_slug=product.family_slug,
             package_code=package,
             service_type="consultation",
+            usage_type="addon",
         )
 
     total_amount = price.amount
@@ -669,12 +671,32 @@ def product_buy_page(
         raise HTTPException(status_code=404, detail="Product family not found")
 
     lang = get_lang(request)
+    product_options = []
+
+    for product, price in family_products:
+        package = get_product_package(product.slug)
+
+        consultation_addon = ServiceAddonRepository.get_active_addon(
+            db,
+            family_slug=product.family_slug,
+            package_code=package,
+            service_type="consultation",
+            usage_type="addon",
+        )
+
+        product_options.append(
+            {
+                "product": product,
+                "price": price,
+                "consultation_addon": consultation_addon,
+            }
+        )
 
     return templates.TemplateResponse(
         request,
         "product_buy.html",
         {
-            "products": family_products,
+            "product_options": product_options,
             "family_slug": family_slug,
             "lang": lang,
             "t": lambda key: t(lang, key),

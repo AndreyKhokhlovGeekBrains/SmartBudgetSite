@@ -17,6 +17,7 @@ def test_get_active_addon_by_family_package_and_type(db_session):
         code="smartbudget_int_consultation_1h_repo_test",
         name="1:1 Consultation",
         service_type="consultation",
+        usage_type="addon",
         family_slug="smartbudget",
         package_code="INT",
         currency_code="EUR",
@@ -32,6 +33,7 @@ def test_get_active_addon_by_family_package_and_type(db_session):
         family_slug="smartbudget",
         package_code="INT",
         service_type="consultation",
+        usage_type="addon",
     )
 
     assert result is not None
@@ -51,6 +53,7 @@ def test_get_active_addon_ignores_inactive_addons(db_session):
         code="smartbudget_int_consultation_1h_inactive_repo_test",
         name="1:1 Consultation",
         service_type="consultation",
+        usage_type="addon",
         family_slug="smartbudget",
         package_code="INT",
         currency_code="EUR",
@@ -66,6 +69,7 @@ def test_get_active_addon_ignores_inactive_addons(db_session):
         family_slug="smartbudget",
         package_code="INT",
         service_type="consultation",
+        usage_type="addon",
     )
 
     assert result is None

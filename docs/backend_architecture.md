@@ -1,16 +1,3 @@
-# Paste current backend_architecture.md here
-
-After you paste the current content, I will:
-
-* update Sprint 19 status
-* add completed UI/CSS improvements
-* refresh next priorities
-* prepare git commit summary
-
-`````
-Paste your current .md file here and we will update it for the next sprint.
-
-````
 ## How to resume work
 
 When continuing development in a new session:
@@ -460,7 +447,381 @@ If a route starts to contain:
 
 ---
 
-## Next sprint priorities (after Sprint 19)
+## Sprint 20 checkpoint: consultation flow architecture clarified
+
+### Context restored
+
+During Sprint 20 planning, the logical connection between the purchase flow, consultation flow, and future sales architecture was clarified.
+
+The current product flow is:
+
+* `/products` — public product catalog
+* `/products/smartbudget` — SmartBudget landing page
+* `/products/smartbudget/buy` — SmartBudget SKU/package selection page
+* `/checkout/{product_slug}` — checkout page for the selected SKU
+
+The landing page should remain a product explanation page, not a price list.
+Product prices belong on the buy/selection page, because SmartBudget may have multiple SKUs:
+
+* RU Standard
+* INT Standard
+* RU Pro later
+* INT Pro later
+* possible future editions/packages
+
+### Final UX decision
+
+SmartBudget landing page must provide two separate user paths:
+
+1. Buy SmartBudget
+
+   * user goes to `/products/smartbudget/buy`
+   * selects exact SKU/package/version
+   * may optionally add a setup consultation
+   * add-on consultation price must be visible before checkout
+   * checkout confirms product price, consultation price, and total
+
+2. Book standalone consultation
+
+   * user goes to a separate consultation page
+   * user sees standalone consultation price and terms
+   * user pays for consultation
+   * Calendly booking is shown only after successful payment
+
+### Important UX rule
+
+Consultation price must never appear for the first time only on checkout.
+
+The discounted consultation add-on price must be visible on the buy page next to the checkbox, for example:
+
+* `Add 1:1 SmartBudget setup consultation + 35 EUR`
+* `Добавить личную консультацию по настройке SmartBudget + 3 500 RUB`
+
+Checkout should only confirm the selected items and total amount.
+
+### Calendly decision
+
+Calendly must be available only after successful payment.
+
+Reason:
+
+* do not allow unpaid booking of limited consultation slots
+* keep consultation capacity protected
+* avoid manual cleanup of unpaid bookings
+
+---
+
+### Consultation notification flow note
+
+Consultation flow has two separate business events:
+
+1. consultation purchased
+2. consultation slot booked in Calendly
+
+These events must not be treated as the same thing.
+
+Example:
+
+* customer may purchase consultation
+* but postpone Calendly booking
+* or never complete booking
+
+Purchased consultation does not automatically mean booked consultation.
+
+For MVP:
+
+* booking responsibility belongs to the customer
+* customer receives booking access immediately after payment
+* consultation may remain unused if no slot is selected
+
+### Calendly access flow
+
+After successful payment:
+
+* user is redirected to success page
+* success page contains Calendly booking button/link
+* purchase confirmation email also contains the same Calendly link
+
+Reason:
+
+* user may close browser without booking immediately
+* confirmation email acts as fallback access to booking flow
+
+### Important MVP rule
+
+Calendly link should not be generated later manually.
+
+The same booking link should be:
+
+* shown immediately after payment
+* included in confirmation email
+
+### Calendly single-use booking link rule
+
+Consultation booking must use a single-use Calendly link, not a public reusable booking link.
+
+Reason:
+
+* each paid consultation item gives access to exactly one booking slot
+* discounted add-on consultation must not allow repeated bookings
+* standalone consultation must also allow only one booking per paid consultation item
+
+MVP rule:
+
+* after successful payment, customer receives one single-use Calendly link
+* the same single-use link is shown on success page
+* the same single-use link is included in purchase confirmation email
+* after one successful Calendly booking, the link expires and cannot be reused
+
+This applies to both:
+
+* SmartBudget consultation add-on
+* standalone consultation purchase
+
+Future implementation note:
+
+* generate/store one Calendly single-use link per paid consultation sale item
+* store it on the sale item or future consultation booking record
+* later use Calendly webhook to store scheduled/completed booking status
+
+### Calendly link separation rule
+
+Add-on consultation and standalone consultation must use separate booking links.
+
+Reason:
+
+* add-on consultation has discounted price
+* standalone consultation has higher standalone price
+* public users must not access discounted add-on booking flow without buying SmartBudget
+
+MVP rule:
+
+* add-on Calendly link is shown only after successful SmartBudget purchase with consultation add-on
+* standalone Calendly link is shown only after successful standalone consultation purchase
+* SmartBudget landing page must not expose add-on Calendly link directly
+
+### MVP approach
+
+For MVP:
+
+* rely on native Calendly email notifications
+* admin receives booking email immediately after user selects a slot
+
+This avoids premature webhook/integration complexity.
+
+### Future architecture direction
+
+Later implement:
+
+Calendly webhook
+→ backend endpoint
+→ consultation booking record
+→ Telegram notification
+
+Possible future endpoint:
+
+`/v1/webhooks/calendly`
+
+Possible future Telegram notification example:
+
+```text
+New consultation booked:
+Client: ...
+Package: SmartBudget INT
+Consultation type: add-on
+Time: ...
+Calendly booking URL: ...
+```
+
+### Important business rule
+
+`admin_sales` and consultation scheduling are different concerns.
+
+`admin_sales` tracks:
+
+* purchases/payments
+
+Calendly tracks:
+
+* actual booked consultation slots
+
+## Consultation architecture design note
+
+### Current state
+
+`ServiceAddon` already exists and is used by checkout.
+
+Current fields include:
+
+* `code`
+* `name`
+* `service_type`
+* `family_slug`
+* `package_code`
+* `currency_code`
+* `amount`
+* `is_active`
+
+Current repository lookup uses:
+
+* `family_slug`
+* `package_code`
+* `service_type`
+
+This is no longer sufficient because the same service type can be sold in different usage scenarios.
+
+Example:
+
+* consultation as discounted SmartBudget add-on
+* consultation as standalone service with higher standalone price
+
+### Decision
+
+Add `usage_type` to `service_addons`.
+
+Allowed MVP values:
+
+* `addon`
+* `standalone`
+
+Example records:
+
+* `consultation_1h_ru_addon`
+  * `service_type = consultation`
+  * `usage_type = addon`
+  * `family_slug = smartbudget`
+  * `package_code = RU`
+  * `currency_code = RUB`
+  * `discounted add-on price`
+
+* `consultation_1h_ru_standalone`
+  * `service_type = consultation`
+  * `usage_type = standalone`
+  * `family_slug = smartbudget`
+  * `package_code = RU`
+  * `currency_code = RUB`
+  * `standalone consultation price`
+
+* `consultation_1h_int_addon`
+  * `service_type = consultation`
+  * `usage_type = addon`
+  * `family_slug = smartbudget`
+  * `package_code = INT`
+  * `currency_code = EUR`
+  * `discounted add-on price`
+
+* `consultation_1h_int_standalone`
+  * `service_type = consultation`
+  * `usage_type = standalone`
+  * `family_slug = smartbudget`
+  * `package_code = INT`
+  * `currency_code = EUR`
+  * `standalone consultation price`
+
+### Why not use `addon_price` / `standalone_price` fields
+
+Do not add separate price columns such as:
+
+* `addon_price`
+* `standalone_price`
+
+Reason:
+
+* this makes the table harder to extend
+* each usage scenario should be an explicit offer/record
+* future services may have more than two usage scenarios
+* admin UI stays simpler when each row has exactly one price
+
+### Repository rule
+
+`ServiceAddonRepository.get_active_addon()` must be extended to filter by:
+
+* `family_slug`
+* `package_code`
+* `service_type`
+* `usage_type`
+
+For SmartBudget checkout add-on usage:
+
+* `service_type = consultation`
+* `usage_type = addon`
+
+For standalone consultation page:
+
+* `service_type = consultation`
+* `usage_type = standalone`
+
+---
+
+## Sprint 22 checkpoint: consultation usage_type stabilization
+
+### Completed:
+
+* added `usage_type` to `ServiceAddon`
+* implemented DB migration with safe backfill strategy
+* existing consultation add-ons are now migrated to:
+
+  * `usage_type = addon`
+* updated `ServiceAddonRepository.get_active_addon()` lookup:
+
+  * `family_slug`
+  * `package_code`
+  * `service_type`
+  * `usage_type`
+* updated checkout route:
+
+  * consultation in checkout is now explicitly resolved as:
+
+    * `service_type = consultation`
+    * `usage_type = addon`
+* updated `/products/{family_slug}/buy` backend context:
+
+  * route now builds `product_options`
+  * each product card receives:
+
+    * product
+    * active product price
+    * consultation add-on
+* updated `product_buy.html`:
+
+  * consultation special price is now visible before checkout
+  * add-on price is shown directly inside product cards
+  * unavailable add-ons are handled safely
+* improved consultation add-on UX:
+
+  * introduced "Special price with purchase" messaging
+  * stabilized responsive behavior for consultation pricing block
+  * protected monetary amount from bad line wrapping
+* added/updated tests:
+
+  * model tests
+  * repository tests
+  * checkout tests
+* added regression coverage:
+
+  * checkout must ignore `usage_type = standalone`
+  * checkout must use only `usage_type = addon`
+
+### Architecture decisions:
+
+* `service_type` defines WHAT the service is:
+
+  * consultation
+  * onboarding
+  * support
+
+* `usage_type` defines HOW the service is sold:
+
+  * addon
+  * standalone
+
+* checkout product flow must never implicitly load standalone consultation pricing
+* consultation pricing must be visible before checkout begins
+* `ProductsRepository` remains product-focused and does not resolve service/add-on logic
+
+---
+
+## Next sprint priorities (after Sprint 22)
 
 ### 1. Sales migration to sale_items
 
@@ -593,7 +954,3 @@ A separate `product_families` table can be introduced later if product-family me
 * product = sellable package, not abstract concept
 
 ---
-
-````
-
-`````
