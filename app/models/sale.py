@@ -1,25 +1,37 @@
 from datetime import datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Numeric, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.db import Base
 from app.models.enums import PaymentStatus
 
+if TYPE_CHECKING:
+    from app.models.sale_item import SaleItem
 
 class Sale(Base):
     __tablename__ = "sales"
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    product_id: Mapped[int] = mapped_column(
+    # Transitional legacy field.
+    # Product ownership must eventually be resolved through SaleItem.
+    # Kept temporarily for backward compatibility during migration.
+    product_id: Mapped[int | None] = mapped_column(
         ForeignKey("products.id", ondelete="RESTRICT"),
-        nullable=False,
+        nullable=True,
         index=True,
     )
 
     customer_email: Mapped[str] = mapped_column(String(200), nullable=False, index=True)
+
+    items: Mapped[list["SaleItem"]] = relationship(
+        "SaleItem",
+        back_populates="sale",
+        cascade="all, delete-orphan",
+    )
 
     amount: Mapped[Decimal] = mapped_column(Numeric(10, 2), nullable=False)
 

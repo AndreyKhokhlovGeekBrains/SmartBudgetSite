@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.models.enums import PaymentStatus
 from app.models.product import Product
 from app.models.sale import Sale
+from app.models.sale_item import SaleItem
 
 
 def get_verified_purchases_by_email(
@@ -15,16 +16,18 @@ def get_verified_purchases_by_email(
     stmt = (
         select(
             Sale.id.label("sale_id"),
-            Sale.product_id,
+            Product.id.label("product_id"),
             Product.name.label("product_name"),
             Product.slug.label("product_slug"),
             Product.edition,
             Sale.created_at,
         )
-        .join(Product, Product.id == Sale.product_id)
+        .join(SaleItem, SaleItem.sale_id == Sale.id)
+        .join(Product, Product.id == SaleItem.product_id)
         .where(
             Sale.customer_email == normalized_email,
             Sale.payment_status == PaymentStatus.PAID,
+            SaleItem.item_type == "product",
         )
         .order_by(Sale.created_at.desc(), Sale.id.desc())
     )

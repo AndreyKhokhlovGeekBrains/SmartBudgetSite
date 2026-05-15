@@ -1,5 +1,7 @@
 import pytest
 
+from app.models.sale_item import SaleItem
+
 def test_check_purchase_not_found(client):
     """
     Test case: purchase lookup for unknown email
@@ -64,6 +66,19 @@ def test_check_purchase_verified(client, db_session):
     )
 
     db_session.add(sale)
+    db_session.flush()
+
+    sale_item = SaleItem(
+        sale_id=sale.id,
+        item_type="product",
+        product_id=product.id,
+        item_name=product.name,
+        currency_code="EUR",
+        amount=10.00,
+        quantity=1,
+    )
+
+    db_session.add(sale_item)
     db_session.commit()
 
     # Call API
@@ -166,6 +181,19 @@ def test_check_purchase_returns_product_item_type(client, db_session):
         created_at=datetime.now(UTC),
     )
     db_session.add(sale)
+    db_session.flush()
+
+    sale_item = SaleItem(
+        sale_id=sale.id,
+        item_type="product",
+        product_id=product.id,
+        item_name=product.name,
+        currency_code="EUR",
+        amount=39,
+        quantity=1,
+    )
+
+    db_session.add(sale_item)
     db_session.commit()
 
     response = client.post(
@@ -182,45 +210,58 @@ def test_check_purchase_returns_product_item_type(client, db_session):
     assert data["purchases"][0]["item_type"] == "product"
 
 
-@pytest.mark.xfail(reason="Service-only purchases not supported yet (no sale_items)")
 def test_check_purchase_not_verified_for_service_only(client, db_session):
     """
-    Test case: service-only purchase should not mark user as verified
+    Test case: service-only purchase should not mark user as product-verified.
 
     What we verify:
-    - If user has only service purchases (no product)
+    - If user has only service purchases and no product SaleItem:
       -> verified = False
     """
 
     from datetime import UTC, datetime
+    from decimal import Decimal
 
     from app.models.enums import PaymentStatus
-    from app.models.product import Product
     from app.models.sale import Sale
+    from app.models.sale_item import SaleItem
+    from app.models.service_addon import ServiceAddon
 
-    # Create product (needed for FK, but not used as purchase)
-    product = Product(
+    service_addon = ServiceAddon(
+        code="consultation_1h_int_service_only_purchase_test",
+        name="Standalone consultation",
+        service_type="consultation",
+        usage_type="standalone",
         family_slug="smartbudget",
-        slug="smartbudget-ru-standard",
-        name="SmartBudget RU Standard",
-        edition="Standard",
-        version="1.0",
-        status="in_sale",
-        archive_path="test/path.zip",
+        package_code="INT",
+        currency_code="EUR",
+        amount=Decimal("79.00"),
+        is_active=True,
     )
-    db_session.add(product)
+    db_session.add(service_addon)
     db_session.flush()
 
-    # Simulate service-only purchase (for now still uses Sale model)
     sale = Sale(
-        product_id=product.id,  # временно, пока нет sale_items
+        product_id=None,
         customer_email="service_only@example.com",
-        amount=35,
+        amount=Decimal("79.00"),
         currency="EUR",
         payment_status=PaymentStatus.PAID,
         created_at=datetime.now(UTC),
     )
     db_session.add(sale)
+    db_session.flush()
+
+    sale_item = SaleItem(
+        sale_id=sale.id,
+        item_type="service",
+        service_addon_id=service_addon.id,
+        item_name="Standalone consultation",
+        currency_code="EUR",
+        amount=Decimal("79.00"),
+        quantity=1,
+    )
+    db_session.add(sale_item)
     db_session.commit()
 
     response = client.post(
@@ -232,7 +273,5 @@ def test_check_purchase_not_verified_for_service_only(client, db_session):
 
     data = response.json()
 
-    # 🔴 ВАЖНО: сейчас тест упадёт — и это нормально
-    # потому что у нас пока нет разделения product/service в БД
-
     assert data["verified"] is False
+    assert data["purchases"] == []

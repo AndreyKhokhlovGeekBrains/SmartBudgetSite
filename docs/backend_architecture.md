@@ -821,7 +821,409 @@ For standalone consultation page:
 
 ---
 
-## Next sprint priorities (after Sprint 22)
+## Sprint 23: sale_items architecture foundation
+
+### Problem with current architecture
+
+Current sales architecture assumes:
+
+* one sale = one product
+
+This is no longer correct.
+
+Examples:
+
+* SmartBudget + consultation add-on
+* standalone consultation purchase
+* future multiple services/add-ons
+* future bundles or multiple quantities
+
+Current architecture cannot correctly represent:
+
+* multiple purchased items
+* item-level pricing
+* item-level service tracking
+* item-level Calendly links
+* item-level webhook processing
+
+This becomes especially important for:
+
+* Paddle webhooks
+* consultation fulfillment
+* standalone services
+* future refunds/partial refunds
+
+---
+
+## Target architecture
+
+### `sales` = order header
+
+`sales` should become an order-level entity.
+
+Responsibilities:
+
+* customer identity
+* payment status
+* provider transaction IDs
+* total amount
+* currency
+* timestamps
+* payment provider metadata
+
+Example:
+
+```text
+Sale #1001
+Customer: user@example.com
+Currency: EUR
+Total: 74 EUR
+Status: paid
+```
+
+`sales` should NOT directly represent purchased business items anymore.
+
+---
+
+### New table: `sale_items`
+
+Each purchased item must become a separate row.
+
+Example:
+
+```text
+Sale #1001
+ ├── SmartBudget INT Standard
+ └── Consultation add-on
+```
+
+---
+
+## Initial MVP item types
+
+Allowed item types:
+
+* `product`
+* `service`
+
+### Product item examples
+
+* SmartBudget RU Standard
+* SmartBudget INT Standard
+* future Pro editions
+
+### Service item examples
+
+* consultation add-on
+* standalone consultation
+* future onboarding/support services
+
+---
+
+## Planned `sale_items` responsibilities
+
+Each sale item should eventually support:
+
+* independent pricing snapshot
+* independent fulfillment state
+* independent webhook linkage
+* independent external metadata
+* independent refundability
+
+This is especially important for services.
+
+Example:
+
+* product may already be delivered
+* consultation may still be unbooked
+
+These are different lifecycle states.
+
+---
+
+## Important architecture rule
+
+`products` and `service_addons` remain catalog/configuration entities.
+
+`sale_items` are immutable purchase snapshots.
+
+Reason:
+
+Catalog pricing may change later.
+Purchase history must remain historically accurate.
+
+Example:
+
+```text
+Current consultation price:
+79 EUR
+
+Old sale item:
+35 EUR
+```
+
+Sale item must preserve the historical purchased price.
+
+---
+
+## Future consultation flow implication
+
+Calendly access should eventually belong to a specific `sale_item`, not to the entire sale.
+
+Reason:
+
+One order may later contain:
+
+* multiple consultations
+* multiple services
+* future recurring services
+
+Correct ownership level is:
+
+```text
+sale_item
+```
+
+not:
+
+```text
+sale
+```
+
+---
+
+## Future Paddle webhook implication
+
+Paddle webhook events should eventually resolve:
+
+```text
+provider transaction
+→ sale
+→ sale_items
+```
+
+instead of:
+
+```text
+provider transaction
+→ product only
+```
+
+This architecture is required for:
+
+* mixed carts
+* add-ons
+* standalone services
+* future refunds
+* future subscription-like services
+
+---
+
+## Migration strategy note
+
+Do NOT immediately delete old `sales.product_id` logic.
+
+Recommended migration approach:
+
+1. introduce `sale_items`
+2. backfill existing sales
+3. temporarily support both architectures
+4. migrate business logic gradually
+5. remove old direct product linkage later
+
+Reason:
+
+This reduces migration risk and keeps rollback simpler.
+
+---
+
+## Consultation booking ownership model
+
+### Architectural decision
+
+Calendly is used only as:
+
+* scheduling UI
+* slot management provider
+* calendar integration layer
+
+Critical business rules MUST remain under SmartBudgetSite backend control.
+
+The system MUST NOT rely on Calendly one-time links as the primary protection mechanism.
+
+Reason:
+
+* avoid vendor lock-in
+* avoid dependency on Calendly pricing/features
+* maintain full control over entitlement logic
+* support future migration to another booking provider or custom scheduler
+
+---
+
+## Consultation entitlement flow
+
+After successful purchase:
+
+* backend creates consultation entitlement record
+* generates secure UUID booking token
+* sets expiration timestamp (currently: 14 days)
+
+Example:
+
+* status = "available"
+* expires_at = now + 14 days
+
+User receives a booking link similar to:
+
+```text
+/consultation/book/{token}
+```
+
+---
+
+## Backend responsibilities
+
+Before showing Calendly embed/page:
+
+* validate token existence
+* validate token is not expired
+* validate token is not already used
+* validate purchase entitlement exists
+
+If validation fails:
+
+* booking page must not be accessible
+* user should see explanatory error message
+
+---
+
+## Booking finalization
+
+Calendly webhook is used only to:
+
+* confirm successful booking
+* save Calendly event reference
+* mark consultation entitlement as used/booked
+
+Example status flow:
+
+* available
+* booked
+* expired
+* cancelled (future)
+
+After successful booking:
+
+* token becomes unusable
+* repeated booking attempts must be blocked by backend
+
+---
+
+## Important business rule
+
+Discounted add-on consultations purchased together with SmartBudget:
+
+* are single-use
+* are non-repeatable
+* must not allow multiple bookings from the same entitlement
+
+The backend must enforce this rule independently from Calendly capabilities.
+
+---
+
+## Future flexibility
+
+This architecture intentionally separates:
+
+* business ownership (SmartBudgetSite)
+* scheduling provider (Calendly)
+
+This allows future replacement of Calendly without rewriting consultation entitlement logic.
+
+---
+
+## Sprint 23 checkpoint: sale_items architecture foundation
+
+### Completed:
+
+* introduced `sale_items` table
+* added `SaleItem` model
+* implemented item-level constraints:
+
+  * exactly one ownership reference
+  * product/service type validation
+  * positive quantity
+  * non-negative amount
+* added `Sale.items` relationship
+* introduced itemized order architecture:
+
+  * `Sale` = order header
+  * `SaleItem` = purchased business entity
+* implemented service-layer purchase creation helpers:
+
+  * `create_product_sale`
+  * `create_service_sale_item`
+  * `create_standalone_service_sale`
+* implemented:
+
+  * standalone service sales
+  * service-only sales
+  * item-level pricing snapshots
+* added:
+
+  * `calculate_sale_total()`
+* migrated `/v1/check-purchase` logic:
+
+  * product ownership now resolved through `sale_items`
+  * no longer depends on `sales.product_id`
+* converted previous `xfail` service-only verification test into passing regression coverage
+* introduced centralized constants:
+
+  * `SaleItemType.PRODUCT`
+  * `SaleItemType.SERVICE`
+* added extensive model/service/repository regression coverage
+
+### Transitional architecture state
+
+`sales.product_id` still exists temporarily as a legacy compatibility field.
+
+Current architecture:
+
+```text
+Sale
+    ↓
+SaleItems
+    ├── Product item
+    └── Service item
+```
+
+`SaleItem` is now the source of truth for purchase ownership.
+
+### Important migration decision
+
+Legacy `sales.product_id` must NOT be used for new business logic.
+
+New code should resolve ownership through:
+
+```text
+Sale → SaleItems
+```
+
+The legacy field is kept only to support:
+
+* incremental migration
+* rollback safety
+* compatibility with older flows/tests/admin logic
+
+Future cleanup should eventually:
+
+* fully remove `sales.product_id`
+* fully derive totals from `sale_items`
+* move all purchase logic to item-based ownership
+
+---
+
+## Next sprint priorities (after Sprint 23)
 
 ### 1. Sales migration to sale_items
 

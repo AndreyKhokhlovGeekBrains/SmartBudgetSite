@@ -8,3 +8,8 @@ class PaymentStatus(StrEnum):
     REFUNDED = "refunded"
 
 # example: Sale.payment_status == PaymentStatus.PAID
+
+
+class SaleItemType:
+    PRODUCT = "product"
+    SERVICE = "service"
