@@ -1223,19 +1223,343 @@ Future cleanup should eventually:
 
 ---
 
-## Next sprint priorities (after Sprint 23)
+## Sprint 24: consultation entitlement system design
 
-### 1. Sales migration to sale_items
+### Core architecture decision
 
-* keep `sales` as order header
-* introduce `sale_items`
-* support:
+Consultation access must be represented by a backend-owned entitlement entity.
 
-  * product
-  * service (consultation)
-* enable xfailed service-only verification test
+The entitlement is the source of truth for whether a customer may access the booking flow.
 
-### 2. Merchant of Record integration (Paddle)
+Calendly must not be treated as the owner of consultation access rights.
+
+Correct ownership chain:
+
+```text
+Sale
+  ↓
+SaleItem
+  ↓
+ConsultationEntitlement
+```
+
+Incorrect ownership chain:
+
+```text
+Sale
+  ↓
+Calendly booking
+```
+
+Reason:
+
+* a consultation can be purchased but not booked immediately
+* an entitlement can expire without any Calendly event
+* Calendly can be replaced later by another provider
+* booking provider rules must not define SmartBudget business rules
+* discounted add-on consultations must remain single-use even if provider-side links are reusable or misconfigured
+
+---
+
+### ConsultationEntitlement responsibility
+
+`ConsultationEntitlement` represents customer access to one consultation booking right.
+
+It is responsible for:
+
+* linking consultation access to a specific purchased `SaleItem`
+* storing backend-owned secure booking token
+* storing token expiration timestamp
+* storing current entitlement status
+* blocking repeated booking attempts
+* acting as the stable business object for future Calendly webhook processing
+
+It is NOT responsible for:
+
+* storing product catalog pricing
+* replacing `SaleItem` as purchase snapshot
+* acting as a generic sale/order entity
+* rendering Calendly UI
+* defining provider-specific webhook payload structure
+
+---
+
+### Relationship rules
+
+MVP relationship:
+
+```text
+SaleItem (service/consultation) 1 → 0..1 ConsultationEntitlement
+```
+
+MVP rule:
+
+* only paid consultation service items should receive an entitlement
+* product-only sale items must not receive an entitlement
+* entitlement belongs to `sale_item_id`, not directly to `sale_id`
+
+Reason:
+
+* consultation ownership exists at item level
+* future orders may contain multiple service items
+* future refunds or cancellations may affect one item without affecting the whole sale
+
+Future-compatible direction:
+
+```text
+SaleItem (service/consultation) 1 → many ConsultationEntitlements
+```
+
+This may be useful later for:
+
+* multi-session consultation packages
+* onboarding bundles
+* support packages
+
+MVP should still implement one entitlement per consultation sale item unless requirements change.
+
+---
+
+### Booking token rules
+
+Each entitlement receives a backend-generated UUID token.
+
+Example public booking URL:
+
+```text
+/consultation/book/{token}
+```
+
+Token validation must happen before Calendly access is shown.
+
+Validation rules:
+
+* token exists
+* entitlement status allows booking
+* entitlement is not expired
+* linked sale item exists
+* linked sale/payment is valid for booking access
+
+If validation fails:
+
+* Calendly must not be shown
+* user should see a clear explanatory page
+
+Token must be single-use from the SmartBudget backend perspective.
+
+Calendly one-time links may be used as an implementation detail later, but backend validation remains mandatory.
+
+---
+
+### Entitlement lifecycle
+
+MVP statuses:
+
+* `available`
+* `booked`
+* `expired`
+* `cancelled`
+
+Initial status after successful payment:
+
+```text
+available
+```
+
+Expected lifecycle:
+
+```text
+available → booked
+available → expired
+available → cancelled
+booked → cancelled   (future/manual/admin scenario)
+```
+
+Status meaning:
+
+* `available` — customer may access booking page if token is valid and not expired
+* `booked` — consultation slot was successfully booked; token must no longer allow booking
+* `expired` — booking window passed without successful booking
+* `cancelled` — entitlement was manually or automatically cancelled; future behavior may depend on business rules
+
+MVP rule:
+
+* expired status may be derived dynamically from `expires_at`
+* physical status update can be implemented later by scheduled job or admin action
+
+---
+
+### Expiration rule
+
+Default MVP booking window:
+
+```text
+expires_at = created_at + 14 days
+```
+
+Business meaning:
+
+* customer has 14 days after purchase to book a consultation slot
+* after expiration, booking access is blocked
+
+Important:
+
+Expiration controls access to booking, not necessarily the consultation event date.
+
+Example:
+
+* customer buys consultation on May 1
+* books a slot on May 10
+* slot itself may happen on May 20
+* this is valid because booking happened before entitlement expiration
+
+---
+
+### Calendly integration boundary
+
+Calendly should be integrated after entitlement validation.
+
+The booking page flow should be:
+
+```text
+User opens /consultation/book/{token}
+  ↓
+Backend validates entitlement
+  ↓
+If valid: show Calendly embed/link
+  ↓
+Calendly booking happens
+  ↓
+Calendly webhook confirms booking
+  ↓
+Backend marks entitlement as booked
+```
+
+Calendly webhook must not create entitlement.
+
+Webhook should only update an existing entitlement that was already created after successful payment.
+
+---
+
+### Future webhook fields
+
+The entitlement model should leave room for provider metadata, for example:
+
+* booking_provider
+* provider_event_uri
+* provider_invitee_uri
+* booked_at
+* cancelled_at
+
+Do not overbuild webhook handling in MVP.
+
+First implementation should focus on:
+
+* model/table
+* token generation
+* entitlement creation after consultation purchase
+* token validation service
+
+---
+
+## Sprint 24 checkpoint: consultation entitlement MVP foundation
+
+### Completed:
+
+* added `ConsultationEntitlement` model
+* added Alembic migration for `consultation_entitlements`
+* implemented entitlement statuses:
+
+  * `available`
+  * `booked`
+  * `expired`
+  * `cancelled`
+* added secure UUID booking token generation
+* implemented relationship chain:
+
+```text
+Sale
+  ↓
+SaleItem
+  ↓
+ConsultationEntitlement
+```
+
+* implemented service-layer entitlement creation:
+
+  * `create_consultation_entitlement()`
+* implemented token validation service:
+
+  * `get_valid_consultation_entitlement_by_token()`
+* implemented protected booking route:
+
+  * `/consultation/book/{booking_token}`
+* added placeholder booking page:
+
+  * `consultation_booking.html`
+* implemented backend-controlled entitlement validation before booking access
+* added timezone normalization helper:
+
+  * `_ensure_utc_aware()`
+* stabilized SQLite/PostgreSQL datetime comparison behavior
+* implemented extensive regression coverage:
+
+  * entitlement creation happy path
+  * reject product sale items
+  * reject duplicate entitlement creation
+  * valid token lookup
+  * unknown token rejection
+  * expired token rejection
+  * booking route access with valid token
+
+### Architecture decisions:
+
+* entitlement creation belongs to service layer, not ORM model defaults
+* low-level services use `flush()` instead of `commit()`
+* transaction boundaries remain controlled by higher-level orchestration flow
+* booking routes remain thin and delegate validation to service layer
+* Calendly integration remains postponed until entitlement foundation is stable
+* backend entitlement validation is mandatory even if Calendly later supports one-time booking links
+
+### Current booking flow
+
+```text
+Purchase successful
+  ↓
+Create ConsultationEntitlement
+  ↓
+User opens:
+/consultation/book/{token}
+  ↓
+Backend validates entitlement
+  ↓
+If valid → booking UI/provider access allowed
+```
+
+### Current limitation
+
+* Calendly embed/webhook integration not implemented yet
+* booked/cancelled status transitions still pending
+* booking confirmation lifecycle not implemented yet
+
+---
+
+## Next sprint priorities (after Sprint 24)
+
+### 1. Consultation booking lifecycle
+
+* implement booked status transition
+* design Calendly webhook update flow
+* persist booking confirmation metadata
+* prevent repeated booking after successful booking confirmation
+
+### 2. Calendly integration layer
+
+* add Calendly embed/button after successful entitlement validation
+* define provider abstraction boundary
+* prepare webhook endpoint structure
+
+### 3. Merchant of Record integration (Paddle)
 
 * create Paddle account
 * configure products and prices
@@ -1243,23 +1567,23 @@ Future cleanup should eventually:
 * define success URL
 * plan webhook handling
 
-### 3. Sales tracking (admin)
+### 4. Sales tracking (admin)
 
 * sales list
 * filtering
 * show consultation presence
 
-### 4. Reviews UX improvements
+### 5. Reviews UX improvements
 
 * show preview on landing
 * optional rating later
 
-### 5. Feedback tightening
+### 6. Feedback tightening
 
 * enforce `product_id`
 * validate `sale_id ↔ product_id`
 
-### 6. Deployment preparation
+### 7. Deployment preparation
 
 * connect domain
 * choose hosting (VPS / PaaS)

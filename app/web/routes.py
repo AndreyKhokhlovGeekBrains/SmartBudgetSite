@@ -15,6 +15,9 @@ from app.services.feedback_service import (
     toggle_feedback_resolved,
     save_feedback_reply_draft
     )
+from app.services.consultation_entitlement_service import (
+    get_valid_consultation_entitlement_by_token,
+)
 from app.models.product import ALLOWED_EDITIONS, ALLOWED_PRODUCT_STATUSES, Product
 from app.models.product_price import ProductPrice
 from app.utils.product_utils import get_product_package
@@ -700,5 +703,41 @@ def product_buy_page(
             "family_slug": family_slug,
             "lang": lang,
             "t": lambda key: t(lang, key),
+        },
+    )
+
+
+@router.get("/consultation/book/{booking_token}")
+def consultation_booking_page(
+    booking_token: str,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Render consultation booking page after backend token validation.
+
+    Business rules:
+    - Booking page is accessible only with a valid backend-owned token.
+    - Token validation must happen before Calendly access is shown.
+    - Invalid, expired, booked, or cancelled entitlements must not show booking UI.
+
+    Side effects:
+    - Does not modify the database.
+    - Does not create a Calendly booking.
+
+    Invariants/restrictions:
+    - Route stays thin and delegates validation to service layer.
+    """
+
+    entitlement = get_valid_consultation_entitlement_by_token(
+        db=db,
+        booking_token=booking_token,
+    )
+
+    return render(
+        request,
+        "consultation_booking.html",
+        {
+            "entitlement": entitlement,
         },
     )

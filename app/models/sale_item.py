@@ -65,6 +65,12 @@ class SaleItem(Base):
     sale = relationship("Sale", back_populates="items")
     product = relationship("Product")
     service_addon = relationship("ServiceAddon")
+    consultation_entitlement = relationship(
+        "ConsultationEntitlement",
+        back_populates="sale_item",
+        uselist=False,
+        cascade="all, delete-orphan",
+    )
 
     __table_args__ = (
         CheckConstraint(

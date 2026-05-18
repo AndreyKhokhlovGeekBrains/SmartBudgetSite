@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Consultation booking{% endblock %}
+
+{% block content %}
+<section class="container">
+    <h1>Book your consultation</h1>
+
+    <p>
+        Your consultation access link is valid.
+        Calendly booking will be shown here after integration.
+    </p>
+
+    <div class="card">
+        <p>
+            <strong>Status:</strong>
+            {{ entitlement.status }}
+        </p>
+
+        <p>
+            <strong>Booking access expires at:</strong>
+            {{ entitlement.expires_at }}
+        </p>
+    </div>
+</section>
+{% endblock %}
