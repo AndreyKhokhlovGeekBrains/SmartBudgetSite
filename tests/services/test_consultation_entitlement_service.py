@@ -1,18 +1,66 @@
+import uuid
+
 import pytest
 from fastapi import HTTPException
-from app.services.sale_service import create_product_sale
 from decimal import Decimal
 from datetime import timedelta, UTC, datetime
 
-from app.models.consultation_entitlement import ConsultationEntitlementStatus
+from app.models.consultation_entitlement import ConsultationEntitlementStatus, ConsultationEntitlement
 from app.models.service_addon import ServiceAddon
 from app.models.product import Product
 from app.services.consultation_entitlement_service import (
     DEFAULT_CONSULTATION_BOOKING_WINDOW_DAYS,
     create_consultation_entitlement,
     get_valid_consultation_entitlement_by_token,
+    mark_entitlement_as_booked,
 )
-from app.services.sale_service import create_standalone_service_sale
+from app.services.sale_service import create_product_sale, create_standalone_service_sale
+
+
+def create_test_consultation_entitlement(db_session):
+    """
+    Create a paid standalone consultation entitlement for service tests.
+
+    Business rules:
+    - Entitlement is created only for a consultation service sale item.
+    - Returned entitlement starts in AVAILABLE status.
+
+    Side effects:
+    - Inserts ServiceAddon, Sale, SaleItem, and ConsultationEntitlement.
+    - Flushes DB session through service calls.
+
+    Invariants/restrictions:
+    - Helper is test-only and must not be used by production code.
+    """
+
+    service_addon = ServiceAddon(
+        code=f"consultation_1h_int_test_{uuid.uuid4()}",
+        name="1:1 SmartBudget consultation",
+        service_type="consultation",
+        usage_type="standalone",
+        family_slug="smartbudget",
+        package_code="INT",
+        currency_code="EUR",
+        amount=Decimal("79.00"),
+        is_active=True,
+    )
+    db_session.add(service_addon)
+    db_session.flush()
+
+    sale = create_standalone_service_sale(
+        db=db_session,
+        service_addon_id=service_addon.id,
+        service_name=service_addon.name,
+        customer_email="customer@example.com",
+        amount=service_addon.amount,
+        currency=service_addon.currency_code,
+    )
+    db_session.flush()
+
+    return create_consultation_entitlement(
+        db=db_session,
+        sale_item=sale.items[0],
+    )
 
 
 def test_create_consultation_entitlement_for_consultation_service_item(db_session):
@@ -302,4 +350,284 @@ def test_get_valid_consultation_entitlement_by_token_rejects_expired_token(
     assert (
         exc_info.value.detail
         == "Consultation booking link has expired."
+    )
+
+
+def test_mark_entitlement_as_booked_happy_path(db_session):
+    """
+    Test case: mark consultation entitlement as booked.
+
+    What we verify:
+    - AVAILABLE entitlement transitions to BOOKED.
+    - Booking timestamp is persisted.
+    - Provider metadata is persisted.
+    - Booking state survives DB reload.
+    """
+
+    service_addon = ServiceAddon(
+        code="consultation_1h_int_standalone_booking_test",
+        name="1:1 SmartBudget consultation",
+        service_type="consultation",
+        usage_type="standalone",
+        family_slug="smartbudget",
+        package_code="INT",
+        currency_code="EUR",
+        amount=Decimal("79.00"),
+        is_active=True,
+    )
+    db_session.add(service_addon)
+    db_session.flush()
+
+    sale = create_standalone_service_sale(
+        db=db_session,
+        service_addon_id=service_addon.id,
+        service_name=service_addon.name,
+        customer_email="customer@example.com",
+        amount=service_addon.amount,
+        currency=service_addon.currency_code,
+    )
+    db_session.flush()
+
+    sale_item = sale.items[0]
+
+    entitlement = create_consultation_entitlement(
+        db=db_session,
+        sale_item=sale_item,
+    )
+
+    booked_at = datetime(2026, 5, 19, 12, 0, tzinfo=UTC)
+
+    result = mark_entitlement_as_booked(
+        db=db_session,
+        entitlement=entitlement,
+        booking_provider="calendly",
+        provider_event_uri="https://api.calendly.com/scheduled_events/test-event",
+        provider_invitee_uri=(
+            "https://api.calendly.com/"
+            "scheduled_events/test-event/invitees/test-invitee"
+        ),
+        booked_at=booked_at,
+    )
+
+    db_session.expire_all()
+
+    refreshed = db_session.get(
+        ConsultationEntitlement,
+        entitlement.id,
+    )
+
+    assert result.id == entitlement.id
+
+    assert refreshed.status == ConsultationEntitlementStatus.BOOKED.value
+
+    assert refreshed.booked_at.replace(tzinfo=UTC) == booked_at
+
+    assert refreshed.booking_provider == "calendly"
+
+    assert (
+        refreshed.provider_event_uri
+        == "https://api.calendly.com/scheduled_events/test-event"
+    )
+
+    assert (
+        refreshed.provider_invitee_uri
+        == "https://api.calendly.com/"
+           "scheduled_events/test-event/invitees/test-invitee"
+    )
+
+
+def test_mark_entitlement_as_booked_is_idempotent(db_session):
+    """
+    Test case: repeated booking confirmation for already booked entitlement.
+
+    What we verify:
+    - Repeated booking confirmation does not fail.
+    - Original booked_at is preserved.
+    - Original provider metadata is preserved.
+    """
+
+    service_addon = ServiceAddon(
+        code="consultation_1h_int_standalone_booking_idempotent_test",
+        name="1:1 SmartBudget consultation",
+        service_type="consultation",
+        usage_type="standalone",
+        family_slug="smartbudget",
+        package_code="INT",
+        currency_code="EUR",
+        amount=Decimal("79.00"),
+        is_active=True,
+    )
+    db_session.add(service_addon)
+    db_session.flush()
+
+    sale = create_standalone_service_sale(
+        db=db_session,
+        service_addon_id=service_addon.id,
+        service_name=service_addon.name,
+        customer_email="customer@example.com",
+        amount=service_addon.amount,
+        currency=service_addon.currency_code,
+    )
+    db_session.flush()
+
+    entitlement = create_consultation_entitlement(
+        db=db_session,
+        sale_item=sale.items[0],
+    )
+
+    first_booked_at = datetime(2026, 5, 19, 12, 0, tzinfo=UTC)
+
+    mark_entitlement_as_booked(
+        db=db_session,
+        entitlement=entitlement,
+        booking_provider="calendly",
+        provider_event_uri="https://api.calendly.com/scheduled_events/original-event",
+        provider_invitee_uri=(
+            "https://api.calendly.com/"
+            "scheduled_events/original-event/invitees/original-invitee"
+        ),
+        booked_at=first_booked_at,
+    )
+
+    second_booked_at = datetime(2026, 5, 20, 12, 0, tzinfo=UTC)
+
+    result = mark_entitlement_as_booked(
+        db=db_session,
+        entitlement=entitlement,
+        booking_provider="calendly",
+        provider_event_uri="https://api.calendly.com/scheduled_events/duplicate-event",
+        provider_invitee_uri=(
+            "https://api.calendly.com/"
+            "scheduled_events/duplicate-event/invitees/duplicate-invitee"
+        ),
+        booked_at=second_booked_at,
+    )
+
+    db_session.expire_all()
+
+    refreshed = db_session.get(
+        ConsultationEntitlement,
+        entitlement.id,
+    )
+
+    assert result.id == entitlement.id
+    assert refreshed.status == ConsultationEntitlementStatus.BOOKED.value
+    assert refreshed.booked_at.replace(tzinfo=UTC) == first_booked_at
+    assert refreshed.booking_provider == "calendly"
+
+    assert (
+        refreshed.provider_event_uri
+        == "https://api.calendly.com/scheduled_events/original-event"
+    )
+
+    assert (
+        refreshed.provider_invitee_uri
+        == "https://api.calendly.com/"
+           "scheduled_events/original-event/invitees/original-invitee"
+    )
+
+
+def test_expired_entitlement_cannot_be_marked_as_booked(db_session):
+    """
+    Test case: expired entitlement cannot transition to booked.
+
+    What we verify:
+    - EXPIRED entitlement cannot become BOOKED.
+    - Service raises HTTPException.
+    - Booking metadata is not persisted.
+    """
+
+    service_addon = ServiceAddon(
+        code="consultation_1h_int_expired_booking_test",
+        name="1:1 SmartBudget consultation",
+        service_type="consultation",
+        usage_type="standalone",
+        family_slug="smartbudget",
+        package_code="INT",
+        currency_code="EUR",
+        amount=Decimal("79.00"),
+        is_active=True,
+    )
+    db_session.add(service_addon)
+    db_session.flush()
+
+    sale = create_standalone_service_sale(
+        db=db_session,
+        service_addon_id=service_addon.id,
+        service_name=service_addon.name,
+        customer_email="customer@example.com",
+        amount=service_addon.amount,
+        currency=service_addon.currency_code,
+    )
+    db_session.flush()
+
+    entitlement = create_consultation_entitlement(
+        db=db_session,
+        sale_item=sale.items[0],
+    )
+
+    entitlement.status = ConsultationEntitlementStatus.EXPIRED.value
+
+    db_session.flush()
+
+    with pytest.raises(HTTPException) as exc_info:
+        mark_entitlement_as_booked(
+            db=db_session,
+            entitlement=entitlement,
+            booking_provider="calendly",
+            provider_event_uri="https://api.calendly.com/scheduled_events/test-event",
+            provider_invitee_uri=(
+                "https://api.calendly.com/"
+                "scheduled_events/test-event/invitees/test-invitee"
+            ),
+            booked_at=datetime(2026, 5, 19, 12, 0, tzinfo=UTC),
+        )
+
+    db_session.expire_all()
+
+    refreshed = db_session.get(
+        ConsultationEntitlement,
+        entitlement.id,
+    )
+
+    assert exc_info.value.status_code == 400
+
+    assert (
+        exc_info.value.detail
+        == "Consultation entitlement is not available for booking."
+    )
+
+    assert refreshed.status == ConsultationEntitlementStatus.EXPIRED.value
+    assert refreshed.booked_at is None
+    assert refreshed.booking_provider is None
+    assert refreshed.provider_event_uri is None
+    assert refreshed.provider_invitee_uri is None
+
+
+def test_cancelled_entitlement_cannot_be_marked_as_booked(db_session):
+    """
+    Test case: cancelled entitlement cannot transition to booked.
+
+    What we verify:
+    - CANCELLED entitlement cannot become BOOKED.
+    - Service raises HTTPException.
+    - Booking metadata is not persisted.
+    """
+
+    entitlement = create_test_consultation_entitlement(db_session)
+
+    entitlement.status = ConsultationEntitlementStatus.CANCELLED.value
+    db_session.flush()
+
+    with pytest.raises(HTTPException) as exc_info:
+        mark_entitlement_as_booked(
+            db=db_session,
+            entitlement=entitlement,
+            booking_provider="calendly",
+        )
+
+    assert exc_info.value.status_code == 400
+    assert (
+        exc_info.value.detail
+        == "Consultation entitlement is not available for booking."
     )

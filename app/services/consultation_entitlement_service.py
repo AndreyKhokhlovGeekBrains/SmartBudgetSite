@@ -149,3 +149,53 @@ def get_valid_consultation_entitlement_by_token(
     return entitlement
 
 
+def mark_entitlement_as_booked(
+    db: Session,
+    entitlement: ConsultationEntitlement,
+    *,
+    booking_provider: str,
+    provider_event_uri: str | None = None,
+    provider_invitee_uri: str | None = None,
+    booked_at: datetime | None = None,
+) -> ConsultationEntitlement:
+    """
+    Mark consultation entitlement as booked.
+
+    Business rules:
+    - Only AVAILABLE entitlements may transition to BOOKED.
+    - BOOKED transition must be idempotent.
+    - Booking metadata is persisted for future provider reconciliation.
+
+    Side effects:
+    - Updates entitlement status.
+    - Persists provider metadata.
+    - Persists booking timestamp.
+    - Flushes DB session.
+
+    Invariants:
+    - BOOKED entitlements cannot become AVAILABLE again.
+    - Product sale items must never reach this flow.
+    """
+
+    if entitlement.status == ConsultationEntitlementStatus.BOOKED:
+        return entitlement
+
+    if entitlement.status != ConsultationEntitlementStatus.AVAILABLE:
+        raise HTTPException(
+            status_code=400,
+            detail="Consultation entitlement is not available for booking.",
+        )
+
+    entitlement.status = ConsultationEntitlementStatus.BOOKED
+
+    entitlement.booking_provider = booking_provider
+    entitlement.provider_event_uri = provider_event_uri
+    entitlement.provider_invitee_uri = provider_invitee_uri
+
+    entitlement.booked_at = booked_at or datetime.now(UTC)
+
+    db.flush()
+
+    return entitlement
+
+

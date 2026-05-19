@@ -1462,6 +1462,100 @@ First implementation should focus on:
 
 ---
 
+## Sprint 25 checkpoint: consultation booking lifecycle foundation
+
+### Completed:
+
+* implemented lifecycle transition service:
+
+  * `mark_entitlement_as_booked()`
+* implemented BOOKED transition rules:
+
+  * only AVAILABLE entitlements may transition to BOOKED
+  * BOOKED transition is idempotent
+* added booking metadata fields to `ConsultationEntitlement`:
+
+  * `booking_provider`
+  * `provider_event_uri`
+  * `provider_invitee_uri`
+  * `booked_at`
+* implemented provider booking metadata persistence
+* added lifecycle regression coverage:
+
+  * BOOKED happy path
+  * idempotent repeated booking confirmation
+  * EXPIRED entitlement rejection
+  * CANCELLED entitlement rejection
+* introduced reusable test helper:
+
+  * `create_test_consultation_entitlement()`
+* implemented provider reconciliation repository:
+
+  * `ConsultationEntitlementRepository`
+  * `get_by_provider_event_uri()`
+* added repository regression coverage:
+
+  * matching provider event lookup
+  * unknown provider event returns None
+* added unique partial index:
+
+  * `uq_consultation_entitlements_provider_event_uri`
+* enforced external reconciliation integrity:
+
+```text
+one provider event
+    ↓
+exactly one entitlement
+```
+
+### Architecture decisions:
+
+* lifecycle transitions belong to service layer, not repositories
+* booking confirmation must remain idempotent because webhook providers retry delivery
+* provider metadata persistence is optional before booking and populated only after successful booking confirmation
+* repository layer is responsible only for reconciliation lookup, not lifecycle decisions
+* `provider_event_uri` acts as external reconciliation key
+* partial unique index is required because NULL provider event URIs are valid before booking
+* tests should validate business behavior rather than internal helper implementation details
+
+### Current lifecycle state
+
+```text
+AVAILABLE
+    ↓
+BOOKED
+```
+
+Supported behaviors:
+
+* AVAILABLE → BOOKED
+* BOOKED → BOOKED (safe idempotent noop)
+* EXPIRED → BOOKED (blocked)
+* CANCELLED → BOOKED (blocked)
+
+### Current webhook readiness state
+
+The backend is now capable of:
+
+```text
+provider event
+    ↓
+repository reconciliation lookup
+    ↓
+entitlement resolution
+    ↓
+idempotent booking confirmation
+```
+
+### Current limitation
+
+* webhook endpoint not implemented yet
+* provider signature verification not implemented yet
+* Calendly payload normalization layer not implemented yet
+* booking cancellation synchronization not implemented yet
+
+---
+
 ## Sprint 24 checkpoint: consultation entitlement MVP foundation
 
 ### Completed:
@@ -1544,7 +1638,229 @@ If valid → booking UI/provider access allowed
 
 ---
 
-## Next sprint priorities (after Sprint 24)
+## Sprint 25: consultation booking lifecycle foundation
+
+### Architectural direction
+
+Sprint 25 begins transition from:
+
+```text
+entitlement validation only
+```
+
+into:
+
+```text
+full consultation booking lifecycle
+```
+
+The system must now support:
+
+* successful booking confirmation
+* irreversible booking ownership transition
+* provider metadata persistence
+* repeated booking prevention
+* future webhook-driven synchronization
+
+---
+
+### Core lifecycle rule
+
+`ConsultationEntitlement` remains the backend-owned source of truth.
+
+Booking providers (Calendly initially) may confirm bookings,
+but they must not define whether the consultation is considered booked.
+
+Correct authority:
+
+```text
+ConsultationEntitlement.status
+```
+
+not:
+
+```text
+provider booking existence
+```
+
+Reason:
+
+* provider webhook delivery may fail
+* provider events may later be deleted/cancelled
+* providers may be replaced
+* business ownership must remain internal
+
+---
+
+### Booked transition rule
+
+A consultation becomes booked only after backend confirmation.
+
+Expected future flow:
+
+```text
+available entitlement
+  ↓
+customer books slot in Calendly
+  ↓
+Calendly webhook received
+  ↓
+backend validates webhook
+  ↓
+backend updates entitlement
+  ↓
+status = booked
+```
+
+After successful transition to `booked`:
+
+* booking token becomes unusable
+* booking page access must be blocked
+* repeated booking attempts must fail
+
+---
+
+### Planned booking metadata
+
+`ConsultationEntitlement` should support provider-related metadata.
+
+Planned MVP-compatible fields:
+
+* `booking_provider`
+* `provider_event_uri`
+* `provider_invitee_uri`
+* `booked_at`
+
+Purpose:
+
+* connect backend entitlement to provider booking
+* support future admin visibility
+* support debugging/webhook reconciliation
+* support future cancellation flows
+
+Important:
+
+Provider metadata must remain optional.
+
+Reason:
+
+* entitlement may exist before booking
+* webhook may fail temporarily
+* provider integration should not block entitlement creation
+
+---
+
+### Important transition rule
+
+Booking confirmation logic must be idempotent.
+
+Example:
+
+If Calendly retries the same webhook multiple times:
+
+* backend must not create duplicate transitions
+* backend must not raise inconsistent state errors
+* backend should safely ignore already-booked entitlements
+
+This is especially important because webhook providers commonly retry delivery.
+
+---
+
+### Important architecture boundary
+
+Webhook handlers should remain thin.
+
+Recommended flow:
+
+```text
+Webhook route
+  ↓
+Webhook service
+  ↓
+Consultation entitlement service
+  ↓
+Repository/DB
+```
+
+Webhook route responsibilities:
+
+* validate provider signature
+* parse payload
+* call service
+
+Business rules must remain inside services.
+
+---
+
+### Sprint 25 implementation priorities
+
+1. booked status transition service
+2. booking confirmation persistence
+3. repeated booking prevention
+4. provider metadata model design
+5. webhook-ready service boundary
+
+---
+
+## Next sprint priorities (after Sprint 25)
+
+### 1. Webhook integration boundary
+
+* design Calendly webhook integration layer
+* implement webhook route structure
+* define webhook service orchestration
+* implement provider payload normalization
+* prepare signature verification abstraction
+* implement reconciliation flow:
+
+```text
+provider webhook
+    ↓
+provider payload normalization
+    ↓
+repository lookup
+    ↓
+entitlement resolution
+    ↓
+idempotent lifecycle transition
+```
+
+### 2. Calendly integration layer
+
+* add Calendly embed/button after successful entitlement validation
+* define provider abstraction boundary
+* prepare webhook endpoint structure
+
+### 3. Merchant of Record integration (Paddle)
+
+* create Paddle account
+* configure products and prices
+* implement checkout redirect
+* define success URL
+* plan webhook handling
+
+### 4. Sales tracking (admin)
+
+* sales list
+* filtering
+* show consultation presence
+
+### 5. Reviews UX improvements
+
+* show preview on landing
+* optional rating later
+
+### 6. Feedback tightening
+
+* enforce `product_id`
+* validate `sale_id ↔ product_id`
+
+### 7. Deployment preparation
+
+* connect domain
+* choose hosting (VPS / PaaS)
+* prepare environment variables
+* basic production setup
 
 ### 1. Consultation booking lifecycle
 

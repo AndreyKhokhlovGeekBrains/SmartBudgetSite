@@ -2,9 +2,8 @@ import enum
 import uuid
 from datetime import datetime, UTC
 
-from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql.functions import func
 
 from app.core.db import Base
 
@@ -94,6 +93,21 @@ class ConsultationEntitlement(Base):
         nullable=True,
     )
 
+    booking_provider: Mapped[str | None] = mapped_column(
+        String(50),
+        nullable=True,
+    )
+
+    provider_event_uri: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
+
+    provider_invitee_uri: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+    )
+
     sale_item = relationship(
         "SaleItem",
         back_populates="consultation_entitlement",
@@ -110,5 +124,11 @@ class ConsultationEntitlement(Base):
                 ]
             ),
             name="ck_consultation_entitlements_status",
+        ),
+        Index(
+            "uq_consultation_entitlements_provider_event_uri",
+            "provider_event_uri",
+            unique=True,
+            postgresql_where=provider_event_uri.isnot(None),
         ),
     )
