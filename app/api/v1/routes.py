@@ -21,7 +21,12 @@ from app.models.feedback_attachment import FeedbackAttachment
 from app.repositories.feedback_admin_repository import FeedbackAdminRepository
 from app.schemas.feedback_admin import FeedbackAdminListItem, FeedbackAdminDetail, FeedbackResolveUpdate
 
+from app.api.v1.webhooks import router as webhook_router
+
+
 router = APIRouter(prefix="/v1", tags=["v1"])
+
+router.include_router(webhook_router)
 
 @router.get("/health")
 def health() -> dict:

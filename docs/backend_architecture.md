@@ -1802,7 +1802,341 @@ Business rules must remain inside services.
 
 ---
 
-## Next sprint priorities (after Sprint 25)
+## Sprint 26: webhook integration boundary design
+
+### Core architectural goal
+
+Webhook processing must remain:
+
+* provider-agnostic
+* idempotent
+* replay-safe
+* isolated from HTTP transport details
+
+Calendly-specific payloads and signature formats must not leak into business lifecycle services.
+
+The webhook layer acts as a translation/reconciliation boundary between:
+
+```text
+external provider world
+    ↓
+normalized internal webhook event
+    ↓
+business lifecycle services
+```
+
+---
+
+### Recommended webhook flow
+
+Target flow:
+
+```text
+Calendly webhook request
+    ↓
+signature verification
+    ↓
+provider payload normalization
+    ↓
+normalized webhook event
+    ↓
+reconciliation lookup
+    ↓
+entitlement resolution
+    ↓
+idempotent lifecycle transition
+```
+
+Important:
+
+The webhook route itself must remain thin.
+
+---
+
+### Webhook route responsibilities
+
+Recommended route:
+
+```text
+/v1/webhooks/calendly
+```
+
+Route responsibilities only:
+
+* receive raw provider payload
+* receive provider headers/signature
+* call signature verification service
+* call payload normalization service
+* delegate orchestration to webhook service
+* return safe HTTP response
+
+The route must NOT:
+
+* contain lifecycle logic
+* directly mutate entitlement status
+* directly access repositories
+* parse Calendly payload structure inline
+
+---
+
+### Signature verification abstraction
+
+Provider signature verification must be isolated behind a dedicated abstraction.
+
+Reason:
+
+* providers use different signature schemes
+* providers retry delivery
+* verification rules evolve
+* future providers may be added later
+
+Recommended boundary:
+
+```text
+app/services/webhooks/signature_verification_service.py
+```
+
+Recommended direction:
+
+```python
+verify_webhook_signature(
+    provider: str,
+    payload: bytes,
+    headers: Mapping[str, str],
+) -> bool
+```
+
+Important:
+
+Business services should never know anything about provider signature formats.
+
+---
+
+### Payload normalization layer
+
+Provider payload normalization must convert external provider payloads into stable internal events.
+
+Reason:
+
+* external payloads are unstable
+* providers evolve schemas
+* internal lifecycle services should not depend on provider JSON structure
+* future provider replacement becomes easier
+
+Recommended boundary:
+
+```text
+app/services/webhooks/payload_normalizers/
+```
+
+Possible future implementation:
+
+```text
+calendly_payload_normalizer.py
+```
+
+Normalization target example:
+
+```python
+NormalizedBookingConfirmedEvent(
+    provider="calendly",
+    provider_event_uri="...",
+    provider_invitee_uri="...",
+    occurred_at=...,
+)
+```
+
+Important:
+
+Lifecycle services should consume normalized internal events, not raw Calendly payloads.
+
+---
+
+### Reconciliation rule
+
+Webhook reconciliation must use provider-owned external identifiers.
+
+Current reconciliation key:
+
+```text
+provider_event_uri
+```
+
+Expected flow:
+
+```text
+normalized provider event
+    ↓
+repository lookup by provider_event_uri
+    ↓
+existing entitlement found
+    ↓
+apply lifecycle transition
+```
+
+If no entitlement exists:
+
+* webhook must NOT create entitlement automatically
+* webhook should be safely rejected/logged
+
+Reason:
+
+Entitlements originate only from successful purchases.
+
+Webhook events must update existing business ownership, not create it.
+
+---
+
+### Duplicate webhook delivery handling
+
+Webhook providers retry aggressively.
+
+Therefore:
+
+* webhook processing must be replay-safe
+* lifecycle transitions must remain idempotent
+* repeated deliveries must not create inconsistent state
+
+Expected behavior:
+
+```text
+BOOKED entitlement
+    ↓
+repeated booking webhook
+    ↓
+safe noop
+```
+
+This rule already aligns with current lifecycle implementation:
+
+```text
+BOOKED → BOOKED
+```
+
+---
+
+### Important failure-handling rule
+
+Signature verification failure:
+
+* reject request immediately
+* do not process payload
+
+Normalization failure:
+
+* reject request
+* log payload safely
+
+Unknown provider event:
+
+* do not create entitlement
+* return safe handled response
+* keep webhook idempotent
+
+Important:
+
+Webhook failures must never corrupt entitlement lifecycle state.
+
+---
+
+### Architectural direction for Sprint 26
+
+Sprint 26 should focus on:
+
+1. webhook boundary architecture
+2. signature verification abstraction
+3. provider payload normalization
+4. orchestration service structure
+5. replay-safe webhook flow
+6. clean separation between:
+
+```text
+transport layer
+provider integration layer
+business lifecycle layer
+```
+
+---
+
+## Sprint 26 checkpoint: webhook integration boundary foundation
+
+### Completed:
+
+* added dedicated webhook router:
+
+  * `/v1/webhooks/calendly`
+* implemented thin webhook route boundary
+* introduced provider-agnostic normalized webhook schema:
+
+  * `NormalizedBookingConfirmedEvent`
+* implemented Calendly payload normalizer:
+
+  * `normalize_calendly_invitee_created_event()`
+* added malformed payload regression coverage
+* implemented webhook orchestration service:
+
+  * `process_calendly_webhook()`
+* introduced event routing layer:
+
+  * supported:
+
+    * `invitee.created`
+  * unsupported events safely ignored
+* implemented signature verification abstraction:
+
+  * `verify_webhook_signature()`
+* integrated verification into webhook request pipeline
+* added route/service regression coverage:
+
+  * webhook endpoint acceptance
+  * invalid signature rejection
+  * supported event routing
+  * unsupported event handling
+  * payload normalization
+  * malformed provider payload rejection
+  * provider verification handling
+
+### Architecture decisions:
+
+* webhook routes must remain thin integration boundaries
+* provider payloads must never leak directly into lifecycle services
+* normalization layer acts as anti-corruption boundary
+* orchestration layer owns provider event routing
+* unsupported provider events must fail safely
+* signature verification is infrastructure concern, not business concern
+* webhook request pipeline must reject invalid signatures before normalization or lifecycle processing
+* provider-specific JSON structure must remain isolated inside payload normalizers
+* replay-safe/idempotent architecture preparation begins before live provider integration
+
+### Current webhook request pipeline
+
+```text
+HTTP webhook
+    ↓
+signature verification
+    ↓
+webhook orchestration service
+    ↓
+event routing
+    ↓
+payload normalizer
+    ↓
+provider-agnostic internal event
+```
+
+### Current limitation
+
+* reconciliation orchestration not implemented yet
+* entitlement lookup not integrated yet
+* lifecycle transition orchestration not integrated yet
+* duplicate delivery replay handling not fully integrated yet
+* real Calendly signature verification not implemented yet
+* live Calendly webhook payload testing not implemented yet
+* webhook audit logging not implemented yet
+
+---
+
+## Next sprint priorities (after Sprint 26)
 
 ### 1. Webhook integration boundary
 
