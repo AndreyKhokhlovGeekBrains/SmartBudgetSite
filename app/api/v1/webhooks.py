@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Request, Response, status, HTTPException
+from fastapi import APIRouter, Request, Response, status, HTTPException, Depends
+from sqlalchemy.orm import Session
+from app.dependencies import get_db
 
 from app.services.webhooks.calendly_webhook_service import (
     process_calendly_webhook,
@@ -11,7 +13,10 @@ router = APIRouter(prefix="/webhooks", tags=["webhooks"])
 
 
 @router.post("/calendly")
-async def calendly_webhook(request: Request) -> Response:
+async def calendly_webhook(
+    request: Request,
+    db: Session = Depends(get_db),
+) -> Response:
     """
     Receive Calendly webhook events.
 
@@ -45,6 +50,9 @@ async def calendly_webhook(request: Request) -> Response:
 
     payload = await request.json()
 
-    process_calendly_webhook(payload)
+    process_calendly_webhook(
+        db=db,
+        payload=payload,
+    )
 
     return Response(status_code=status.HTTP_204_NO_CONTENT)

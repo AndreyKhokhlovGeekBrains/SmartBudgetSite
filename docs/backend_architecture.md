@@ -2136,102 +2136,150 @@ provider-agnostic internal event
 
 ---
 
-## Next sprint priorities (after Sprint 26)
+## Sprint 27 checkpoint: webhook reconciliation + lifecycle synchronization
 
-### 1. Webhook integration boundary
+### Completed:
 
-* design Calendly webhook integration layer
-* implement webhook route structure
-* define webhook service orchestration
-* implement provider payload normalization
-* prepare signature verification abstraction
-* implement reconciliation flow:
+* introduced webhook reconciliation orchestration boundary:
+
+  * `app/services/webhooks/reconciliation_service.py`
+  * `reconcile_booking_confirmed_event()`
+
+* integrated repository-based entitlement lookup into webhook processing:
+
+  * normalized provider event
+  * provider event URI
+  * existing consultation entitlement resolution
+
+* updated Calendly webhook orchestration service:
+
+  * `process_calendly_webhook(db, payload)`
+  * now receives DB session explicitly
+  * coordinates normalization, reconciliation, and lifecycle handoff
+
+* updated Calendly webhook route wiring:
+
+  * route receives `db: Session = Depends(get_db)`
+  * route remains thin
+  * route delegates processing to orchestration service
+
+* implemented safe missing-entitlement handling:
+
+  * webhook events must not create entitlements
+  * unknown provider events are normalized and handled safely
+  * missing reconciliation target does not corrupt lifecycle state
+
+* integrated lifecycle synchronization:
+
+  * successful reconciliation now calls `mark_entitlement_as_booked()`
+  * lifecycle mutation remains centralized in consultation entitlement service
+  * orchestration layer coordinates but does not own transition rules
+
+* implemented replay-safe webhook behavior:
+
+  * duplicate webhook delivery is idempotent
+  * repeated `invitee.created` event keeps entitlement in `BOOKED`
+  * duplicate provider delivery does not create inconsistent state
+
+* added/updated regression coverage:
+
+  * reconciliation lookup resolves existing entitlement
+  * webhook service calls reconciliation layer
+  * missing entitlement is handled safely
+  * webhook orchestration marks entitlement as booked
+  * duplicate webhook replay remains idempotent
+  * route wiring passes DB session into webhook service
+
+### Architecture decisions:
+
+* webhook orchestration owns coordination, not business lifecycle rules
+* repository layer performs lookup only and must not mutate lifecycle state
+* lifecycle transitions remain inside `consultation_entitlement_service`
+* webhook events must never create consultation entitlements
+* provider webhook delivery must be treated as replayable and unreliable
+* `provider_event_uri` remains the reconciliation key for Calendly booking confirmation
+* route-level transaction boundary is acceptable for MVP; explicit audit/transaction hardening can be added later
+* normalized internal webhook events are the contract between provider integration and business lifecycle logic
+
+### Current webhook synchronization flow
 
 ```text
-provider webhook
+HTTP webhook
     ↓
-provider payload normalization
+signature verification
     ↓
-repository lookup
+webhook orchestration service
+    ↓
+event routing
+    ↓
+payload normalization
+    ↓
+provider-agnostic internal event
+    ↓
+reconciliation orchestration
+    ↓
+repository lookup by provider_event_uri
     ↓
 entitlement resolution
     ↓
 idempotent lifecycle transition
+    ↓
+BOOKED entitlement state
 ```
 
-### 2. Calendly integration layer
+### Current limitation
+
+* real Calendly signature verification is still placeholder/abstracted
+* live Calendly payload testing not implemented yet
+* webhook audit logging not implemented yet
+* cancellation synchronization not implemented yet
+* admin visibility for consultation booking state not implemented yet
+
+---
+
+## Next sprint priorities (after Sprint 27)
+
+### 1. Calendly live integration hardening
+
+* verify real Calendly webhook payload shape
+* implement real Calendly signature verification
+* validate webhook headers and signing secret configuration
+* test live `invitee.created` delivery in development/staging
+* confirm provider event URI and invitee URI mapping
+
+### 2. Webhook audit logging
+
+* store inbound webhook delivery metadata
+* record provider, event type, provider event URI, status, and processing result
+* distinguish processed, ignored, invalid-signature, malformed, and failed events
+* support debugging duplicate delivery and partial failures
+
+### 3. Consultation admin visibility
+
+* show consultation entitlement status in admin UI
+* display sale item, customer email, booking status, provider event URI, invitee URI, and booked_at
+* add filtering for available/booked/expired/cancelled consultations
+
+### 4. Calendly booking UI integration
 
 * add Calendly embed/button after successful entitlement validation
-* define provider abstraction boundary
-* prepare webhook endpoint structure
+* keep backend entitlement validation before provider access
+* prevent showing booking UI for booked/expired/cancelled entitlements
 
-### 3. Merchant of Record integration (Paddle)
+### 5. Merchant of Record integration (Paddle)
 
 * create Paddle account
 * configure products and prices
 * implement checkout redirect
 * define success URL
-* plan webhook handling
+* plan Paddle webhook handling
 
-### 4. Sales tracking (admin)
-
-* sales list
-* filtering
-* show consultation presence
-
-### 5. Reviews UX improvements
-
-* show preview on landing
-* optional rating later
-
-### 6. Feedback tightening
-
-* enforce `product_id`
-* validate `sale_id ↔ product_id`
-
-### 7. Deployment preparation
-
-* connect domain
-* choose hosting (VPS / PaaS)
-* prepare environment variables
-* basic production setup
-
-### 1. Consultation booking lifecycle
-
-* implement booked status transition
-* design Calendly webhook update flow
-* persist booking confirmation metadata
-* prevent repeated booking after successful booking confirmation
-
-### 2. Calendly integration layer
-
-* add Calendly embed/button after successful entitlement validation
-* define provider abstraction boundary
-* prepare webhook endpoint structure
-
-### 3. Merchant of Record integration (Paddle)
-
-* create Paddle account
-* configure products and prices
-* implement checkout redirect
-* define success URL
-* plan webhook handling
-
-### 4. Sales tracking (admin)
+### 6. Sales tracking (admin)
 
 * sales list
 * filtering
-* show consultation presence
-
-### 5. Reviews UX improvements
-
-* show preview on landing
-* optional rating later
-
-### 6. Feedback tightening
-
-* enforce `product_id`
-* validate `sale_id ↔ product_id`
+* show product/service sale items
+* show consultation presence and lifecycle state
 
 ### 7. Deployment preparation
 
