@@ -233,3 +233,38 @@ def test_process_calendly_webhook_replay_is_idempotent(
     assert entitlement.provider_event_uri.endswith("REPLAY-1")
     assert entitlement.provider_invitee_uri.endswith("REPLAY-INVITEE-1")
     assert entitlement.booked_at is not None
+
+
+def test_process_calendly_webhook_logs_processed_event(db_session):
+    """
+    Test case: successful webhook processing audit logging.
+
+    What we verify:
+    - Successful webhook processing emits audit log event.
+
+    Business rule:
+    - Webhook lifecycle processing must remain observable.
+    """
+
+    payload = {
+        "event": "invitee.created",
+        "payload": {
+            "event": "https://api.calendly.com/scheduled_events/ABC",
+            "invitee": "https://api.calendly.com/invitees/XYZ",
+        },
+    }
+
+    with patch(
+        "app.services.webhooks.calendly_webhook_service.log_webhook_event"
+    ) as mocked_log:
+
+        process_calendly_webhook(
+            db=db_session,
+            payload=payload,
+        )
+
+        mocked_log.assert_called_once_with(
+            provider="calendly",
+            event_type="invitee.created",
+            status="processed",
+        )

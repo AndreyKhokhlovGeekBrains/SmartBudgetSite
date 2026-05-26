@@ -10,6 +10,9 @@ from app.services.webhooks.reconciliation_service import (
 from app.services.consultation_entitlement_service import (
     mark_entitlement_as_booked,
 )
+from app.services.webhooks.webhook_audit_logger import (
+    log_webhook_event,
+)
 
 
 def process_calendly_webhook(
@@ -36,6 +39,12 @@ def process_calendly_webhook(
 
     if event_type == "invitee.created":
         normalized_event = normalize_calendly_invitee_created_event(payload)
+
+        log_webhook_event(
+            provider="calendly",
+            event_type=event_type,
+            status="processed",
+        )
 
         resolved_entitlement = reconcile_booking_confirmed_event(
             db=db,

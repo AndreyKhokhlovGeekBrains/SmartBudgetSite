@@ -1,4 +1,6 @@
 import pytest
+import json
+from pathlib import Path
 
 from app.services.webhooks.payload_normalizers.calendly_payload_normalizer import (
     normalize_calendly_invitee_created_event,
@@ -7,28 +9,18 @@ from app.services.webhooks.payload_normalizers.calendly_payload_normalizer impor
 
 def test_normalize_calendly_invitee_created_event():
     """
-    Test case: Calendly payload normalization
-
-    What we verify:
-    - Calendly payload is converted into provider-agnostic event.
-    - Required provider identifiers are extracted correctly.
-    - Provider name is normalized consistently.
-
-    Business rule:
-    - Internal lifecycle services must consume normalized events,
-      not raw Calendly payloads.
+    Test case: Calendly payload normalization from fixture.
     """
 
-    payload = {
-        "payload": {
-            "event": {
-                "uri": "https://api.calendly.com/scheduled_events/ABC",
-            },
-            "invitee": {
-                "uri": "https://api.calendly.com/invitees/XYZ",
-            },
-        },
-    }
+    fixture_path = (
+            Path(__file__).parent.parent.parent
+            / "fixtures"
+            / "calendly"
+            / "invitee_created_real_sample.json"
+    )
+
+    with open(fixture_path, "r", encoding="utf-8") as f:
+        payload = json.load(f)
 
     normalized = normalize_calendly_invitee_created_event(payload)
 
@@ -36,12 +28,12 @@ def test_normalize_calendly_invitee_created_event():
 
     assert (
         normalized.provider_event_uri
-        == "https://api.calendly.com/scheduled_events/ABC"
+        == "https://api.calendly.com/scheduled_events/EVENT_UUID"
     )
 
     assert (
         normalized.provider_invitee_uri
-        == "https://api.calendly.com/invitees/XYZ"
+        == "https://api.calendly.com/scheduled_events/EVENT_UUID/invitees/INVITEE_UUID"
     )
 
 
@@ -68,3 +60,36 @@ def test_normalize_calendly_invitee_created_event_missing_event_uri():
 
     with pytest.raises(KeyError):
         normalize_calendly_invitee_created_event(payload)
+
+
+def test_normalize_calendly_invitee_created_event_accepts_string_uri_shape():
+    """
+    Test case: Calendly payload with direct string URI fields.
+
+    What we verify:
+    - Normalizer supports provider payloads where URI fields
+      are delivered as plain strings.
+
+    Business rule:
+    - Webhook normalization must tolerate provider payload
+      shape variations without breaking lifecycle processing.
+    """
+
+    payload = {
+        "payload": {
+            "event": "https://api.calendly.com/scheduled_events/ABC",
+            "invitee": "https://api.calendly.com/invitees/XYZ",
+        },
+    }
+
+    normalized = normalize_calendly_invitee_created_event(payload)
+
+    assert (
+        normalized.provider_event_uri
+        == "https://api.calendly.com/scheduled_events/ABC"
+    )
+
+    assert (
+        normalized.provider_invitee_uri
+        == "https://api.calendly.com/invitees/XYZ"
+    )

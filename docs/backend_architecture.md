@@ -2136,6 +2136,119 @@ provider-agnostic internal event
 
 ---
 
+## Sprint 28 checkpoint: Calendly live integration hardening
+
+### Completed:
+
+* implemented real Calendly HMAC signature verification
+
+  * cryptographic verification using:
+
+    * timestamp
+    * raw payload bytes
+    * HMAC SHA256
+
+* replaced placeholder/fail-open verification behavior:
+
+  * unsigned requests are now rejected
+  * invalid signatures are rejected
+  * unknown providers fail closed
+
+* introduced Calendly signature parsing helpers:
+
+  * `_verify_calendly_signature()`
+  * `_parse_calendly_signature_header()`
+
+* implemented route-level signature enforcement:
+
+  * webhook processing now blocked before orchestration on invalid signature
+
+* added fixture-based webhook payload testing:
+
+  * `tests/fixtures/calendly/invitee_created_real_sample.json`
+
+* hardened Calendly payload normalization:
+
+  * supports both:
+
+    * object URI payload shape
+    * direct string URI payload shape
+
+* introduced reusable URI extraction helper:
+
+  * `_extract_uri()`
+
+* implemented centralized webhook observability boundary:
+
+  * `webhook_audit_logger.py`
+  * `log_webhook_event()`
+
+* integrated audit logging into successful webhook processing flow
+
+* added extensive regression coverage:
+
+  * missing signature rejection
+  * unsupported provider rejection
+  * valid HMAC acceptance
+  * invalid HMAC rejection
+  * route-level unsigned request rejection
+  * orchestration not called on failed verification
+  * dual-shape payload normalization
+  * fixture-based payload normalization
+  * webhook audit logging invocation
+  * consolidated webhook pipeline verification
+
+### Architecture decisions:
+
+* webhook verification must fail closed
+* provider verification belongs to infrastructure layer, not business lifecycle services
+* webhook signature verification must use raw payload bytes
+* payload normalization layer must tolerate provider payload shape variations
+* observability must remain centralized and separated from orchestration logic
+* webhook processing audit logs must not contain signing secrets
+* successful webhook processing should emit structured audit events
+* integration-style tests should use realistic provider payloads and signatures
+
+### Current webhook request pipeline
+
+```text
+HTTP webhook
+    ↓
+real HMAC signature verification
+    ↓
+webhook orchestration service
+    ↓
+event routing
+    ↓
+payload normalization
+    ↓
+provider-agnostic internal event
+    ↓
+reconciliation orchestration
+    ↓
+repository lookup by provider_event_uri
+    ↓
+entitlement resolution
+    ↓
+idempotent lifecycle transition
+    ↓
+BOOKED entitlement state
+    ↓
+centralized audit logging
+```
+
+### Current limitation
+
+* malformed signature header hardening not fully implemented yet
+* malformed payload observability not implemented yet
+* webhook rejection audit logging not implemented yet
+* unsupported-event observability not implemented yet
+* reconciliation mismatch audit logging not implemented yet
+* cancellation synchronization not implemented yet
+* admin visibility for consultation booking state not implemented yet
+
+---
+
 ## Sprint 27 checkpoint: webhook reconciliation + lifecycle synchronization
 
 ### Completed:
@@ -2237,22 +2350,25 @@ BOOKED entitlement state
 
 ---
 
-## Next sprint priorities (after Sprint 27)
+## Next sprint priorities (after Sprint 28)
 
-### 1. Calendly live integration hardening
+### 1. Webhook resilience + rejection hardening
 
-* verify real Calendly webhook payload shape
-* implement real Calendly signature verification
-* validate webhook headers and signing secret configuration
-* test live `invitee.created` delivery in development/staging
-* confirm provider event URI and invitee URI mapping
+* malformed Calendly signature header handling
+* malformed payload rejection hardening
+* unsupported event observability
+* reconciliation mismatch audit logging
+* webhook rejection audit logging
+* retry/replay diagnostics preparation
+* structured failure-path observability
 
-### 2. Webhook audit logging
+### 2. Calendly live integration validation
 
-* store inbound webhook delivery metadata
-* record provider, event type, provider event URI, status, and processing result
-* distinguish processed, ignored, invalid-signature, malformed, and failed events
-* support debugging duplicate delivery and partial failures
+* validate live Calendly webhook delivery in development/staging
+* verify real production payload shape
+* validate real signing secret configuration flow
+* confirm provider event URI consistency
+* validate replay behavior from real provider delivery
 
 ### 3. Consultation admin visibility
 
