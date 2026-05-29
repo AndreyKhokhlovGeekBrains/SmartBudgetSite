@@ -3,6 +3,7 @@ import hmac
 import json
 
 from unittest.mock import patch
+from datetime import datetime, timezone
 
 
 def _build_calendly_signature_header(
@@ -125,3 +126,115 @@ def test_calendly_webhook_rejects_unsigned_request(client):
         assert response.status_code == 401
 
         mocked_process.assert_not_called()
+
+
+def test_calendly_webhook_rejects_malformed_signature_header(
+    client,
+    monkeypatch,
+):
+    """
+    Malformed Calendly signature headers must be rejected.
+
+    This protects the webhook boundary from accepting headers that
+    cannot be parsed into timestamp/signature components.
+    """
+
+    monkeypatch.setenv("CALENDLY_WEBHOOK_SIGNING_KEY", "test-secret")
+
+    payload = {
+        "event": "invitee.created",
+        "payload": {
+            "event": "https://api.calendly.com/scheduled_events/test-event",
+            "invitee": "https://api.calendly.com/scheduled_events/test-event/invitees/test-invitee",
+        },
+    }
+
+    response = client.post(
+        "/v1/webhooks/calendly",
+        json=payload,
+        headers={
+            "Calendly-Webhook-Signature": "not-a-valid-signature-header",
+        },
+    )
+
+    assert response.status_code == 401
+
+
+def test_calendly_webhook_logs_signature_rejection(
+    client,
+    monkeypatch,
+):
+    """
+    Invalid webhook signatures must emit rejection audit logs.
+    """
+
+    monkeypatch.setenv("CALENDLY_WEBHOOK_SIGNING_KEY", "test-secret")
+
+    payload = {
+        "event": "invitee.created",
+        "payload": {
+            "event": "https://api.calendly.com/scheduled_events/test-event",
+            "invitee": "https://api.calendly.com/invitees/test-invitee",
+        },
+    }
+
+    with patch("app.api.v1.webhooks.log_webhook_event") as mocked_logger:
+        response = client.post(
+            "/v1/webhooks/calendly",
+            json=payload,
+            headers={
+                "Calendly-Webhook-Signature": "malformed-header",
+            },
+        )
+
+    assert response.status_code == 401
+
+    mocked_logger.assert_called_once_with(
+        provider="calendly",
+        event_type="signature_verification",
+        status="rejected",
+    )
+
+
+def test_calendly_webhook_logs_malformed_json_rejection(
+    client,
+    monkeypatch,
+):
+    """
+    Malformed JSON webhook payloads must be logged and rejected.
+
+    This covers request-level parsing failures before the webhook
+    orchestration service is reached.
+    """
+
+    monkeypatch.setenv(
+        "CALENDLY_WEBHOOK_SIGNING_KEY",
+        "test-secret",
+    )
+
+    raw_payload = b"{invalid-json"
+
+    signature_header = _build_calendly_signature_header(
+        payload=raw_payload,
+        signing_secret="test-secret",
+        timestamp=str(int(datetime.now(timezone.utc).timestamp())),
+    )
+
+    with patch("app.api.v1.webhooks.log_webhook_event") as mocked_logger:
+        response = client.post(
+            "/v1/webhooks/calendly",
+            content=raw_payload,
+            headers={
+                "Content-Type": "application/json",
+                "Calendly-Webhook-Signature": signature_header,
+                "Calendly-Webhook-Signing-Secret": "test-secret",
+            },
+        )
+
+    assert response.status_code == 400
+
+    mocked_logger.assert_called_once_with(
+        provider="calendly",
+        event_type="json_parse",
+        status="malformed_payload",
+    )

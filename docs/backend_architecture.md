@@ -2406,6 +2406,177 @@ BOOKED entitlement state
 
 ---
 
+## Sprint 29 checkpoint: webhook resilience + rejection hardening
+
+### Completed:
+
+* implemented malformed Calendly signature header rejection hardening
+
+  * malformed signature headers now fail closed
+  * malformed signature parsing safely rejects webhook requests
+
+* implemented webhook rejection audit logging
+
+  * invalid signature rejection now emits structured audit event
+  * route-level rejection observability added
+
+* implemented unsupported-event observability
+
+  * unsupported provider events are now logged with:
+
+    * `status = ignored`
+
+* implemented reconciliation mismatch audit logging
+
+  * valid normalized webhook events without matching entitlement now emit:
+
+    * `status = reconciliation_mismatch`
+
+* implemented malformed payload observability
+
+  * malformed supported provider payloads now emit:
+
+    * `status = malformed_payload`
+
+  before exception propagation
+
+* implemented route-level malformed JSON observability
+
+  * malformed JSON requests are now:
+
+    * logged
+    * rejected with HTTP 400
+
+* introduced centralized webhook audit status constants:
+
+  * `webhook_audit_statuses.py`
+
+* migrated route-level and service-level webhook audit statuses to centralized constants
+
+* added/updated regression coverage:
+
+  * malformed signature header rejection
+  * rejection audit logging
+  * unsupported-event observability
+  * reconciliation mismatch logging
+  * malformed provider payload logging
+  * malformed JSON rejection logging
+  * centralized audit status integration stability
+
+### Architecture decisions:
+
+* failure-path observability is now considered part of webhook infrastructure architecture
+* malformed provider payloads must remain visible operationally even when request processing fails
+* malformed JSON rejection belongs to route-level transport boundary, not orchestration layer
+* unsupported provider events must fail safely and remain observable
+* reconciliation mismatches are operational integration events, not business lifecycle failures
+* audit status values should remain centralized to avoid semantic drift and typo-based inconsistencies
+* webhook observability must remain structured, provider-aware, and independent from lifecycle business logic
+* webhook processing should remain fail-closed while still preserving diagnostics visibility
+
+### Updated webhook request pipeline
+
+```text
+HTTP webhook
+    ↓
+real HMAC signature verification
+    ↓
+rejection audit logging
+    ↓
+malformed JSON protection
+    ↓
+webhook orchestration service
+    ↓
+event routing
+    ↓
+unsupported-event observability
+    ↓
+payload normalization
+    ↓
+malformed payload observability
+    ↓
+provider-agnostic internal event
+    ↓
+reconciliation orchestration
+    ↓
+repository lookup by provider_event_uri
+    ↓
+reconciliation mismatch observability
+    ↓
+entitlement resolution
+    ↓
+idempotent lifecycle transition
+    ↓
+BOOKED entitlement state
+    ↓
+centralized audit logging
+```
+
+### Current limitation
+
+* retry/replay diagnostics not implemented yet
+* webhook delivery attempt correlation not implemented yet
+* provider timestamp freshness validation not implemented yet
+* cancellation synchronization not implemented yet
+* admin visibility for consultation booking state not implemented yet
+* structured audit persistence/storage not implemented yet
+* webhook metrics/monitoring integration not implemented yet
+
+---
+
+## Next sprint priorities (after Sprint 29)
+
+### 1. Retry/replay diagnostics hardening
+
+* provider timestamp freshness validation
+* replay-window validation
+* webhook delivery correlation diagnostics
+* structured replay/retry observability
+* duplicate delivery diagnostics enrichment
+
+### 2. Calendly live integration validation
+
+* validate live Calendly webhook delivery in development/staging
+* verify real production payload shape
+* validate real signing secret configuration flow
+* confirm provider event URI consistency
+* validate replay behavior from real provider delivery
+
+### 3. Consultation admin visibility
+
+* show consultation entitlement status in admin UI
+* display sale item, customer email, booking status, provider event URI, invitee URI, and booked_at
+* add filtering for available/booked/expired/cancelled consultations
+
+### 4. Calendly booking UI integration
+
+* add Calendly embed/button after successful entitlement validation
+* keep backend entitlement validation before provider access
+* prevent showing booking UI for booked/expired/cancelled entitlements
+
+### 5. Merchant of Record integration (Paddle)
+
+* create Paddle account
+* configure products and prices
+* implement checkout redirect
+* define success URL
+* plan Paddle webhook handling
+
+### 6. Sales tracking (admin)
+
+* sales list
+* filtering
+* show product/service sale items
+* show consultation presence and lifecycle state
+
+### 7. Deployment preparation
+
+* connect domain
+* choose hosting (VPS / PaaS)
+* prepare environment variables
+* basic production setup
+
+
 ## Product categorical fields design note
 
 Use string + allowed sets:

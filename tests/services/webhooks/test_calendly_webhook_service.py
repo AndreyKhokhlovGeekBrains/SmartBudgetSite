@@ -263,8 +263,106 @@ def test_process_calendly_webhook_logs_processed_event(db_session):
             payload=payload,
         )
 
-        mocked_log.assert_called_once_with(
+        mocked_log.assert_any_call(
             provider="calendly",
             event_type="invitee.created",
             status="processed",
         )
+
+
+def test_process_calendly_webhook_logs_unsupported_event(db_session):
+    """
+    Unsupported Calendly events must be ignored safely
+    and logged for operational diagnostics.
+    """
+
+    payload = {
+        "event": "invitee.canceled",
+        "payload": {},
+    }
+
+    with patch(
+        "app.services.webhooks.calendly_webhook_service.log_webhook_event"
+    ) as mocked_logger:
+        result = process_calendly_webhook(
+            db=db_session,
+            payload=payload,
+        )
+
+    assert result is None
+
+    mocked_logger.assert_called_once_with(
+        provider="calendly",
+        event_type="invitee.canceled",
+        status="ignored",
+    )
+
+
+def test_process_calendly_webhook_logs_reconciliation_mismatch(
+    db_session,
+):
+    """
+    If a supported Calendly event is valid but no entitlement is found,
+    the mismatch must be logged for operational diagnostics.
+    """
+
+    payload = {
+        "event": "invitee.created",
+        "payload": {
+            "event": "https://api.calendly.com/scheduled_events/unknown-event",
+            "invitee": "https://api.calendly.com/scheduled_events/unknown-event/invitees/unknown-invitee",
+        },
+    }
+
+    with patch(
+        "app.services.webhooks.calendly_webhook_service.log_webhook_event"
+    ) as mocked_logger:
+        result = process_calendly_webhook(
+            db=db_session,
+            payload=payload,
+        )
+
+    assert result is not None
+
+    mocked_logger.assert_any_call(
+        provider="calendly",
+        event_type="invitee.created",
+        status="processed",
+    )
+
+    mocked_logger.assert_any_call(
+        provider="calendly",
+        event_type="invitee.created",
+        status="reconciliation_mismatch",
+    )
+
+
+def test_process_calendly_webhook_logs_malformed_payload(db_session):
+    """
+    Malformed supported Calendly payloads must be logged before rejection.
+
+    This protects diagnostics when provider payload shape changes
+    or webhook delivery sends incomplete data.
+    """
+
+    payload = {
+        "event": "invitee.created",
+        "payload": {},
+    }
+
+    with patch(
+        "app.services.webhooks.calendly_webhook_service.log_webhook_event"
+    ) as mocked_logger:
+        try:
+            process_calendly_webhook(
+                db=db_session,
+                payload=payload,
+            )
+        except KeyError:
+            pass
+
+    mocked_logger.assert_called_once_with(
+        provider="calendly",
+        event_type="invitee.created",
+        status="malformed_payload",
+    )
