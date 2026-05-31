@@ -134,6 +134,12 @@ def get_valid_consultation_entitlement_by_token(
             detail="Consultation booking link was not found.",
         )
 
+    if entitlement.status == ConsultationEntitlementStatus.BOOKED.value:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This consultation has already been booked.",
+        )
+
     if entitlement.status != ConsultationEntitlementStatus.AVAILABLE.value:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

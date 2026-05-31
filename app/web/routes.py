@@ -9,6 +9,7 @@ from app.dependencies import get_db, require_admin
 from app.repositories.feedback_admin_repository import FeedbackAdminRepository
 from app.repositories.products_repository import ProductsRepository
 from app.repositories.service_addon_repository import ServiceAddonRepository
+from app.services.admin_consultation_service import get_consultation_entitlements
 from app.services.feedback_service import (
     send_feedback_reply,
     toggle_feedback_publish,
@@ -734,10 +735,52 @@ def consultation_booking_page(
         booking_token=booking_token,
     )
 
-    return render(
-        request,
-        "consultation_booking.html",
-        {
+    lang = get_lang(request)
+
+    masked_token = f"{booking_token[:8]}..."
+
+    return templates.TemplateResponse(
+        request=request,
+        name="consultation_booking.html",
+        context={
             "entitlement": entitlement,
+            "calendly_consultation_url": settings.CALENDLY_CONSULTATION_URL,
+            "lang": lang,
+            "t": lambda key: t(lang, key),
+            "masked_token": masked_token,
+        },
+    )
+
+
+@router.get("/admin/consultations")
+def admin_consultations_page(
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Render consultation entitlement admin page.
+
+    Business rules:
+    - Admin visibility is read-only.
+    - Consultation lifecycle must remain observable operationally.
+
+    Side effects:
+    - Executes read queries only.
+
+    Invariants/restrictions:
+    - Does not mutate entitlement state.
+    """
+
+    entitlements = get_consultation_entitlements(db=db)
+
+    lang = get_lang(request)
+
+    return templates.TemplateResponse(
+        request=request,
+        name="admin_consultations.html",
+        context={
+            "entitlements": entitlements,
+            "lang": lang,
+            "t": lambda key: t(lang, key),
         },
     )

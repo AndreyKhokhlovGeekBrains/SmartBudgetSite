@@ -241,6 +241,19 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "product.package_int_hint": "English version of the product. Payments in EUR with international cards.",
         "product.recommended": "Recommended",
 
+        "consultation_booking_title": "Book your consultation",
+        "consultation_booking_intro": (
+                "Your consultation access is active. "
+                "Please use the button below to schedule your session."
+            ),
+        "consultation_booking_status": "Status",
+        "consultation_booking_expires_at": "Booking access expires at",
+        "consultation_book_button": "Schedule consultation",
+        "consultation_booking_unavailable": (
+                "Consultation booking is temporarily unavailable. "
+                "Please contact support."
+            ),
+
     },
     "ru": {
         "brand_name": "Андрей Хохлов",
@@ -474,6 +487,18 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
         "product.package_int_hint": "Версия на английском языке. Оплата в евро и международные карты.",
         "product.recommended": "Рекомендуем",
 
+        "consultation_booking_title": "Запись на консультацию",
+        "consultation_booking_intro": (
+                "Доступ к консультации активен. "
+                "Используйте кнопку ниже, чтобы выбрать удобное время."
+            ),
+        "consultation_booking_status": "Статус",
+        "consultation_booking_expires_at": "Доступ к записи действует до",
+        "consultation_book_button": "Выбрать время консультации",
+        "consultation_booking_unavailable": (
+                "Запись на консультацию временно недоступна. "
+                "Пожалуйста, свяжитесь с поддержкой."
+            ),
 
     },
 }

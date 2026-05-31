@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/admin_products.css') }}">
+{% endblock %}
+
+{% block title %}Admin consultations{% endblock %}
+
+{% block content %}
+<section class="container">
+    <h1>Consultation entitlements</h1>
+
+    {% if entitlements %}
+        <div class="admin-table-wrapper">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Expires</th>
+                    <th>Provider</th>
+                    <th>Event URI</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for entitlement in entitlements %}
+                    <tr>
+                        <td>{{ entitlement.status }}</td>
+
+                        <td>
+                            {{ entitlement.created_at }}
+                        </td>
+
+                        <td>
+                            {{ entitlement.expires_at }}
+                        </td>
+
+                        <td>
+                            {{ entitlement.provider_event_uri or "-" }}
+                        </td>
+
+                        <td>
+                            {{ entitlement.booking_provider or "-" }}
+                        </td>
+
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    {% else %}
+        <p>No consultation entitlements found.</p>
+    {% endif %}
+</section>
+{% endblock %}

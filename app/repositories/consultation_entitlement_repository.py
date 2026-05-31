@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from typing import cast
 
 from app.models.consultation_entitlement import ConsultationEntitlement
 
@@ -44,4 +45,30 @@ class ConsultationEntitlementRepository:
                 ConsultationEntitlement.provider_event_uri == provider_event_uri,
             )
             .one_or_none()
+        )
+
+    @staticmethod
+    def get_all_with_sale_data(
+            db: Session,
+    ) -> list[ConsultationEntitlement]:
+        """
+        Load consultation entitlements with related sale data.
+
+        Business rules:
+        - Used for admin visibility and operational support.
+        - Includes related SaleItem and Sale relations.
+
+        Side effects:
+        - Executes read query with eager loading.
+
+        Invariants/restrictions:
+        - Does not mutate lifecycle state.
+        - Does not apply business filtering.
+        """
+
+        return cast(
+            list[ConsultationEntitlement],
+            db.query(ConsultationEntitlement)
+            .order_by(ConsultationEntitlement.created_at.desc())
+            .all(),
         )

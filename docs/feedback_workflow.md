@@ -1,3 +1,11 @@
+## Document role
+
+This document describes feedback/reviews workflow semantics and business rules.
+
+Current implementation architecture, sprint continuity, and active development priorities are maintained in:
+
+- docs/backend_architecture.md
+
 # Feedback Workflow
 
 ## Scope
@@ -200,89 +208,6 @@ Admin UI is **not an email client**.
 - admin sends first reply
 - дальнейшее общение → email
 - no thread management in admin
-
----
-
-## Next implementation priorities
-
-### 1. Product model redesign
-
-- product = SKU
-- SmartBudget RU
-- SmartBudget INT
-- each = archive (Excel + PDF)
-
----
-
-### 2. Product pricing architecture
-
-- remove raw `price`
-- introduce currency-aware model
-
-Initial:
-- RU → RUB
-- INT → EUR
-
-Future:
-- USD without redesign
-
----
-
-### 3. Merchant of Record
-
-- evaluate MoR-first approach
-- keep model provider-agnostic
-
----
-
-### 4. Admin product management
-
-- `/admin/products` = main UI
-- implement Edit after redesign
-
----
-
-### 5. Sales management
-
-- sales list
-- filtering
-- validation
-
----
-
-### 6. Reviews UX
-
-- preview on landing
-- improve UI
-
----
-
-### 7. Feedback tightening
-
-- require `product_id`
-- validate `sale_id ↔ product_id`
-
----
-
-## Product Q&A (`product_qna`)
-
-**Purpose:**
-- curated FAQ
-
-**Source:**
-- derived from feedback
-
-**Workflow:**
-1. user sends feedback
-2. admin reviews
-3. if useful:
-   - rewrite question
-   - write answer
-4. publish as Q&A
-
-**Difference:**
-- Q&A = short answers
-- articles = separate feature
 
 ---
 

@@ -2526,15 +2526,50 @@ centralized audit logging
 
 ## Next sprint priorities (after Sprint 29)
 
-### 1. Retry/replay diagnostics hardening
+### Architectural direction change
 
-* provider timestamp freshness validation
-* replay-window validation
-* webhook delivery correlation diagnostics
-* structured replay/retry observability
-* duplicate delivery diagnostics enrichment
+Webhook infrastructure is now considered production-safe enough for MVP.
 
-### 2. Calendly live integration validation
+Future webhook hardening remains important, but it is no longer the primary delivery focus.
+
+The project priority now shifts back toward:
+
+* user-facing booking flow
+* real end-to-end consultation experience
+* admin visibility
+* payment integration
+* deployment preparation
+
+The goal is to avoid endless infrastructure polishing before real product validation.
+
+---
+
+### 1. Calendly booking UI integration
+
+* add Calendly embed/button after successful entitlement validation
+* keep backend entitlement validation before provider access
+* prevent showing booking UI for booked/expired/cancelled entitlements
+* validate first end-to-end consultation booking flow
+
+### 2. Consultation admin visibility
+
+* show consultation entitlement status in admin UI
+* display:
+
+  * sale item
+  * customer email
+  * booking status
+  * provider event URI
+  * invitee URI
+  * booked_at
+* add filtering for:
+
+  * available
+  * booked
+  * expired
+  * cancelled
+
+### 3. Calendly live integration validation
 
 * validate live Calendly webhook delivery in development/staging
 * verify real production payload shape
@@ -2542,19 +2577,7 @@ centralized audit logging
 * confirm provider event URI consistency
 * validate replay behavior from real provider delivery
 
-### 3. Consultation admin visibility
-
-* show consultation entitlement status in admin UI
-* display sale item, customer email, booking status, provider event URI, invitee URI, and booked_at
-* add filtering for available/booked/expired/cancelled consultations
-
-### 4. Calendly booking UI integration
-
-* add Calendly embed/button after successful entitlement validation
-* keep backend entitlement validation before provider access
-* prevent showing booking UI for booked/expired/cancelled entitlements
-
-### 5. Merchant of Record integration (Paddle)
+### 4. Merchant of Record integration (Paddle)
 
 * create Paddle account
 * configure products and prices
@@ -2562,106 +2585,231 @@ centralized audit logging
 * define success URL
 * plan Paddle webhook handling
 
-### 6. Sales tracking (admin)
+### 5. Sales tracking (admin)
 
 * sales list
 * filtering
 * show product/service sale items
 * show consultation presence and lifecycle state
 
-### 7. Deployment preparation
+### 6. Deployment preparation
 
 * connect domain
 * choose hosting (VPS / PaaS)
 * prepare environment variables
 * basic production setup
 
+---
 
-## Product categorical fields design note
+## Future webhook operational hardening
 
-Use string + allowed sets:
+The following items remain intentionally postponed until after the first real end-to-end integration validation:
 
-* edition: {"Standard", "Pro"}
-* status: {"in_sale", "in_development", "discontinued"}
-
-### Reason:
-
-* simple
-* no migrations
-* controlled via UI
+* provider timestamp freshness validation
+* replay-window validation
+* webhook delivery correlation diagnostics
+* structured replay/retry observability
+* duplicate delivery diagnostics enrichment
+* webhook metrics/monitoring integration
+* structured audit persistence/storage
 
 ---
 
-## Admin UI access design note
+## Sprint 30 checkpoint: booking flow MVP + consultation admin visibility
 
-### Current:
+### Completed
 
-* admin authentication implemented via cookie-based token (`admin_token`)
-* admin routes are protected using `require_admin` dependency at router level
-* admin routes are not exposed via public navigation
+#### Calendly booking page MVP integration
 
-### Rule:
+* added backend-controlled consultation booking page:
 
-* admin access must always require authentication
-* admin links must not be visible to public users
+  * `/consultation/book/{booking_token}`
 
-### Future:
+* implemented backend-owned entitlement validation before provider access
 
-* consider role-based access if multiple admins are introduced
-* optional: replace token with more robust auth if needed
+* booking page now renders only after successful entitlement validation
+
+* added config-driven Calendly integration:
+
+  * `CALENDLY_CONSULTATION_URL`
+
+* added booking button integration:
+
+  * provider access remains controlled by backend validation
+  * Calendly URL injected via config
+  * provider logic remains outside business lifecycle layer
+
+* implemented safe provider misconfiguration fallback UX:
+
+  * if Calendly URL is missing, user sees deterministic fallback message
+  * avoids silent broken booking state
+
+---
+
+#### Booking page UX improvements
+
+* migrated booking page texts to i18n system
+
+* added localized booking flow keys:
+
+  * `consultation_booking_title`
+  * `consultation_booking_intro`
+  * `consultation_booking_status`
+  * `consultation_booking_expires_at`
+  * `consultation_book_button`
+  * `consultation_booking_unavailable`
+
+* added masked diagnostic booking reference:
+
+  * `masked_token`
+  * displayed as short support/debug reference
+  * avoids leaking full booking token
 
 ---
 
-## Product family / purchase options note
+#### Booking flow hardening
 
-Current `products` table represents sellable SKUs.
+* implemented BOOKED-specific rejection message:
 
-Examples:
+  * `"This consultation has already been booked."`
 
-* smartbudget-ru-standard
-* smartbudget-ru-pro
-* smartbudget-int-standard
-* smartbudget-int-pro
+* preserved generic rejection for other invalid states
 
-For purchase option pages, products must be grouped by product family.
+* added regression coverage for:
 
-Example flow:
-
-* landing page: `/products/smartbudget`
-* purchase options page: `/products/smartbudget/buy`
-* checkout page: `/checkout/{product_slug}`
-
-Important:
-The purchase options page must NOT show all products from the `products` table.
-It should show only SKUs that belong to the selected product family.
-
-Reason:
-In the future, the site may sell other products, such as:
-
-* books
-* templates
-* consultations
-* other digital products
-
-Possible implementation options:
-
-* add `family_slug` to `products`
-* or introduce a separate `product_families` table
-
-MVP direction:
-Use `family_slug` on `products` first, because it is simple and enough for grouping SKUs.
-A separate `product_families` table can be introduced later if product-family metadata becomes necessary.
-
-### Important:
-
-* SmartBudget RU and SmartBudget INT = separate SKUs
-* each has:
-
-  * its own archive
-  * its own lifecycle
-
-### Implication:
-
-* product = sellable package, not abstract concept
+  * booking page rendering
+  * Calendly URL injection
+  * booking button rendering
+  * masked token rendering
+  * prevention of full token leakage
+  * BOOKED entitlement rejection messaging
+  * booking fallback UX
 
 ---
+
+#### Consultation admin visibility foundation
+
+* added repository query:
+
+  * `get_all_with_sale_data`
+
+* added admin service boundary:
+
+  * `get_consultation_entitlements`
+
+* added admin consultations route:
+
+  * `/admin/consultations`
+
+* added first admin consultations template:
+
+  * `admin_consultations.html`
+
+* implemented first operational consultation visibility table
+
+* added responsive-safe admin table wrapper
+
+* added admin consultation table styling:
+
+  * readable spacing
+  * row separation
+  * responsive horizontal overflow handling
+
+* created first real development consultation entitlement generator:
+
+  * `scripts/create_dev_consultation_entitlement.py`
+
+* validated real end-to-end admin visibility flow using live dev data
+
+---
+
+### Architecture decisions
+
+* booking provider access must remain backend-controlled
+* provider URLs must remain config-driven
+* booking lifecycle ownership remains inside SmartBudgetSite backend
+* booking page UX must remain deterministic even under provider misconfiguration
+* support diagnostics should expose masked references only
+* admin consultation visibility is operational infrastructure, not customer-facing UI
+* operational admin pages should prioritize readability and support workflows over visual polish
+* development operational tooling belongs in `/scripts`, not inside `/app`
+
+---
+
+### Current admin consultations page
+
+Current operational visibility includes:
+
+* status
+* created_at
+* expires_at
+* booking_provider
+* provider_event_uri
+
+Current implementation intentionally excludes:
+
+* filtering
+* pagination
+* clickable provider links
+* customer email
+* booked_at
+* lifecycle mutation controls
+* admin auth hardening
+
+---
+
+### Current limitations
+
+* admin filtering not implemented yet
+* customer email visibility not implemented yet
+* booked_at visibility not implemented yet
+* provider link rendering not implemented yet
+* status badges/colors not implemented yet
+* admin authentication still minimal
+* consultation cancellation synchronization not implemented yet
+* provider timestamp freshness validation still postponed
+* replay-window validation still postponed
+* structured webhook audit persistence still postponed
+
+---
+
+## Next sprint priorities (after Sprint 30)
+
+### 1. Consultation admin usability improvements
+
+* add customer email column
+* add booked_at column
+* add status filtering
+* add clickable provider event links
+* add basic status color badges
+* improve datetime formatting
+
+### 2. Admin operational hardening
+
+* improve admin authentication strategy
+* evaluate admin route protection consistency
+* add operational support tooling
+* prepare future pagination/search support
+
+### 3. Real Calendly integration validation
+
+* validate real provider event URI behavior
+* validate real webhook lifecycle transitions
+* validate replay behavior from live provider deliveries
+* verify provider booking/cancellation edge cases
+
+### 4. Merchant of Record integration (Paddle)
+
+* create Paddle account
+* configure products/prices
+* implement checkout redirect flow
+* define payment success lifecycle
+* prepare Paddle webhook architecture
+
+### 5. Deployment preparation
+
+* production environment variable setup
+* hosting selection
+* domain integration
+* production startup validation
+* operational logging review

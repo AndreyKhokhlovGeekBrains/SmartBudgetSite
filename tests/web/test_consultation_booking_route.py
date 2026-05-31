@@ -7,7 +7,7 @@ from app.services.consultation_entitlement_service import (
 from app.services.sale_service import create_standalone_service_sale
 
 
-def test_consultation_booking_page_opens_with_valid_token(client, db_session):
+def test_consultation_booking_page_opens_with_valid_token(client, db_session, monkeypatch):
     """
     Test case: open consultation booking page with valid token.
 
@@ -49,11 +49,25 @@ def test_consultation_booking_page_opens_with_valid_token(client, db_session):
     )
     db_session.commit()
 
+    monkeypatch.setattr(
+        "app.core.config.settings.CALENDLY_CONSULTATION_URL",
+        "https://calendly.com/test/smartbudget-consultation",
+    )
+
     response = client.get(
         f"/consultation/book/{entitlement.booking_token}"
     )
 
     assert response.status_code == 200
-    assert "Book your consultation" in response.text
-    assert "Your consultation access link is valid." in response.text
+    assert "Your consultation access is active." in response.text
+    assert "Please use the button below to schedule your session." in response.text
     assert entitlement.status in response.text
+    assert "Book your consultation" in response.text
+    assert 'id="consultation-book-button"' in response.text
+    assert 'target="_blank"' in response.text
+    assert 'rel="noopener noreferrer"' in response.text
+    assert "Ref:" in response.text
+    assert entitlement.booking_token[:8] in response.text
+    assert entitlement.booking_token not in response.text
+
+

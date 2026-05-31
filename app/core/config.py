@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     MAIL_SMTP_PASSWORD: str = ""
     MAIL_SMTP_TLS: bool = True
 
+    CALENDLY_CONSULTATION_URL: str | None = None
+
     admin_token: str
 
     model_config = SettingsConfigDict(
