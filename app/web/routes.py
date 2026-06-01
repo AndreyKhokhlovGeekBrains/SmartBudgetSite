@@ -536,6 +536,7 @@ async def admin_login(
         value=token,
         httponly=True,
         samesite="lax",
+        max_age=60 * 60 * 8,
     )
     return response
 

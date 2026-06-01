@@ -254,6 +254,8 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
                 "Please contact support."
             ),
 
+        "consultation_booking_security_note": "This link is personal and must not be shared.",
+
     },
     "ru": {
         "brand_name": "Андрей Хохлов",
@@ -493,12 +495,14 @@ TRANSLATIONS: Final[dict[str, dict[str, str]]] = {
                 "Используйте кнопку ниже, чтобы выбрать удобное время."
             ),
         "consultation_booking_status": "Статус",
-        "consultation_booking_expires_at": "Доступ к записи действует до",
+        "consultation_booking_expires_at": "Запись активна до",
         "consultation_book_button": "Выбрать время консультации",
         "consultation_booking_unavailable": (
                 "Запись на консультацию временно недоступна. "
                 "Пожалуйста, свяжитесь с поддержкой."
             ),
+
+        "consultation_booking_security_note": "Ссылка является персональной и не подлежит передаче.",
 
     },
 }
