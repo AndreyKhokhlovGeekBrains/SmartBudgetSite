@@ -10,38 +10,107 @@
 <section class="container">
     <h1>Consultation entitlements</h1>
 
+    <form method="get" class="admin-filter-form">
+        <label for="status">Status:</label>
+
+        <select name="status" id="status">
+            <option value="" {{ 'selected' if not selected_status else '' }}>All</option>
+
+            <option value="available" {{ 'selected' if selected_status == 'available' else '' }}>
+                Available
+            </option>
+
+            <option value="booked" {{ 'selected' if selected_status == 'booked' else '' }}>
+                Booked
+            </option>
+
+            <option value="expired" {{ 'selected' if selected_status == 'expired' else '' }}>
+                Expired
+            </option>
+
+            <option value="cancelled" {{ 'selected' if selected_status == 'cancelled' else '' }}>
+                Cancelled
+            </option>
+        </select>
+
+        <button type="submit">Apply</button>
+    </form>
+
+    <p class="admin-results-count">
+        {{ entitlements_count }} entitlement(s)
+    </p>
+
     {% if entitlements %}
         <div class="admin-table-wrapper">
         <table class="admin-table">
             <thead>
                 <tr>
                     <th>Status</th>
+                    <th>Email</th>
                     <th>Created</th>
                     <th>Expires</th>
+                    <th>Booked at</th>
                     <th>Provider</th>
                     <th>Event URI</th>
+                    <th>Invitee URI</th>
                 </tr>
             </thead>
 
             <tbody>
                 {% for entitlement in entitlements %}
                     <tr>
-                        <td>{{ entitlement.status }}</td>
-
                         <td>
-                            {{ entitlement.created_at }}
+                            <span class="status-badge status-{{ entitlement.status }}">
+                                {{ entitlement.status }}
+                            </span>
                         </td>
 
                         <td>
-                            {{ entitlement.expires_at }}
+                            {{ entitlement.sale_item.sale.customer_email if entitlement.sale_item and entitlement.sale_item.sale else "-" }}
                         </td>
 
                         <td>
-                            {{ entitlement.provider_event_uri or "-" }}
+                            {{ entitlement.created_at.strftime("%Y-%m-%d %H:%M") if entitlement.created_at else "-" }}
+                        </td>
+
+                        <td>
+                            {{ entitlement.expires_at.strftime("%Y-%m-%d %H:%M") if entitlement.expires_at else "-" }}
+                        </td>
+
+                        <td>
+                            {{ entitlement.booked_at or "-" }}
                         </td>
 
                         <td>
                             {{ entitlement.booking_provider or "-" }}
+                        </td>
+
+                        <td>
+                            {% if entitlement.provider_event_uri %}
+                                <a
+                                    href="{{ entitlement.provider_event_uri }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Open event
+                                </a>
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            {% if entitlement.provider_invitee_uri %}
+                                <a
+                                    href="{{ entitlement.provider_invitee_uri }}"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    Open invitee
+                                </a>
+                            {% else %}
+                                -
+                            {% endif %}
                         </td>
 
                     </tr>

@@ -576,9 +576,6 @@ async def admin_logout():
     return response
 
 
-router.include_router(admin_router)
-
-
 @router.get("/checkout/{slug}")
 def checkout_page(
     slug: str,
@@ -753,9 +750,10 @@ def consultation_booking_page(
     )
 
 
-@router.get("/admin/consultations")
+@admin_router.get("/admin/consultations")
 def admin_consultations_page(
     request: Request,
+    status: str | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
     """
@@ -772,9 +770,13 @@ def admin_consultations_page(
     - Does not mutate entitlement state.
     """
 
-    entitlements = get_consultation_entitlements(db=db)
+    entitlements = get_consultation_entitlements(
+        db=db,
+        status=status,
+    )
 
     lang = get_lang(request)
+    entitlements_count = len(entitlements)
 
     return templates.TemplateResponse(
         request=request,
@@ -783,5 +785,9 @@ def admin_consultations_page(
             "entitlements": entitlements,
             "lang": lang,
             "t": lambda key: t(lang, key),
+            "selected_status": status,
+            "entitlements_count": entitlements_count,
         },
     )
+
+router.include_router(admin_router)

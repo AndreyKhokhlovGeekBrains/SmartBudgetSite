@@ -2577,7 +2577,14 @@ The goal is to avoid endless infrastructure polishing before real product valida
 * confirm provider event URI consistency
 * validate replay behavior from real provider delivery
 
-### 4. Merchant of Record integration (Paddle)
+### 4. Deployment preparation
+
+* connect domain
+* choose hosting (VPS / PaaS)
+* prepare environment variables
+* basic production setup
+
+### 5. Merchant of Record integration (Paddle)
 
 * create Paddle account
 * configure products and prices
@@ -2585,19 +2592,39 @@ The goal is to avoid endless infrastructure polishing before real product valida
 * define success URL
 * plan Paddle webhook handling
 
-### 5. Sales tracking (admin)
+### 6. Sales tracking (admin)
 
 * sales list
 * filtering
 * show product/service sale items
 * show consultation presence and lifecycle state
 
-### 6. Deployment preparation
+### Founder operational analytics MVP
 
-* connect domain
-* choose hosting (VPS / PaaS)
-* prepare environment variables
-* basic production setup
+Admin dashboard should eventually provide lightweight operational analytics suitable for a solo founder.
+
+The goal is operational visibility, not full BI infrastructure.
+
+Planned MVP visibility includes:
+
+* total sales count
+* revenue overview
+* consultation booking count
+* active vs booked consultation state
+* recent purchases
+* recent customer activity
+
+Important limitation:
+
+The project intentionally avoids premature analytics complexity such as:
+
+* advanced BI dashboards
+* cohort analysis
+* attribution systems
+* retention analytics
+* complex reporting infrastructure
+
+Operational clarity is prioritized over analytical sophistication during MVP stage.
 
 ---
 
@@ -2632,6 +2659,14 @@ The following items remain intentionally postponed until after the first real en
 * added config-driven Calendly integration:
 
   * `CALENDLY_CONSULTATION_URL`
+
+* `CALENDLY_CONSULTATION_URL` currently remains in `.env` for local/dev booking flow validation
+
+* development/staging booking URLs are intentionally environment-driven
+
+* production Calendly URL must remain deployment-configured and must not be hardcoded in application source code
+
+* provider access URLs are treated as infrastructure configuration, not business logic
 
 * added booking button integration:
 
@@ -2773,30 +2808,125 @@ Current implementation intentionally excludes:
 
 ---
 
-## Next sprint priorities (after Sprint 30)
+## Founder-oriented MVP strategy
 
-### 1. Consultation admin usability improvements
+SmartBudgetSite is intentionally being developed as a founder-operated MVP platform.
 
-* add customer email column
-* add booked_at column
-* add status filtering
-* add clickable provider event links
-* add basic status color badges
-* improve datetime formatting
+Primary goal of the current phase is NOT to build a fully-featured SaaS platform before launch.
 
-### 2. Admin operational hardening
+Primary goal is to build a stable operational product system that:
+
+* supports independent product sales
+* supports consultation booking lifecycle
+* minimizes manual operational overhead
+* provides sufficient operational visibility for a solo founder
+* allows long post-launch focus on SmartBudget product evolution itself
+
+The platform should remain:
+
+* operationally sustainable
+* understandable by one developer
+* maintainable without full-time backend work
+
+The current roadmap intentionally prioritizes:
+
+* operational clarity
+* automation
+* sales/support visibility
+* deployment readiness
+* stable purchase + delivery lifecycle
+
+over:
+
+* advanced SaaS features
+* complex account systems
+* enterprise admin tooling
+* premature scalability abstractions
+
+Important strategic direction:
+
+After MVP launch, project focus is expected to temporarily shift toward:
+
+* SmartBudget product improvements
+* customer feedback collection
+* English improvement
+* LinkedIn/GitHub positioning
+* international market preparation
+
+Further large-scale website/platform expansion should happen only after real market validation or meaningful recurring revenue.
+
+## Sprint 31: Consultation admin usability improvements
+
+### Goal
+
+Improve operational visibility for consultation booking lifecycle administration.
+
+### Implemented
+
+#### Consultation admin page improvements
+
+* Added customer email column.
+* Added booked_at column.
+* Added status badges for:
+
+  * available
+  * booked
+  * expired
+  * cancelled
+* Improved datetime formatting for admin readability.
+* Added result count indicator.
+* Added status filtering (All / Available / Booked / Expired / Cancelled).
+* Added clickable provider links:
+
+  * provider_event_uri
+  * provider_invitee_uri
+
+#### Backend improvements
+
+* Moved consultation status filtering from route layer into service layer.
+* Preserved repository ordering by created_at DESC.
+* Continued eager loading of SaleItem → Sale relationships to avoid N+1 queries.
+
+#### Admin routing hardening
+
+* Fixed consultation admin page to use admin_router protection.
+* Moved router.include_router(admin_router) to end of route registration section to prevent future route registration mistakes.
+
+### Current status
+
+Consultation admin usability improvements are considered complete for MVP.
+
+### Remaining priorities
+
+1. Admin operational hardening
+2. Real Calendly integration validation
+3. Consultation admin operational visibility enhancements as real booking data appears
+
+---
+
+## Next sprint priorities (after Sprint 31)
+
+### 1. Admin operational hardening
 
 * improve admin authentication strategy
 * evaluate admin route protection consistency
 * add operational support tooling
 * prepare future pagination/search support
 
-### 3. Real Calendly integration validation
+### 2. Real Calendly integration validation
 
 * validate real provider event URI behavior
 * validate real webhook lifecycle transitions
 * validate replay behavior from live provider deliveries
 * verify provider booking/cancellation edge cases
+
+### 3. Deployment preparation
+
+* production environment variable setup
+* hosting selection
+* domain integration
+* production startup validation
+* operational logging review
 
 ### 4. Merchant of Record integration (Paddle)
 
@@ -2805,11 +2935,3 @@ Current implementation intentionally excludes:
 * implement checkout redirect flow
 * define payment success lifecycle
 * prepare Paddle webhook architecture
-
-### 5. Deployment preparation
-
-* production environment variable setup
-* hosting selection
-* domain integration
-* production startup validation
-* operational logging review

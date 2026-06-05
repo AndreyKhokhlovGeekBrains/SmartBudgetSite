@@ -1,7 +1,21 @@
-# Feedback Backoffice Plan
+# Feedback Operations MVP
 
 ## Goal
 Create an internal technical page for reviewing and processing feedback messages submitted by users.
+
+Important MVP direction:
+
+This page is intended as a lightweight operational tool for a solo founder.
+
+The goal is operational clarity and low-friction customer support handling, not a full support desk or CRM platform.
+
+The workflow should remain:
+
+* simple
+* fast to maintain
+* operationally sustainable for one person
+
+Advanced support system features are intentionally postponed until after real product validation.
 
 ## Why
 The feedback form already stores messages in the database, but there is no convenient internal interface to:
@@ -42,3 +56,23 @@ The feedback form already stores messages in the database, but there is no conve
 - Pagination
 - Auth protection
 - S3-based attachment storage
+
+## Explicit non-goals (MVP stage)
+
+The feedback system intentionally does NOT aim to become:
+
+* a helpdesk platform
+* a ticketing system
+* a threaded support inbox
+* a CRM
+* a live chat system
+* a customer success platform
+
+The MVP objective is:
+
+* receive feedback
+* respond once if needed
+* publish useful reviews
+* maintain operational visibility
+
+Complex support workflows should only be considered after significant real customer volume appears.

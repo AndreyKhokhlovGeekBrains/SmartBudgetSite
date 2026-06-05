@@ -1,7 +1,8 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import cast
 
 from app.models.consultation_entitlement import ConsultationEntitlement
+from app.models.sale_item import SaleItem
 
 
 class ConsultationEntitlementRepository:
@@ -69,6 +70,11 @@ class ConsultationEntitlementRepository:
         return cast(
             list[ConsultationEntitlement],
             db.query(ConsultationEntitlement)
+            .options(
+                joinedload(ConsultationEntitlement.sale_item).joinedload(
+                    SaleItem.sale
+                )
+            )
             .order_by(ConsultationEntitlement.created_at.desc())
             .all(),
         )

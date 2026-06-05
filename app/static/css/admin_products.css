@@ -151,3 +151,67 @@
 .admin-table td {
     border-bottom: 1px solid #ececec;
 }
+
+.admin-table td {
+    vertical-align: top;
+}
+
+.admin-table td:nth-child(7),
+.admin-table td:nth-child(8) {
+    max-width: 260px;
+    overflow-wrap: anywhere;
+}
+
+.admin-table td:nth-child(2) {
+    max-width: 240px;
+}
+
+.admin-table td:nth-child(3),
+.admin-table td:nth-child(4),
+.admin-table td:nth-child(5) {
+    min-width: 140px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.status-available {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-booked {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.status-expired {
+    background: #fff3e0;
+    color: #ef6c00;
+}
+
+.status-cancelled {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.admin-filter-form {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.5rem 0 2rem;
+}
+
+.admin-filter-form label {
+    font-weight: 600;
+}
+
+.admin-filter-form select,
+.admin-filter-form button {
+    padding: 0.5rem 0.75rem;
+}
