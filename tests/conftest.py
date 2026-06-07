@@ -36,7 +36,7 @@ from sqlalchemy.orm import sessionmaker
 from app.main import app
 from app.core.db import Base
 
-from app.dependencies import get_db
+from app.dependencies import get_db, ADMIN_COOKIE_NAME
 from app.core.config import settings
 
 from app.services import mail_service
@@ -65,11 +65,12 @@ def override_get_db() -> Generator:
         db.close()
 
 
-def auth_client(client):
+@pytest.fixture()
+def auth_client(client: TestClient) -> TestClient:
     """
-    Returns client with admin auth cookie set.
+    Return TestClient with valid admin auth cookie set.
     """
-    client.cookies.set("admin_token", "supersecret")
+    client.cookies.set(ADMIN_COOKIE_NAME, settings.ADMIN_TOKEN)
     return client
 
 

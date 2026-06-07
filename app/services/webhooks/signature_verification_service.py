@@ -1,6 +1,7 @@
 import hashlib
 import hmac
 from collections.abc import Mapping
+from app.core.config import settings
 
 
 CALENDLY_SIGNATURE_HEADER = "Calendly-Webhook-Signature"
@@ -27,7 +28,7 @@ def _verify_calendly_signature(
     headers: Mapping[str, str],
 ) -> bool:
     signature_header = headers.get(CALENDLY_SIGNATURE_HEADER)
-    signing_secret = headers.get(CALENDLY_SIGNING_SECRET_HEADER)
+    signing_secret = settings.CALENDLY_WEBHOOK_SIGNING_SECRET
 
     if not signature_header or not signing_secret:
         return False

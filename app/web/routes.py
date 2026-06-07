@@ -514,7 +514,7 @@ async def admin_login(
     Stores admin token in cookie after successful validation.
 
     Business rules:
-    - Login is allowed only when provided token matches settings.admin_token
+    - Login is allowed only when provided token matches settings.ADMIN_TOKEN
     - Valid token is stored in cookie for subsequent admin requests
 
     Side effects:
@@ -524,7 +524,7 @@ async def admin_login(
     - Invalid token returns 403
     """
 
-    if token != settings.admin_token:
+    if token != settings.ADMIN_TOKEN:
         raise HTTPException(status_code=403, detail="Invalid admin token")
 
     response = RedirectResponse(

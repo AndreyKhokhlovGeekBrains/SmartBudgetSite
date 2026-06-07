@@ -8,7 +8,7 @@ from tests.conftest import auth_client
 
 
 def test_admin_products_list_page_renders_products(
-    client: TestClient,
+    auth_client: TestClient,
     db_session: Any,
 ) -> None:
     """
@@ -37,7 +37,7 @@ def test_admin_products_list_page_renders_products(
         amount=Decimal("49.00"),
     )
 
-    response = auth_client(client).get("/admin/products")
+    response = auth_client.get("/admin/products")
 
     assert response.status_code == 200
     assert "SmartBudget" in response.text

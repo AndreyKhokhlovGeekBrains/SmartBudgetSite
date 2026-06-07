@@ -11,7 +11,7 @@ def test_admin_login_cookie_expires_after_8_hours(client):
 
     response = client.post(
         "/admin/login",
-        data={"token": settings.admin_token},
+        data={"token": settings.ADMIN_TOKEN},
         follow_redirects=False,
     )
 

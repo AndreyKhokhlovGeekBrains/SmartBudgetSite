@@ -40,5 +40,5 @@ def require_admin(request: Request) -> None:
     - Raises 403 if not authenticated
     """
 
-    if request.cookies.get(ADMIN_COOKIE_NAME) != settings.admin_token:
+    if request.cookies.get(ADMIN_COOKIE_NAME) != settings.ADMIN_TOKEN:
         raise HTTPException(status_code=403, detail="Admin access denied")

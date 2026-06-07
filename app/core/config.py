@@ -33,8 +33,9 @@ class Settings(BaseSettings):
     MAIL_SMTP_TLS: bool = True
 
     CALENDLY_CONSULTATION_URL: str | None = None
+    CALENDLY_WEBHOOK_SIGNING_SECRET: str = ""
 
-    admin_token: str
+    ADMIN_TOKEN: str = ""
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

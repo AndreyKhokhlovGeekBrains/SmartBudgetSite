@@ -1,6 +1,8 @@
 import hashlib
 import hmac
 
+from app.core.config import settings
+
 from app.services.webhooks.signature_verification_service import (
     verify_webhook_signature,
 )
@@ -26,7 +28,7 @@ def test_verify_webhook_signature_rejects_unsupported_provider():
     assert result is False
 
 
-def test_verify_webhook_signature_accepts_valid_calendly_hmac_signature():
+def test_verify_webhook_signature_accepts_valid_calendly_hmac_signature(monkeypatch):
     """
     Test case: valid Calendly HMAC webhook signature.
 
@@ -49,6 +51,12 @@ def test_verify_webhook_signature_accepts_valid_calendly_hmac_signature():
         signed_payload,
         hashlib.sha256,
     ).hexdigest()
+
+    monkeypatch.setattr(
+        settings,
+        "CALENDLY_WEBHOOK_SIGNING_SECRET",
+        signing_secret,
+    )
 
     result = verify_webhook_signature(
         provider="calendly",

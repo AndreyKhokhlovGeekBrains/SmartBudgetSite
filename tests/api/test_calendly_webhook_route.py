@@ -4,6 +4,7 @@ import json
 
 from unittest.mock import patch
 from datetime import datetime, timezone
+from app.core.config import settings
 
 
 def _build_calendly_signature_header(
@@ -22,18 +23,14 @@ def _build_calendly_signature_header(
     return f"t={timestamp},v1={signature}"
 
 
-def test_calendly_webhook_endpoint_accepts_post_request(client):
+def test_calendly_webhook_endpoint_accepts_post_request(client, monkeypatch):
     """
-    Test case: Calendly webhook endpoint skeleton
+    Test case: Calendly webhook accepts valid signed request.
 
     What we verify:
     - The endpoint exists.
-    - POST requests are accepted.
-    - The temporary skeleton returns 204 No Content.
-
-    Business rule:
-    - The webhook route is only an integration boundary at this stage.
-    - Signature verification and payload processing will be added in services later.
+    - A valid Calendly HMAC signature is accepted.
+    - Valid request returns 204 No Content.
     """
 
     payload = {
@@ -53,12 +50,17 @@ def test_calendly_webhook_endpoint_accepts_post_request(client):
         signing_secret=signing_secret,
     )
 
+    monkeypatch.setattr(
+        settings,
+        "CALENDLY_WEBHOOK_SIGNING_SECRET",
+        signing_secret,
+    )
+
     response = client.post(
         "/v1/webhooks/calendly",
         json=payload,
         headers={
             "Calendly-Webhook-Signature": signature_header,
-            "Calendly-Webhook-Signing-Secret": signing_secret,
         },
     )
 
@@ -207,8 +209,9 @@ def test_calendly_webhook_logs_malformed_json_rejection(
     orchestration service is reached.
     """
 
-    monkeypatch.setenv(
-        "CALENDLY_WEBHOOK_SIGNING_KEY",
+    monkeypatch.setattr(
+        settings,
+        "CALENDLY_WEBHOOK_SIGNING_SECRET",
         "test-secret",
     )
 
@@ -227,7 +230,6 @@ def test_calendly_webhook_logs_malformed_json_rejection(
             headers={
                 "Content-Type": "application/json",
                 "Calendly-Webhook-Signature": signature_header,
-                "Calendly-Webhook-Signing-Secret": "test-secret",
             },
         )
 
