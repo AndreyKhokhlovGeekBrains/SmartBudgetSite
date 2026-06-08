@@ -2902,14 +2902,40 @@ Consultation admin usability improvements are considered complete for MVP.
 2. Real Calendly integration validation
 3. Consultation admin operational visibility enhancements as real booking data appears
 
+## Sprint 32 checkpoint: Calendly webhook secret ownership hardening
+
+### Completed
+
+* added `CALENDLY_WEBHOOK_SIGNING_SECRET` to application settings
+* stopped reading Calendly webhook signing secret from request headers
+* moved Calendly webhook signature verification to server-owned configuration
+* updated webhook route and service tests to use configured signing secret
+* standardized admin token setting usage as `settings.ADMIN_TOKEN`
+* updated admin route tests to use authenticated test client fixture
+
+### Architecture decisions
+
+* webhook signing secrets must be owned by the backend configuration, not by incoming requests
+* webhook request headers may contain signatures, but must never provide verification secrets
+* admin tests should use a shared authenticated client fixture for protected routes
+* anonymous admin access tests should continue using the plain test client
+
+### Current status
+
+Calendly webhook signature verification is now suitable for real provider validation.
+
 ---
 
-## Next sprint priorities (after Sprint 31)
+### Admin authentication review outcome
+
+* current ADMIN_TOKEN + HttpOnly cookie + require_admin approach is accepted for MVP
+* admin route protection consistency was reviewed and validated
+* advanced authentication (users/passwords/roles) is intentionally postponed until post-MVP validation
+
+## Next sprint priorities (after Sprint 32)
 
 ### 1. Admin operational hardening
 
-* improve admin authentication strategy
-* evaluate admin route protection consistency
 * add operational support tooling
 * prepare future pagination/search support
 

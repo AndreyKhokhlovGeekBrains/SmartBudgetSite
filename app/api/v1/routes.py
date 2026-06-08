@@ -18,9 +18,6 @@ import uuid
 import shutil
 from app.models.feedback_attachment import FeedbackAttachment
 
-from app.repositories.feedback_admin_repository import FeedbackAdminRepository
-from app.schemas.feedback_admin import FeedbackAdminListItem, FeedbackAdminDetail, FeedbackResolveUpdate
-
 from app.api.v1.webhooks import router as webhook_router
 
 
@@ -246,85 +243,5 @@ def check_purchase(
     return PurchaseLookupResponse(
         verified=any(item.get("item_type") == "product" for item in purchases_data),
         purchases=purchases,
-    )
-
-@router.get("/feedback/admin", response_model=list[FeedbackAdminListItem])
-def list_feedback_admin(
-    db: Session = Depends(get_db),
-):
-    """
-    Internal endpoint: return feedback messages for backoffice list page.
-    """
-    repo = FeedbackAdminRepository(db)
-    items = repo.list_feedback()
-
-    return [
-        FeedbackAdminListItem(
-            id=item.id,
-            created_at=item.created_at,
-            message_type=item.type,
-            email=item.email,
-            subject=item.subject,
-            is_resolved=item.is_resolved,
-        )
-        for item in items
-    ]
-
-@router.get("/feedback/admin/{feedback_id}", response_model=FeedbackAdminDetail)
-def get_feedback_admin_detail(
-    feedback_id: int,
-    db: Session = Depends(get_db),
-):
-    """
-    Internal endpoint: return one feedback message for backoffice detail view.
-    """
-    repo = FeedbackAdminRepository(db)
-    item = repo.get_feedback_by_id(feedback_id)
-
-    if item is None:
-        raise HTTPException(status_code=404, detail="Feedback message not found")
-
-    return FeedbackAdminDetail(
-        id=item.id,
-        created_at=item.created_at,
-        message_type=item.type,
-        name=item.name,
-        email=item.email,
-        subject=item.subject,
-        message=item.message,
-        page_url=item.page_url,
-        user_agent=item.user_agent,
-        is_resolved=item.is_resolved,
-    )
-
-@router.patch("/feedback/admin/{feedback_id}", response_model=FeedbackAdminDetail)
-def update_feedback_admin_status(
-    feedback_id: int,
-    payload: FeedbackResolveUpdate,
-    db: Session = Depends(get_db),
-):
-    """
-    Internal endpoint: update resolved status for one feedback message.
-    """
-    repo = FeedbackAdminRepository(db)
-    item = repo.update_resolved_status(
-        feedback_id=feedback_id,
-        is_resolved=payload.is_resolved,
-    )
-
-    if item is None:
-        raise HTTPException(status_code=404, detail="Feedback message not found")
-
-    return FeedbackAdminDetail(
-        id=item.id,
-        created_at=item.created_at,
-        message_type=item.type,
-        name=item.name,
-        email=item.email,
-        subject=item.subject,
-        message=item.message,
-        page_url=item.page_url,
-        user_agent=item.user_agent,
-        is_resolved=item.is_resolved,
     )
 
