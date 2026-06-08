@@ -2912,6 +2912,12 @@ Consultation admin usability improvements are considered complete for MVP.
 * updated webhook route and service tests to use configured signing secret
 * standardized admin token setting usage as `settings.ADMIN_TOKEN`
 * updated admin route tests to use authenticated test client fixture
+* removed obsolete public feedback admin API endpoints:
+
+  * /v1/feedback/admin
+  * /v1/feedback/admin/{feedback_id}
+
+* consolidated feedback administration behind protected admin routes only
 
 ### Architecture decisions
 
@@ -2936,8 +2942,20 @@ Calendly webhook signature verification is now suitable for real provider valida
 
 ### 1. Admin operational hardening
 
-* add operational support tooling
-* prepare future pagination/search support
+Current status:
+
+* Admin Dashboard
+* Products admin
+* Feedback admin
+* Consultation Entitlements admin
+* Sales admin (MVP)
+
+Next improvements:
+
+* sales detail page
+* sales search/filtering by customer email
+* sales search/filtering by product/service
+* pagination support for sales and feedback
 
 ### 2. Real Calendly integration validation
 

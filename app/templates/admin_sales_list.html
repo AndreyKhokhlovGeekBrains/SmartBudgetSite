@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/admin_products.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', path='css/admin_sales.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-form sales-page">
+    <h1 class="admin-form-title">Sales</h1>
+
+    <form method="get" class="admin-filter-form">
+        <label for="status">Status:</label>
+
+        <select id="status" name="status">
+            <option value="">All</option>
+
+            <option value="pending"
+                {% if selected_status == "pending" %}selected{% endif %}>
+                Pending
+            </option>
+
+            <option value="paid"
+                {% if selected_status == "paid" %}selected{% endif %}>
+                Paid
+            </option>
+
+            <option value="failed"
+                {% if selected_status == "failed" %}selected{% endif %}>
+                Failed
+            </option>
+        </select>
+
+        <button type="submit">Apply</button>
+    </form>
+
+    <p>Total shown: {{ sales|length }}</p>
+
+    <div class="admin-table-wrapper">
+        <table class="admin-table sales-table">
+            <thead>
+                <tr>
+                    <th class="sales-col-id">ID</th>
+                    <th class="sales-col-created">Created at</th>
+                    <th class="sales-col-customer">Customer</th>
+                    <th class="sales-col-status">Status</th>
+                    <th class="sales-col-total">Total</th>
+                    <th class="sales-col-items">Items</th>
+                    <th class="sales-col-provider">Provider</th>
+                    <th class="sales-col-external">External ID</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for sale in sales %}
+                <tr>
+                    <td class="sales-col-id">{{ sale.id }}</td>
+                    <td class="sales-col-created">{{ sale.created_at.strftime("%Y-%m-%d %H:%M") }}</td>
+                    <td class="sales-col-customer">
+                        <span
+                            class="sales-email"
+                            title="Click to copy: {{ sale.customer_email }}"
+                            data-email="{{ sale.customer_email }}"
+                        >
+                            {{ sale.customer_email }}
+                        </span>
+                    </td>
+                    <td class="sales-col-status">{{ sale.payment_status }}</td>
+                    <td class="sales-col-total">{{ sale.amount }} {{ sale.currency }}</td>
+                    <td class="sales-col-items">
+                        {% if sale.items %}
+                            <ul class="sales-items-list">
+                                {% for item in sale.items %}
+                                    <li>
+                                        <strong>{{ item.item_name }}</strong><br>
+                                        {{ item.item_type }},
+                                        {{ item.amount }} {{ item.currency_code }},
+                                        Qty: {{ item.quantity }}
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <span>No items</span>
+                        {% endif %}
+                    </td>
+                    <td class="sales-col-provider">{{ sale.payment_provider or "-" }}</td>
+                    <td class="sales-col-external">{{ sale.external_payment_id or "-" }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8">No sales yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <p style="margin-top: 20px;">
+        <a href="/admin">Back to admin dashboard</a>
+    </p>
+</div>
+
+<script>
+const salesToast = document.createElement("div");
+salesToast.className = "sales-toast";
+document.body.appendChild(salesToast);
+
+let salesToastTimeout;
+
+function showSalesToast(message) {
+    salesToast.textContent = message;
+    salesToast.classList.add("is-visible");
+
+    clearTimeout(salesToastTimeout);
+
+    salesToastTimeout = setTimeout(() => {
+        salesToast.classList.remove("is-visible");
+    }, 1800);
+}
+
+document.querySelectorAll(".sales-email").forEach((element) => {
+    element.addEventListener("click", async () => {
+        const email = element.dataset.email;
+
+        try {
+            await navigator.clipboard.writeText(email);
+            showSalesToast("Email copied to clipboard");
+        } catch (error) {
+            console.error("Failed to copy email", error);
+            showSalesToast("Failed to copy email");
+        }
+    });
+});
+</script>
+
+{% endblock %}

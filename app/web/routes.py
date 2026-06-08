@@ -9,6 +9,7 @@ from app.dependencies import get_db, require_admin
 from app.repositories.feedback_admin_repository import FeedbackAdminRepository
 from app.repositories.products_repository import ProductsRepository
 from app.repositories.service_addon_repository import ServiceAddonRepository
+from app.repositories.sales_repository import list_admin_sales
 from app.services.admin_consultation_service import get_consultation_entitlements
 from app.services.feedback_service import (
     send_feedback_reply,
@@ -790,4 +791,27 @@ def admin_consultations_page(
         },
     )
 
+
+@admin_router.get("/admin/sales")
+async def admin_sales_list(
+    request: Request,
+    status: str | None = Query(default=None),
+    db: Session = Depends(get_db),
+):
+    sales = list_admin_sales(
+        db=db,
+        status=status,
+    )
+
+    return render(
+        request,
+        "admin_sales_list.html",
+        {
+            "sales": sales,
+            "selected_status": status,
+        },
+    )
+
+
+# *** *** *** *** *** *** *** *** *** ***
 router.include_router(admin_router)

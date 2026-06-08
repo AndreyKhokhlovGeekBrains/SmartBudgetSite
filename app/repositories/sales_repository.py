@@ -1,5 +1,5 @@
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.models.enums import PaymentStatus
 from app.models.product import Product
@@ -62,3 +62,44 @@ def is_verified_sale_for_email(
     )
 
     return db.execute(stmt).first() is not None
+
+
+def list_admin_sales(
+    db: Session,
+    status: str | None = None,
+    limit: int = 50,
+) -> list[Sale]:
+    """
+    Return recent sales with purchased items for admin backoffice.
+
+    Business rules:
+    - Admin sales view starts as read-only operational visibility.
+    - Sale is an order header.
+    - SaleItem rows are the source of truth for purchased products/services.
+    - Newest sales are shown first.
+    - MVP list is intentionally limited to avoid loading unbounded history.
+
+    Side effects:
+    - None. Read-only query.
+
+    Invariants / restrictions:
+    - Does not mutate payment or fulfillment state.
+    - Does not perform search/filtering yet.
+    - Legacy sales.product_id must not be used for ownership display.
+    """
+
+    stmt = (
+        select(Sale)
+        .options(selectinload(Sale.items))
+    )
+
+    if status:
+        stmt = stmt.where(Sale.payment_status == status)
+
+    stmt = (
+        stmt
+        .order_by(Sale.created_at.desc(), Sale.id.desc())
+        .limit(limit)
+    )
+
+    return list(db.execute(stmt).scalars().all())

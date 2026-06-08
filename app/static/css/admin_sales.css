@@ -1,0 +1,92 @@
+/* Sales admin page-specific styles.
+   Shared admin layout/table styles currently live in admin_products.css.
+   TODO: Rename admin_products.css to admin.css when admin UI is consolidated.
+*/
+
+.admin-form.sales-page {
+    max-width: 1200px;
+}
+
+.sales-table {
+    table-layout: fixed;
+    min-width: 1180px;
+}
+
+.sales-col-id {
+    width: 60px;
+}
+
+.sales-col-created {
+    width: 130px;
+    white-space: normal;
+}
+
+.sales-col-customer {
+    width: 180px;
+    max-width: 180px;
+    overflow: hidden;
+}
+
+.sales-col-status {
+    width: 110px;
+}
+
+.sales-col-total {
+    width: 130px;
+    white-space: nowrap;
+}
+
+.sales-col-items {
+    width: 320px;
+}
+
+.sales-col-provider {
+    width: 120px;
+}
+
+.sales-col-external {
+    width: 160px;
+    overflow-wrap: anywhere;
+}
+
+.sales-email {
+    display: block;
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    cursor: pointer;
+}
+
+.sales-email:hover {
+    text-decoration: underline;
+}
+
+.sales-items-list {
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+}
+
+.sales-toast {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 1000;
+    padding: 10px 14px;
+    border-radius: 8px;
+    background: #111827;
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.18);
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+
+.sales-toast.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
