@@ -19,7 +19,7 @@ from sqlalchemy.orm import Session
 
 from app.repositories.feedback_admin_repository import FeedbackAdminRepository
 from app.models.feedback import FeedbackMessage
-from app.services.mail_service import send_email
+from app.services import mail_service
 from app.core.config import settings
 
 
@@ -73,7 +73,7 @@ def send_feedback_reply(db: Session, feedback_id: int) -> None:
         )
 
     # Send email (stub for now)
-    send_email(
+    mail_service.send_email(
         to_email=item.email,
         subject=f"{settings.MAIL_FROM_NAME}: reply to your message",
         body=item.admin_reply,

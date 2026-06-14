@@ -67,7 +67,10 @@ def is_verified_sale_for_email(
 def list_admin_sales(
     db: Session,
     status: str | None = None,
+    customer_email: str | None = None,
+    item_type: str | None = None,
     limit: int = 50,
+    offset: int = 0,
 ) -> list[Sale]:
     """
     Return recent sales with purchased items for admin backoffice.
@@ -84,7 +87,6 @@ def list_admin_sales(
 
     Invariants / restrictions:
     - Does not mutate payment or fulfillment state.
-    - Does not perform search/filtering yet.
     - Legacy sales.product_id must not be used for ownership display.
     """
 
@@ -96,9 +98,27 @@ def list_admin_sales(
     if status:
         stmt = stmt.where(Sale.payment_status == status)
 
+    if customer_email:
+        normalized_customer_email = customer_email.strip().lower()
+
+        if normalized_customer_email:
+            stmt = stmt.where(Sale.customer_email.ilike(f"%{normalized_customer_email}%"))
+
+    if item_type:
+        normalized_item_type = item_type.strip().lower()
+
+        if normalized_item_type in {"product", "service"}:
+            stmt = (
+                stmt
+                .join(SaleItem, SaleItem.sale_id == Sale.id)
+                .where(SaleItem.item_type == normalized_item_type)
+                .distinct()
+            )
+
     stmt = (
         stmt
         .order_by(Sale.created_at.desc(), Sale.id.desc())
+        .offset(offset)
         .limit(limit)
     )
 

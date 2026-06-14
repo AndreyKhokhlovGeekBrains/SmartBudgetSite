@@ -129,16 +129,29 @@ async def product_detail(request: Request, slug: str):
 @admin_router.get("/admin/feedback", response_class=HTMLResponse)
 async def admin_feedback_list(
     request: Request,
+    page: int = Query(default=1, ge=1),
     db: Session = Depends(get_db),
 ):
+    page_size = 50
+    offset = (page - 1) * page_size
+
     repo = FeedbackAdminRepository(db)
-    items = repo.list_feedback()
+    items_page = repo.list_feedback(
+        limit=page_size + 1,
+        offset=offset,
+    )
+
+    has_next = len(items_page) > page_size
+    items = items_page[:page_size]
 
     return render(
         request,
         "admin_feedback_list.html",
         {
             "items": items,
+            "page": page,
+            "page_size": page_size,
+            "has_next": has_next,
         },
     )
 
@@ -755,6 +768,7 @@ def consultation_booking_page(
 def admin_consultations_page(
     request: Request,
     status: str | None = Query(default=None),
+    page: int = Query(default=1, ge=1),
     db: Session = Depends(get_db),
 ):
     """
@@ -771,10 +785,18 @@ def admin_consultations_page(
     - Does not mutate entitlement state.
     """
 
-    entitlements = get_consultation_entitlements(
+    page_size = 50
+    offset = (page - 1) * page_size
+
+    entitlements_page = get_consultation_entitlements(
         db=db,
         status=status,
+        limit=page_size + 1,
+        offset=offset,
     )
+
+    has_next = len(entitlements_page) > page_size
+    entitlements = entitlements_page[:page_size]
 
     lang = get_lang(request)
     entitlements_count = len(entitlements)
@@ -788,6 +810,9 @@ def admin_consultations_page(
             "t": lambda key: t(lang, key),
             "selected_status": status,
             "entitlements_count": entitlements_count,
+            "page": page,
+            "page_size": page_size,
+            "has_next": has_next,
         },
     )
 
@@ -796,12 +821,25 @@ def admin_consultations_page(
 async def admin_sales_list(
     request: Request,
     status: str | None = Query(default=None),
+    customer_email: str | None = Query(default=None),
+    item_type: str | None = Query(default=None),
+    page: int = Query(default=1, ge=1),
     db: Session = Depends(get_db),
 ):
-    sales = list_admin_sales(
+    page_size = 50
+    offset = (page - 1) * page_size
+
+    sales_page = list_admin_sales(
         db=db,
         status=status,
+        customer_email=customer_email,
+        item_type=item_type,
+        limit=page_size + 1,
+        offset=offset,
     )
+
+    has_next = len(sales_page) > page_size
+    sales = sales_page[:page_size]
 
     return render(
         request,
@@ -809,6 +847,11 @@ async def admin_sales_list(
         {
             "sales": sales,
             "selected_status": status,
+            "selected_customer_email": customer_email,
+            "selected_item_type": item_type,
+            "page": page,
+            "page_size": page_size,
+            "has_next": has_next,
         },
     )
 

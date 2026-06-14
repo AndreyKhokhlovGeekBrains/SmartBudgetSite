@@ -14,17 +14,25 @@ class FeedbackAdminRepository:
     def __init__(self, db: Session) -> None:
         self.db = db
 
-    def list_feedback(self) -> list[FeedbackMessage]:
+    def list_feedback(
+            self,
+            limit: int = 50,
+            offset: int = 0,
+    ) -> list[FeedbackMessage]:
         """
-        Return all feedback messages ordered by unresolved first, then newest first.
+        Return feedback messages ordered by unresolved first, then newest first.
         """
+
         stmt = (
             select(FeedbackMessage)
             .order_by(
                 FeedbackMessage.is_resolved.asc(),
                 FeedbackMessage.created_at.desc(),
             )
+            .offset(offset)
+            .limit(limit)
         )
+
         return list(self.db.scalars(stmt).all())
 
     def get_feedback_by_id(self, feedback_id: int) -> FeedbackMessage | None:

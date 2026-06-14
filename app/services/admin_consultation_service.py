@@ -9,6 +9,8 @@ from app.repositories.consultation_entitlement_repository import (
 def get_consultation_entitlements(
     db: Session,
     status: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
 ) -> list[ConsultationEntitlement]:
     """
     Load consultation entitlements for admin visibility.
@@ -26,15 +28,9 @@ def get_consultation_entitlements(
     - Does not apply booking provider logic.
     """
 
-    entitlements = ConsultationEntitlementRepository.get_all_with_sale_data(
+    return ConsultationEntitlementRepository.get_all_with_sale_data(
         db=db,
+        status=status,
+        limit=limit,
+        offset=offset,
     )
-
-    if status:
-        return [
-            entitlement
-            for entitlement in entitlements
-            if entitlement.status == status
-        ]
-
-    return entitlements

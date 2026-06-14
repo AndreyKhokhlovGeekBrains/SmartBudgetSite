@@ -2,6 +2,10 @@
 
 {% block title %}Admin Feedback{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/admin_products.css') }}">
+{% endblock %}
+
 {% block content %}
 <section class="container" style="max-width: 1200px; margin: 40px auto;">
     <h1>Admin Feedback</h1>
@@ -46,5 +50,26 @@
     {% else %}
     <p>No feedback messages found.</p>
     {% endif %}
+
+    <div class="admin-pagination">
+        {% if page > 1 %}
+            <a href="{{ request.url.include_query_params(page=page - 1) }}">
+                Previous
+            </a>
+        {% endif %}
+
+        <span>Page {{ page }}</span>
+
+        {% if has_next %}
+            <a href="{{ request.url.include_query_params(page=page + 1) }}">
+                Next
+            </a>
+        {% endif %}
+    </div>
+
+    <p style="margin-top: 20px;">
+        <a href="/admin">Back to admin dashboard</a>
+    </p>
+
 </section>
 {% endblock %}

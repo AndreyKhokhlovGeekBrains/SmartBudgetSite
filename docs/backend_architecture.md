@@ -2771,43 +2771,6 @@ The following items remain intentionally postponed until after the first real en
 
 ---
 
-### Current admin consultations page
-
-Current operational visibility includes:
-
-* status
-* created_at
-* expires_at
-* booking_provider
-* provider_event_uri
-
-Current implementation intentionally excludes:
-
-* filtering
-* pagination
-* clickable provider links
-* customer email
-* booked_at
-* lifecycle mutation controls
-* admin auth hardening
-
----
-
-### Current limitations
-
-* admin filtering not implemented yet
-* customer email visibility not implemented yet
-* booked_at visibility not implemented yet
-* provider link rendering not implemented yet
-* status badges/colors not implemented yet
-* admin authentication still minimal
-* consultation cancellation synchronization not implemented yet
-* provider timestamp freshness validation still postponed
-* replay-window validation still postponed
-* structured webhook audit persistence still postponed
-
----
-
 ## Founder-oriented MVP strategy
 
 SmartBudgetSite is intentionally being developed as a founder-operated MVP platform.
@@ -2938,7 +2901,7 @@ Calendly webhook signature verification is now suitable for real provider valida
 * admin route protection consistency was reviewed and validated
 * advanced authentication (users/passwords/roles) is intentionally postponed until post-MVP validation
 
-## Next sprint priorities (after Sprint 32)
+## Next sprint priorities (after Sprint 34)
 
 ### 1. Admin operational hardening
 
@@ -2948,14 +2911,19 @@ Current status:
 * Products admin
 * Feedback admin
 * Consultation Entitlements admin
-* Sales admin (MVP)
+* Sales admin
 
-Next improvements:
+Completed recently:
 
-* sales detail page
-* sales search/filtering by customer email
-* sales search/filtering by product/service
-* pagination support for sales and feedback
+* sales status filtering
+* sales customer email filtering
+* sales product/service filtering
+* sales filter reset support
+* sales pagination
+* feedback pagination
+* consultation entitlements pagination
+* consistent admin pagination pattern
+* test email delivery isolation for pytest
 
 ### 2. Real Calendly integration validation
 

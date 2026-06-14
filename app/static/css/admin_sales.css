@@ -90,3 +90,15 @@
     opacity: 1;
     transform: translateY(0);
 }
+
+.sales-pagination {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 14px;
+    font-size: 0.95rem;
+}
+
+.sales-pagination span {
+    color: #374151;
+}

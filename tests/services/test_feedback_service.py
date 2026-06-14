@@ -14,7 +14,7 @@ from fastapi import HTTPException
 @pytest.fixture(autouse=True)
 def mock_mail_service(monkeypatch):
     monkeypatch.setattr(
-        "app.services.feedback_service.send_email",
+        "app.services.mail_service.send_email",
         lambda **kwargs: None,
     )
 

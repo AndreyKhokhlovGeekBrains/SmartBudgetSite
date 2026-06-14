@@ -9,32 +9,57 @@
 <div class="admin-form sales-page">
     <h1 class="admin-form-title">Sales</h1>
 
-    <form method="get" class="admin-filter-form">
+    <form method="get" class="admin-filter-form sales-filter-form">
         <label for="status">Status:</label>
 
-        <select id="status" name="status">
+        <select id="status" name="status" class="sales-filter-small">
             <option value="">All</option>
 
-            <option value="pending"
-                {% if selected_status == "pending" %}selected{% endif %}>
+            <option value="pending" {% if selected_status == "pending" %}selected{% endif %}>
                 Pending
             </option>
 
-            <option value="paid"
-                {% if selected_status == "paid" %}selected{% endif %}>
+            <option value="paid" {% if selected_status == "paid" %}selected{% endif %}>
                 Paid
             </option>
 
-            <option value="failed"
-                {% if selected_status == "failed" %}selected{% endif %}>
+            <option value="failed" {% if selected_status == "failed" %}selected{% endif %}>
                 Failed
             </option>
         </select>
 
+        <label for="customer_email">Customer email:</label>
+        <input
+            id="customer_email"
+            name="customer_email"
+            type="text"
+            class="sales-filter-email"
+            value="{{ selected_customer_email or '' }}"
+            placeholder="email@example.com"
+        >
+
+        <label for="item_type">Product/service:</label>
+
+        <select id="item_type" name="item_type" class="sales-filter-small">
+            <option value="">All</option>
+
+            <option value="product"
+                {% if selected_item_type == "product" %}selected{% endif %}>
+                Product
+            </option>
+
+            <option value="service"
+                {% if selected_item_type == "service" %}selected{% endif %}>
+                Service
+            </option>
+        </select>
+
         <button type="submit">Apply</button>
+
+        <a href="/admin/sales" class="admin-filter-reset-link">Reset</a>
     </form>
 
-    <p>Total shown: {{ sales|length }}</p>
+    <p>Shown: {{ sales|length }}</p>
 
     <div class="admin-table-wrapper">
         <table class="admin-table sales-table">
@@ -92,6 +117,22 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+
+    <div class="admin-pagination">
+        {% if page > 1 %}
+            <a href="{{ request.url.include_query_params(page=page - 1) }}">
+                Previous
+            </a>
+        {% endif %}
+
+        <span>Page {{ page }}</span>
+
+        {% if has_next %}
+            <a href="{{ request.url.include_query_params(page=page + 1) }}">
+                Next
+            </a>
+        {% endif %}
     </div>
 
     <p style="margin-top: 20px;">

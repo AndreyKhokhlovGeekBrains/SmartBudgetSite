@@ -51,6 +51,9 @@ class ConsultationEntitlementRepository:
     @staticmethod
     def get_all_with_sale_data(
             db: Session,
+            status: str | None = None,
+            limit: int = 50,
+            offset: int = 0,
     ) -> list[ConsultationEntitlement]:
         """
         Load consultation entitlements with related sale data.
@@ -58,23 +61,35 @@ class ConsultationEntitlementRepository:
         Business rules:
         - Used for admin visibility and operational support.
         - Includes related SaleItem and Sale relations.
+        - Optional status filter is applied at query level.
 
         Side effects:
         - Executes read query with eager loading.
 
         Invariants/restrictions:
         - Does not mutate lifecycle state.
-        - Does not apply business filtering.
         """
 
-        return cast(
-            list[ConsultationEntitlement],
+        query = (
             db.query(ConsultationEntitlement)
             .options(
                 joinedload(ConsultationEntitlement.sale_item).joinedload(
                     SaleItem.sale
                 )
             )
+        )
+
+        if status:
+            query = query.filter(ConsultationEntitlement.status == status)
+
+        query = (
+            query
             .order_by(ConsultationEntitlement.created_at.desc())
-            .all(),
+            .offset(offset)
+            .limit(limit)
+        )
+
+        return cast(
+            list[ConsultationEntitlement],
+            query.all(),
         )
