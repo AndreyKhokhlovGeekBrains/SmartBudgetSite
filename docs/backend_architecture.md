@@ -2901,7 +2901,22 @@ Calendly webhook signature verification is now suitable for real provider valida
 * admin route protection consistency was reviewed and validated
 * advanced authentication (users/passwords/roles) is intentionally postponed until post-MVP validation
 
-## Next sprint priorities (after Sprint 34)
+### Calendly availability validation
+
+Manual end-to-end validation was completed:
+
+* booking flow works correctly
+* Google Meet links are generated correctly
+* email confirmations and cancellations work correctly
+* Google Calendar synchronization works correctly
+
+Operational note:
+
+* users located in Russia may require VPN access to reach Calendly booking pages
+* consultation booking page should later include a fallback support/contact option if Calendly is unavailable
+* evaluate whether customer-facing guidance about VPN requirements is needed before public launch
+
+## Next sprint priorities (after Sprint 35)
 
 ### 1. Admin operational hardening
 
@@ -2927,10 +2942,20 @@ Completed recently:
 
 ### 2. Real Calendly integration validation
 
+Completed:
+
+* manual booking flow validation
+* Google Meet integration validation
+* email notification validation
+* Google Calendar synchronization validation
+
+Remaining:
+
 * validate real provider event URI behavior
 * validate real webhook lifecycle transitions
 * validate replay behavior from live provider deliveries
 * verify provider booking/cancellation edge cases
+* verify SmartBudgetSite webhook processing against real provider deliveries
 
 ### 3. Deployment preparation
 
