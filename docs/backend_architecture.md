@@ -1540,12 +1540,22 @@ The backend is now capable of:
 ```text
 provider event
     ↓
-repository reconciliation lookup
+reconciliation lookup
     ↓
 entitlement resolution
     ↓
 idempotent booking confirmation
 ```
+
+provided that a valid reconciliation key is available.
+
+Current implementation uses:
+
+* `provider_event_uri`
+
+This remains suitable for replay/idempotency handling after a booking has already been linked to an entitlement.
+
+Real first-booking reconciliation strategy is still pending validation against actual Calendly webhook deliveries.
 
 ### Current limitation
 
@@ -1553,6 +1563,22 @@ idempotent booking confirmation
 * provider signature verification not implemented yet
 * Calendly payload normalization layer not implemented yet
 * booking cancellation synchronization not implemented yet
+
+### Clarification after Calendly API validation
+
+The earlier assumption that `provider_event_uri` can be used as the first reconciliation key is incomplete.
+
+`provider_event_uri` is suitable for replay/idempotency after a provider booking has already been linked to an entitlement, but it cannot resolve the first `invitee.created` webhook because the entitlement does not know the provider event URI before the Calendly booking exists.
+
+Real first-booking reconciliation must be validated against an actual Calendly webhook payload after a public HTTPS endpoint is available.
+
+Possible first reconciliation candidates:
+
+* backend booking token passed into Calendly, if Calendly returns it in webhook payload
+* invitee email, with additional safeguards
+* another provider-supported tracking/custom field discovered from real payload
+
+Until real payload validation is completed, `provider_event_uri` should be treated as a replay/idempotency key, not as a confirmed first-booking reconciliation key.
 
 ---
 
@@ -1954,25 +1980,23 @@ Lifecycle services should consume normalized internal events, not raw Calendly p
 
 ### Reconciliation rule
 
-Webhook reconciliation must use provider-owned external identifiers.
+Webhook reconciliation must use a stable identifier that can connect a Calendly booking to an existing consultation entitlement.
 
-Current reconciliation key:
+The final first-booking reconciliation key is not yet confirmed.
 
-```text
-provider_event_uri
-```
+Current understanding:
 
-Expected flow:
+* `provider_event_uri` is suitable for replay/idempotency after a booking has already been linked to an entitlement
+* `provider_event_uri` is not sufficient for resolving the first `invitee.created` webhook because the entitlement does not know this value before the Calendly booking exists
+* real first-booking reconciliation must be validated against actual Calendly webhook payloads
 
-```text
-normalized provider event
-    ↓
-repository lookup by provider_event_uri
-    ↓
-existing entitlement found
-    ↓
-apply lifecycle transition
-```
+Possible future reconciliation candidates include:
+
+* backend booking token returned by Calendly
+* invitee email with additional safeguards
+* another provider-supported tracking field discovered during live webhook validation
+
+Until real webhook payload validation is completed, first-booking reconciliation should be treated as an open integration question rather than a finalized architecture decision.
 
 If no entitlement exists:
 
@@ -2940,7 +2964,7 @@ Completed recently:
 * consistent admin pagination pattern
 * test email delivery isolation for pytest
 
-### 2. Real Calendly integration validation
+#### 2. Real Calendly integration validation
 
 Completed:
 
@@ -2948,9 +2972,24 @@ Completed:
 * Google Meet integration validation
 * email notification validation
 * Google Calendar synchronization validation
+* Calendly Personal Access Token created
+* Calendly API access validated through `/users/me`
+* current Calendly user URI verified
+* current Calendly organization URI verified
+* verified Calendly Personal Access Token scopes
+* implemented Calendly API client foundation
+* implemented live Calendly API connectivity test script
+* confirmed that no Calendly webhook subscriptions exist yet
+* confirmed that real webhook validation requires a publicly reachable HTTPS endpoint
+* identified architectural limitation of current first-booking reconciliation approach
+* confirmed that `provider_event_uri` cannot be used as the initial reconciliation key before the Calendly booking exists
 
 Remaining:
 
+* create publicly reachable HTTPS endpoint for local/staging webhook validation
+* create real Calendly webhook subscription
+* capture real `invitee.created` webhook payload
+* determine actual first-booking reconciliation strategy
 * validate real provider event URI behavior
 * validate real webhook lifecycle transitions
 * validate replay behavior from live provider deliveries

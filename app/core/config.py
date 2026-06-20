@@ -33,7 +33,8 @@ class Settings(BaseSettings):
     MAIL_SMTP_TLS: bool = True
 
     CALENDLY_CONSULTATION_URL: str | None = None
-    CALENDLY_WEBHOOK_SIGNING_SECRET: str = ""
+    CALENDLY_WEBHOOK_SIGNING_SECRET: str | None = None
+    CALENDLY_PERSONAL_ACCESS_TOKEN: str | None = None
 
     ADMIN_TOKEN: str = ""
 
