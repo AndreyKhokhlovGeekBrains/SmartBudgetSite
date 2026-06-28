@@ -20,6 +20,7 @@ from app.services.feedback_service import (
 from app.services.consultation_entitlement_service import (
     get_valid_consultation_entitlement_by_token,
 )
+from app.services.product_release_service import ProductReleaseService
 from app.models.product import ALLOWED_EDITIONS, ALLOWED_PRODUCT_STATUSES, Product
 from app.models.product_price import ProductPrice
 from app.utils.product_utils import get_product_package
@@ -803,7 +804,7 @@ def admin_consultations_page(
 
     return templates.TemplateResponse(
         request=request,
-        name="admin_consultations.html",
+        name="admin_consultation_entitlements.html",
         context={
             "entitlements": entitlements,
             "lang": lang,
@@ -852,6 +853,26 @@ async def admin_sales_list(
             "page": page,
             "page_size": page_size,
             "has_next": has_next,
+        },
+    )
+
+
+@admin_router.get("/products/{product_id}/releases")
+def admin_product_releases(
+    request: Request,
+    product_id: int,
+    db: Session = Depends(get_db),
+):
+    release_service = ProductReleaseService(db)
+
+    releases = release_service.list_releases_by_product_id(product_id)
+
+    return templates.TemplateResponse(
+        "admin_product_releases.html",
+        {
+            "request": request,
+            "product_id": product_id,
+            "releases": releases,
         },
     )
 

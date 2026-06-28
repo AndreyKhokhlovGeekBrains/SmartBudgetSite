@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', path='css/admin.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', path='css/admin_product_releases.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-form product-releases-page">
+
+    <div class="product-releases-header">
+        <div>
+            <h1 class="admin-form-title">Manage Product Releases</h1>
+
+            <p>
+                <strong>Product ID:</strong> {{ product_id }}
+            </p>
+        </div>
+
+        <a href="#" class="btn-primary product-releases-upload-link">
+            Upload Release
+        </a>
+    </div>
+
+    <p>Shown: {{ releases|length }}</p>
+
+    <div class="admin-table-wrapper">
+        <table class="admin-table product-releases-table">
+            <thead>
+                <tr>
+                    <th class="product-releases-col-version">Version</th>
+                    <th class="product-releases-col-active">Active</th>
+                    <th class="product-releases-col-released">Released</th>
+                    <th class="product-releases-col-file">File</th>
+                    <th class="product-releases-col-storage">Storage</th>
+                    <th class="product-releases-col-actions">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+            {% for release in releases %}
+                <tr>
+                    <td class="product-releases-col-version">{{ release.version }}</td>
+
+                    <td class="product-releases-col-active">
+                        {% if release.is_active %}
+                            Yes
+                        {% else %}
+                            No
+                        {% endif %}
+                    </td>
+
+                    <td class="product-releases-col-released">
+                        {% if release.released_at %}
+                            {{ release.released_at.strftime("%Y-%m-%d %H:%M") }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+
+                    <td class="product-releases-col-file">
+                        {{ release.original_filename }}
+                    </td>
+
+                    <td class="product-releases-col-storage">
+                        {{ release.storage_provider }}
+                    </td>
+
+                    <td class="product-releases-col-actions">
+                        {% if release.is_active %}
+                            <span class="product-releases-current-label">Current</span>
+                        {% else %}
+                            <a href="#">Publish</a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="6">
+                        No releases yet.
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <p style="margin-top: 20px;">
+        <a href="/admin/products">Back to products</a>
+    </p>
+
+</div>
+{% endblock %}

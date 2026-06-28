@@ -1,11 +1,14 @@
 from datetime import date, datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import String, Date, DateTime, UniqueConstraint, func
 from sqlalchemy.orm import Mapped, mapped_column, validates, relationship
 
 from app.core.db import Base
-
 from app.models.product_price import ProductPrice
+
+if TYPE_CHECKING:
+    from app.models.product_release import ProductRelease
 
 ALLOWED_EDITIONS = {"Standard", "Pro"}
 ALLOWED_PRODUCT_STATUSES = {"in_sale", "in_development", "discontinued"}
@@ -50,6 +53,13 @@ class Product(Base):
     prices: Mapped[list["ProductPrice"]] = relationship(
         "ProductPrice",
         backref="product",
+        cascade="all, delete-orphan",
+    )
+
+    # Related product release records.
+    releases: Mapped[list["ProductRelease"]] = relationship(
+        "ProductRelease",
+        back_populates="product",
         cascade="all, delete-orphan",
     )
 

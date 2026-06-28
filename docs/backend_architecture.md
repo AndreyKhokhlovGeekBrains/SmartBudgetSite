@@ -2940,31 +2940,398 @@ Operational note:
 * consultation booking page should later include a fallback support/contact option if Calendly is unavailable
 * evaluate whether customer-facing guidance about VPN requirements is needed before public launch
 
-## Next sprint priorities (after Sprint 35)
+## Sprint 36 checkpoint: Calendly API validation foundation
 
-### 1. Admin operational hardening
+### Completed
+
+* created Calendly Personal Access Token
+* validated Calendly API access through `/users/me`
+* validated current Calendly user URI
+* validated current Calendly organization URI
+* verified required PAT scopes
+* implemented Calendly API client foundation
+* implemented webhook subscription discovery
+* implemented Calendly API validation script
+* confirmed that no Calendly webhook subscriptions currently exist
+* confirmed that real webhook validation requires a publicly reachable HTTPS endpoint
+* documented current reconciliation assumptions
+
+### Architecture decisions
+
+* Calendly API access is now validated independently from webhook delivery
+* webhook subscription lifecycle should be managed through the Calendly API
+* current reconciliation based on `provider_event_uri` must be treated as a replay/idempotency mechanism, not a validated first-booking reconciliation strategy
+* actual first-booking reconciliation remains an open integration question until real webhook payloads are captured
+
+### Current limitation
+
+* real webhook payloads have not yet been captured
+* first-booking reconciliation strategy remains unvalidated
+* public HTTPS endpoint is still required for live webhook testing
+
+## Deployment readiness status
+
+### Hosting feasibility
+
+Completed:
+
+* verified that Hetzner registration is not available for Russian residents
+* verified that Contabo registration is not available for Russian residents
+* evaluated alternative hosting providers
+* successfully created Serverspace account using real Russian identity data
+* verified Netherlands region availability
+* verified deployment infrastructure availability
+
+Important finding:
+
+* deployment is no longer blocked by hosting availability
+* deployment is currently blocked by international payment infrastructure
+
+### Domain infrastructure
+
+Completed:
+
+* verified Cloudflare Registrar ownership of neocitrix.com
+* verified Cloudflare DNS operation
+* verified that SmartBudgetSite has never been publicly deployed
+* verified that current DNS records belong only to historical Home Assistant and Ollama usage
+
+Important finding:
+
+* domain ownership and DNS infrastructure are operational
+* no production DNS records currently exist for SmartBudgetSite
+
+## International payment infrastructure status
+
+### Current status
+
+* Russian cards cannot currently be used for planned hosting payments
+* international banking became a deployment dependency
+* Kazakhstan banking route is under evaluation
+* VPS purchase is intentionally postponed until payment infrastructure is available
+
+### Project decision
+
+* continue SmartBudgetSite development while payment infrastructure is being arranged
+* treat payment setup as an external dependency
+* avoid blocking product development on banking timelines
+
+### Superseded assumption
+
+Earlier architecture checkpoints treated `provider_event_uri`
+as the likely reconciliation key for Calendly booking confirmation.
+
+Calendly API validation demonstrated that this assumption is incomplete.
+
+Current understanding:
+
+* `provider_event_uri` remains useful for replay handling and idempotency
+* `provider_event_uri` is not sufficient for first-booking reconciliation
+* first-booking reconciliation remains an open integration question until real webhook payloads are captured
+
+Sprint 36 supersedes earlier assumptions regarding first-booking reconciliation.
+
+## Next sprint priorities (after Sprint 36)
+
+### 1. Deployment preparation
+
+Completed:
+
+* hosting provider evaluation
+* deployment feasibility validation
+* Serverspace account creation
+* Cloudflare domain validation
 
 Current status:
 
-* Admin Dashboard
-* Products admin
-* Feedback admin
-* Consultation Entitlements admin
-* Sales admin
+* Serverspace account successfully created
+* Netherlands deployment region verified
+* Cloudflare Registrar ownership verified
+* Cloudflare DNS infrastructure verified
+* deployment infrastructure is technically available
 
-Completed recently:
+Blocked by:
 
-* sales status filtering
-* sales customer email filtering
-* sales product/service filtering
-* sales filter reset support
-* sales pagination
-* feedback pagination
-* consultation entitlements pagination
-* consistent admin pagination pattern
-* test email delivery isolation for pytest
+* international payment infrastructure setup
+* VPS purchase
 
-#### 2. Real Calendly integration validation
+Remaining:
+
+* production environment variable setup
+* domain integration planning
+* production startup validation planning
+* operational logging review
+
+---
+
+### 2. Product delivery architecture
+
+New priority:
+
+* define product file storage strategy
+* define versioned product delivery strategy
+* define download link lifecycle
+* define future admin upload workflow
+* define release management approach
+
+Goal:
+
+* establish a maintainable product delivery process before first public sales
+* avoid manual file distribution workflows after launch
+* keep product delivery architecture compatible with future product updates
+
+Decision:
+
+* product delivery must be entitlement-based
+* customers receive a protected download page link, not a direct public file URL
+* each paid product sale item creates one backend-owned download entitlement
+* each download entitlement is tied to the delivered product version
+* MVP delivery should prioritize successful customer download completion over strict one-click download blocking
+* repeated download attempts are allowed only within controlled retry limits
+* download access must be blocked after successful completion criteria are met or retry limits are exceeded
+
+MVP download retry policy:
+
+* allow limited retry attempts for interrupted or failed downloads
+* allow retries only within a short validity window
+* track download attempt count
+* track first download attempt timestamp
+* track last download attempt timestamp
+* track successful/completed download timestamp when technically available
+* mark entitlement as completed after successful delivery criteria are met
+
+Anti-abuse controls:
+
+* use secure random download tokens
+* never expose direct public storage URLs permanently
+* generate short-lived file access URLs only after backend validation
+* limit total download attempts per entitlement
+* limit download access by expiration window
+* log download attempts with timestamp, IP address, and user agent
+* show a support-oriented message when access is blocked
+
+Support rule:
+
+* admin support tooling should later allow controlled reissue/reset of a download entitlement
+* reissue/reset must be explicit and auditable
+
+### Product release architecture
+
+`Product` represents a sellable SKU, not a downloadable file.
+
+Examples:
+
+* SmartBudget RU Standard
+* SmartBudget INT Standard
+* SmartBudget RU Pro
+
+`ProductRelease` represents a concrete released file/version for one product SKU.
+
+Examples:
+
+* SmartBudget RU Standard v1.0
+* SmartBudget RU Standard v1.1
+* SmartBudget INT Standard v1.0
+
+`products.version` and `products.archive_path` are legacy/transitional fields and must not be used for new download delivery logic.
+
+New product delivery logic must resolve downloadable files through:
+
+SaleItem
+    ↓
+DownloadEntitlement
+    ↓
+ProductRelease
+    ↓
+Cloudflare R2 object
+
+Each product SKU may have many releases, but only one active public release should be used for normal customer download delivery.
+
+Customers own the purchased SKU, while download delivery resolves to the active release for that SKU unless support/admin explicitly reissues a specific release.
+
+#### Legacy Product fields cleanup rule
+
+Current `products` fields:
+
+* `version`
+* `release_date`
+* `archive_path`
+
+are transitional legacy fields from the pre-release-management architecture.
+
+New product delivery logic must not depend on these fields.
+
+After `ProductRelease` and `DownloadEntitlement` are fully integrated, these fields must be removed from:
+
+* SQLAlchemy `Product` model
+* Alembic schema
+* admin product create/edit forms
+* product list templates
+* seed/dev data scripts
+* tests
+
+Until removal, these fields may remain only for backward compatibility and migration safety.
+
+Important rule:
+
+`ProductRelease` is the source of truth for downloadable product version and file storage metadata.
+
+### ProductRelease responsibilities
+
+`ProductRelease` is a technical release entity.
+
+It is responsible for:
+
+* released product version
+* release notes
+* downloadable archive metadata
+* storage provider
+* storage object key
+* file integrity metadata
+* release publication state
+
+It is NOT responsible for:
+
+* product pricing
+* product edition
+* product family
+* product status
+* payment logic
+* customer ownership
+
+Those responsibilities remain owned by `Product`, `ProductPrice`, `SaleItem`, and `DownloadEntitlement`.
+
+Architecture rule:
+
+Business entities and release management must remain separated.
+
+`Product` describes what is sold.
+
+`ProductRelease` describes what is delivered.
+
+#### Admin release workflow
+
+Product creation and release upload must remain separate operations.
+
+After a product is created successfully, the admin flow should redirect to the product release management page for that product.
+
+Admin Dashboard must also provide a direct Product Releases entry point for routine release uploads.
+
+Workflow:
+
+Create Product
+    ↓
+Redirect to Manage Releases for created product
+    ↓
+Upload first release
+
+Regular update workflow:
+
+Admin Dashboard
+    ↓
+Product Releases
+    ↓
+Select product / open product releases
+    ↓
+Upload new release
+    ↓
+Mark release as active
+
+#### Release publishing rule
+
+Product Releases must be managed as a release lifecycle, not as a raw file list.
+
+Each product SKU may have many releases, but only one release may be the active public release used for normal customer download delivery.
+
+Admin UI must not allow administrators to manually change the active public release as the primary workflow.
+
+Instead, publishing must happen through an explicit business action:
+
+* Upload release
+* Publish release
+
+The publish action must:
+
+* deactivate the previously active release for the same product
+* activate the selected release
+* set `released_at` when needed
+* keep the operation atomic
+* guarantee that one product cannot have multiple active public releases
+
+This rule must be enforced in the service layer, not only in templates or admin UI.
+
+Business meaning:
+
+* `Upload release` creates a release candidate.
+* `Publish release` makes that release the current customer-facing downloadable version.
+
+Important:
+
+The backend must guarantee that only one active public release exists for each product SKU at any time.
+
+### Product version ownership model
+
+Decision:
+
+* customers purchase a product edition, not a specific file version
+* product ownership is tied to the purchased SKU
+* By default, customers receive the current active release of the purchased SKU.
+* The backend may explicitly bind a DownloadEntitlement to a specific ProductRelease for support, rollback, or controlled reissue scenarios.
+* download delivery should resolve to the current active release for that SKU
+* historical product versions may be retained for operational purposes but are not part of the customer entitlement model
+
+Examples:
+
+* SmartBudget RU Standard → latest SmartBudget RU Standard release
+* SmartBudget INT Standard → latest SmartBudget INT Standard release
+
+Important:
+
+* product version numbers are release-management metadata
+* customer ownership is based on purchased product identity, not release version
+
+Release candidate
+        ↓
+Published (Active)
+        ↓
+Archived
+
+### Product file storage strategy
+
+Decision:
+
+* Cloudflare R2 is the primary product file storage provider
+* product files must not be stored permanently on application VPS instances
+* download delivery architecture should remain independent from hosting provider selection
+* SmartBudgetSite backend remains responsible for entitlement validation and download authorization
+* Cloudflare R2 remains responsible for binary file storage
+
+Architecture direction:
+
+SaleItem
+    ↓
+DownloadEntitlement
+    ↓
+ProductRelease
+    ↓
+Cloudflare R2 object
+
+Benefits:
+
+* product files survive VPS migrations
+* hosting provider can be replaced without moving product assets
+* product storage scales independently from application hosting
+* future release management becomes simpler
+* download delivery remains compatible with short-lived signed URLs
+
+Important:
+
+* direct public access to R2 product files must not be allowed
+* all download access must pass through backend entitlement validation
+
+---
+
+### 3. Real Calendly integration validation
 
 Completed:
 
@@ -2972,42 +3339,171 @@ Completed:
 * Google Meet integration validation
 * email notification validation
 * Google Calendar synchronization validation
-* Calendly Personal Access Token created
-* Calendly API access validated through `/users/me`
-* current Calendly user URI verified
-* current Calendly organization URI verified
-* verified Calendly Personal Access Token scopes
-* implemented Calendly API client foundation
-* implemented live Calendly API connectivity test script
-* confirmed that no Calendly webhook subscriptions exist yet
-* confirmed that real webhook validation requires a publicly reachable HTTPS endpoint
-* identified architectural limitation of current first-booking reconciliation approach
-* confirmed that `provider_event_uri` cannot be used as the initial reconciliation key before the Calendly booking exists
+* Calendly API validation
+* PAT validation
+* current user discovery
+* current organization discovery
+* webhook subscription discovery
+
+Current findings:
+
+* no Calendly webhook subscriptions currently exist
+* public HTTPS endpoint is required for real webhook validation
+* current `provider_event_uri` approach is insufficient for first-booking reconciliation
+* actual first-booking reconciliation strategy remains unvalidated
 
 Remaining:
 
-* create publicly reachable HTTPS endpoint for local/staging webhook validation
+* create publicly reachable HTTPS endpoint
 * create real Calendly webhook subscription
 * capture real `invitee.created` webhook payload
 * determine actual first-booking reconciliation strategy
-* validate real provider event URI behavior
 * validate real webhook lifecycle transitions
 * validate replay behavior from live provider deliveries
 * verify provider booking/cancellation edge cases
 * verify SmartBudgetSite webhook processing against real provider deliveries
 
-### 3. Deployment preparation
+Important:
 
-* production environment variable setup
-* hosting selection
-* domain integration
-* production startup validation
-* operational logging review
+* do not repeat Calendly account setup validation
+* do not repeat PAT validation
+* do not repeat Google Meet validation
+* do not repeat booking flow validation
 
-### 4. Merchant of Record integration (Paddle)
+---
 
-* create Paddle account
-* configure products/prices
-* implement checkout redirect flow
+### 4. Merchant of Record validation
+
+Current status:
+
+* Paddle onboarding investigation started
+* Paddle registration appears unsuitable for current Russian-resident setup
+* FastSpring onboarding initiated
+* FastSpring account successfully created
+* FastSpring onboarding specialist assigned
+* product review information submitted to FastSpring
+
+Remaining:
+
+* obtain FastSpring onboarding decision
+* determine payout eligibility requirements
+* determine supported payout destinations
+* validate merchant onboarding requirements
+* select final Merchant of Record provider
+* define checkout architecture
 * define payment success lifecycle
-* prepare Paddle webhook architecture
+* prepare payment webhook architecture
+
+Important:
+
+* payment provider selection remains unresolved
+* international banking infrastructure remains a prerequisite for production launch
+
+---
+
+### Current project state
+
+Operational:
+
+* Admin Dashboard
+* Products admin
+* Feedback admin
+* Consultation Entitlements admin
+* Sales admin
+* Admin filtering and pagination operational
+
+Calendly:
+
+* Calendly account configured and validated
+* Google Meet integration validated
+* booking and cancellation flows validated
+* Calendly API access validated
+* webhook infrastructure prepared
+
+Infrastructure:
+
+* Serverspace account prepared
+* Cloudflare domain infrastructure verified
+* deployment technically feasible
+
+Quality:
+
+* all automated tests passing
+
+---
+
+### Strategic launch constraint
+
+Current primary deployment blocker:
+
+* international payment infrastructure
+
+Current non-blockers:
+
+* hosting availability
+* domain ownership
+* DNS infrastructure
+* Calendly account setup
+* backend implementation readiness
+
+Project decision:
+
+* continue SmartBudgetSite development while payment infrastructure is being arranged
+* treat international banking setup as an external dependency
+* avoid pausing product development while waiting for banking resolution
+
+---
+
+### Documentation rule
+
+`backend_architecture.md` remains the primary project state document.
+
+Before starting new implementation work:
+
+* update documentation first
+* keep sprint checkpoints current
+* avoid re-validating already-confirmed infrastructure decisions
+
+## Sprint 37 checkpoint: Product release foundation
+
+### Completed
+
+* documented product delivery architecture
+* documented ProductRelease ownership model
+* documented legacy Product field cleanup rule
+* documented admin release workflow
+* documented release publishing rule
+* added `ProductRelease` model
+* added `Product` → `ProductRelease` relationship
+* added Alembic migration for `product_releases`
+* added `ProductReleaseRepository`
+* added `ProductReleaseService`
+* implemented release creation service logic
+* implemented release publishing service logic
+* enforced one active public release per product through service-level publish logic
+* added Product Releases admin route foundation
+* added Product Releases admin template foundation
+* added Product Releases entry point styling
+* split shared admin CSS into `admin.css`
+* moved page-specific admin CSS into dedicated files
+* added repository and service tests for product releases
+* all automated tests passing: 102
+
+### Architecture decisions
+
+* `Product` remains the commercial SKU entity
+* `ProductRelease` is the technical release entity
+* uploaded releases are inactive candidates by default
+* publishing a release is an explicit business action
+* publish logic belongs to service layer, not repository or template
+* admin routes must call service methods, not repositories directly
+* shared admin UI styles belong in `admin.css`
+* page-specific admin styles belong in dedicated CSS files
+
+### Current limitation
+
+* upload release form is not implemented yet
+* real file upload to Cloudflare R2 is not implemented yet
+* publish action is not wired to Admin UI yet
+* download entitlements are not implemented yet
+* legacy `products.version`, `products.release_date`, and `products.archive_path` still exist temporarily

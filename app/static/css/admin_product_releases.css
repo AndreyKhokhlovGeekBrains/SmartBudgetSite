@@ -1,0 +1,56 @@
+/* =========================
+   Admin: Product Releases
+   ========================= */
+
+.product-releases-page {
+    max-width: 1000px;
+}
+
+.product-releases-col-version {
+    min-width: 120px;
+}
+
+.product-releases-col-active {
+    min-width: 100px;
+}
+
+.product-releases-col-released {
+    min-width: 160px;
+}
+
+.product-releases-col-file {
+    min-width: 260px;
+    overflow-wrap: anywhere;
+}
+
+.product-releases-col-storage {
+    min-width: 140px;
+}
+
+.product-releases-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.product-releases-upload-link {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.product-releases-col-actions {
+    min-width: 120px;
+}
+
+.product-releases-current-label {
+    font-weight: 600;
+    color: #2e7d32;
+}
+
+@media (max-width: 768px) {
+    .product-releases-header {
+        flex-direction: column;
+    }
+}

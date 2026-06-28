@@ -1,0 +1,188 @@
+/* =========================
+   Admin: Common Layout
+   ========================= */
+
+.admin-form {
+    max-width: 720px;
+    margin: 32px auto;
+    padding: 32px;
+    background: #ffffff;
+    border: 1px solid #e6e8ec;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(16, 24, 40, 0.06);
+}
+
+.admin-form-title {
+    margin: 0 0 24px;
+    font-size: 2rem;
+    line-height: 1.2;
+    font-weight: 700;
+    color: #111827;
+}
+
+/* =========================
+   Admin: Forms
+   ========================= */
+
+.admin-form-body {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    max-width: 100%;
+    min-height: 44px;
+    padding: 10px 12px;
+    font: inherit;
+    color: #111827;
+    background: #ffffff;
+    border: 1px solid #d0d5dd;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #1d4ed8;
+    box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.12);
+}
+
+.form-actions {
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* =========================
+   Admin: Buttons
+   ========================= */
+
+.btn-primary {
+    min-height: 44px;
+    padding: 0 18px;
+    font: inherit;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, #1d4ed8, #1e40af);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 6px 18px rgba(29, 78, 216, 0.18);
+}
+
+.btn-primary:hover {
+    filter: brightness(1.03);
+}
+
+.btn-primary:active {
+    transform: translateY(1px);
+}
+
+/* =========================
+   Admin: Dashboard
+   ========================= */
+
+.admin-dashboard-links {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.admin-link-card {
+    display: block;
+    padding: 14px 16px;
+    border: 1px solid #e6e8ec;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #111827;
+    font-weight: 600;
+    background: #f9fafb;
+    transition: all 0.15s ease;
+}
+
+.admin-link-card:hover {
+    background: #f3f4f6;
+    border-color: #d0d5dd;
+}
+
+/* =========================
+   Admin: Tables
+   ========================= */
+
+.admin-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 0.75rem 1rem;
+    text-align: left;
+    vertical-align: top;
+}
+
+.admin-table th {
+    border-bottom: 2px solid #dcdcdc;
+}
+
+.admin-table td {
+    border-bottom: 1px solid #ececec;
+}
+
+/* =========================
+   Admin: Filters
+   ========================= */
+
+.admin-filter-form {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.5rem 0 2rem;
+}
+
+.admin-filter-form label {
+    font-weight: 600;
+}
+
+.admin-filter-form select,
+.admin-filter-form button {
+    padding: 0.5rem 0.75rem;
+}
+
+/* =========================
+   Responsive
+   ========================= */
+
+@media (max-width: 768px) {
+    .admin-form {
+        margin: 20px 16px;
+        padding: 20px;
+        border-radius: 10px;
+    }
+
+    .admin-form-title {
+        font-size: 1.75rem;
+    }
+}

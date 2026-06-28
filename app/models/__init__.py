@@ -10,3 +10,4 @@ from app.models.consultation_entitlement import (
     ConsultationEntitlement,
     ConsultationEntitlementStatus,
 )
+from app.models.product_release import ProductRelease
